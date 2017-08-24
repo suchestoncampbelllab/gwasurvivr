@@ -103,7 +103,7 @@ dat$fam <- DataFrame(sampleID=dat$fam)
 
 # create SummarizedExperiment object
 
-se.full <- SummarizedExperiment(assays=list("chr7-55000000-60000000.impute2"=dat$genotypes),
+se <- SummarizedExperiment(assays=list("chr7-55000000-60000000.impute2"=dat$genotypes),
                                 colData=dat$fam,
                                 rowRanges=dat.gr)
 
