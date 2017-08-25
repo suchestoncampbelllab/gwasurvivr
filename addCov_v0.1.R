@@ -48,6 +48,16 @@ length(colData(se)$sampleID)
 
 se.sub <- se[,colnames(se) %in% trm.cov$sampleID]
 
-
-
 data.frame(colData(se)) %>% left_join(trm.cov) %>% na.omit %>% nrow
+
+addCov <- function(se, covFile){
+        se <- se[,colnames(se) %in% covFile[[1]]]
+        colData(se) <- merge(colData(se), covFile)
+        return(se)
+}
+
+
+se.cov <- addCov(se.1, trm.cov)
+
+
+
