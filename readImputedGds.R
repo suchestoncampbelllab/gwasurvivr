@@ -1,8 +1,10 @@
 readImputedGds <- function(gdsfile, snpfile, scanfile, infofile){
         # read genotype
         gds <- GdsGenotypeReader(gdsfile)
+        
         # read in snp data
         snpAnnot <- getobj(snpfile)
+        
         # read scan 
         scanAnnot <- getobj(scanfile)
         
@@ -20,7 +22,7 @@ readImputedGds <- function(gdsfile, snpfile, scanfile, infofile){
         scan <- getAnnotation(getScanAnnotation(genoData))
         
         # read in info table
-        infofile <- read.table(input.files[4], header=F, stringsAsFactors = F)
+        infofile <- read.table(infofile, header=F, stringsAsFactors = F)
         colnames(infoFile) <- c("snp_id",
                                 "rs_id",
                                 "position",
@@ -34,6 +36,7 @@ readImputedGds <- function(gdsfile, snpfile, scanfile, infofile){
         
         # only grab columns of interest
         infofile <- infofile[,c("snp_id", "rs_id", "exp_freq_a1", "info", "certainty")]
+        
         # need to be able to generalize the following renaming in function
         infofile <- infofile %>% dplyr::rename(rsID=rs_id, snp=snp_id)
         
