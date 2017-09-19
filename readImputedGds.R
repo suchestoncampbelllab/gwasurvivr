@@ -1,10 +1,10 @@
-readImputedGds <- function(input.files){
+readImputedGds <- function(gdsfile, snpfile, scanfile){
         # read genotype
-        gds <- GdsGenotypeReader(input.files[1])
+        gds <- GdsGenotypeReader(gdsfile)
         # read in snp data
-        snpAnnot <- getobj(input.files[2])
+        snpAnnot <- getobj(snpfile)
         # read scan 
-        scanAnnot <- getobj(input.files[3])
+        scanAnnot <- getobj(scanfile)
         
         # put into GenotypeData coding 
         genoData <- GenotypeData(gds,
