@@ -1,4 +1,4 @@
-readImputedGds <- function(gdsfile, snpfile, scanfile){
+readImputedGds <- function(gdsfile, snpfile, scanfile, infofile){
         # read genotype
         gds <- GdsGenotypeReader(gdsfile)
         # read in snp data
@@ -20,7 +20,7 @@ readImputedGds <- function(gdsfile, snpfile, scanfile){
         scan <- getAnnotation(getScanAnnotation(genoData))
         
         # read in info table
-        infoFile <- read.table(input.files[4], header=F, stringsAsFactors = F)
+        infofile <- read.table(input.files[4], header=F, stringsAsFactors = F)
         colnames(infoFile) <- c("snp_id",
                                 "rs_id",
                                 "position",
@@ -33,12 +33,12 @@ readImputedGds <- function(gdsfile, snpfile, scanfile){
                                 "r2_type0")
         
         # only grab columns of interest
-        infoFile <- infoFile[,c("snp_id", "rs_id", "exp_freq_a1", "info", "certainty")]
+        infofile <- infofile[,c("snp_id", "rs_id", "exp_freq_a1", "info", "certainty")]
         # need to be able to generalize the following renaming in function
-        infoFile <- infoFile %>% dplyr::rename(rsID=rs_id, snp=snp_id)
+        infofile <- infofile %>% dplyr::rename(rsID=rs_id, snp=snp_id)
         
         # merge 'map' file with info file
-        snp <- snp %>% dplyr::left_join(infoFile)
+        snp <- snp %>% dplyr::left_join(infofile)
 
         # create 'end' position -- since these are SNPs they are the same 
         snp$end <- snp$position 
