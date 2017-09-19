@@ -1,4 +1,9 @@
 readImputedGds <- function(gdsfile, snpfile, scanfile, infofile){
+        library(GWASTools)
+        library(magrittr)
+        library(dplyr)
+        library(data.table)
+        library(SummarizedExperiment)
         # read genotype
         gds <- GdsGenotypeReader(gdsfile)
         

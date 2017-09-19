@@ -6,7 +6,7 @@ addCov <- function(se, covFile){
 }
 
 
-se.cov <- addCov(se.1, trm.cov)
+#se.cov <- addCov(se.1, trm.cov)
 
 
 

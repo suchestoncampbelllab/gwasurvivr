@@ -1,6 +1,6 @@
 coxSurv <- function(se, time, event, covariates){
         library(survival)
-        #.env <- environment()
+        library(SummarizedExperiment)
         colData(se) <- colData(se)[,c(time, event, covariates)]
         
         # maybe add operability with different assays
