@@ -4,20 +4,18 @@ readImputedGds <- function(gdsfile, snpfile, scanfile, infofile){
         library(dplyr)
         library(data.table)
         library(SummarizedExperiment)
+        
         # read genotype
         gds <- GdsGenotypeReader(gdsfile)
-        
         # read in snp data
         snpAnnot <- getobj(snpfile)
-        
-        # read scan 
+        # read scan
         scanAnnot <- getobj(scanfile)
-        
         # put into GenotypeData coding 
         genoData <- GenotypeData(gds,
-                                 scanAnnot=scanAnnot,
-                                 snpAnnot=snpAnnot)
-        
+                                 snpAnnot=snpAnnot,
+                                 scanAnnot=scanAnnot)
+
         # store genotype, sample info and, and snp info
         genotypes <- getGenotype(genoData)
         
@@ -27,7 +25,7 @@ readImputedGds <- function(gdsfile, snpfile, scanfile, infofile){
         scan <- getAnnotation(getScanAnnotation(genoData))
         
         # read in info table
-        infofile <- read.table(infofile, header=F, stringsAsFactors = F)
+        infofile <- read.table(infofile, header=T, stringsAsFactors = F)
         colnames(infofile) <- c("snp_id",
                                 "rs_id",
                                 "position",
@@ -38,34 +36,23 @@ readImputedGds <- function(gdsfile, snpfile, scanfile, infofile){
                                 "info_type0", 
                                 "concord_type0",
                                 "r2_type0")
-        
-        # only grab columns of interest
-        infofile <- infofile[,c("snp_id", "rs_id", "exp_freq_a1", "info", "certainty")]
-        
-        # need to be able to generalize the following renaming in function
-        infofile <- infofile %>% dplyr::rename(rsID=rs_id, snp=snp_id)
-        
-        # merge 'map' file with info file
-        snp <- snp %>% dplyr::left_join(infofile)
 
-        # create 'end' position -- since these are SNPs they are the same 
-        snp$end <- snp$position 
+        infofile <- infofile %>% dplyr::select(snp_id, rs_id, exp_freq_a1, info, certainty) %>%  # only grab columns of interest
+        dplyr::rename(rsID=rs_id, snp=snp_id) # need to be able to generalize the following renaming in function
         
-        # rename position to start so we can convert into GRanges object
-        snp <- snp %>% dplyr::rename(start=position, chr=chromosome) 
-        
-        # create GRanges object because needed for rowRanges in se
-        dat.gr <- makeGRangesFromDataFrame(snp, keep.extra.columns = T)
+        # merge snp file with info file
+        snp <- snp %>% dplyr::left_join(infofile) %>%
+                mutate(end=position) %>% # create 'end' position -- since these are SNPs they are the same 
+                dplyr::rename(start=position, chr=chromosome) %>% # rename position to start so we can convert into GRanges object
+                makeGRangesFromDataFrame(keep.extra.columns=T) # create GRanges object because needed for rowRanges in se
         
         # parse sample file ... but might not do this
-        scan <- scan[,c("ID_1", "ID_2", "missing", "sex")]
-        scan <- scan %>% dplyr::rename(sex_fromSampleFile="sex")
-        
-        # convert to DataFrame so it can be put in colData
-        scan <- DataFrame(scan)
+        scan <- scan %>% select(ID_1, ID_2, missing, sex) %>% 
+                dplyr::rename(sex_fromSampleFile="sex") %>%
+                DataFrame()
         
         # assign names (so summarizedexperiment object has colnames and rownames filled out)
-        dimnames(genotypes) <- list(dat.gr$rsID, scan$ID_2)
+        dimnames(genotypes) <- list(snpr$rsID, scan$ID_2)
         
         # put into summarizedexperiment 
         se <- SummarizedExperiment(assays=list(input.files=genotypes),
