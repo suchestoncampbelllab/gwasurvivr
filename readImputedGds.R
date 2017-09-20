@@ -5,13 +5,6 @@ readImputedGds <- function(gdsfile, snpfile, scanfile, infofile){
         library(data.table)
         library(SummarizedExperiment)
         
-        
-        files <- list.files(pattern="BMT")[1:3]
-        gdsfile <- files[1]
-        snpfile <- files[3]
-        scanfile <- files[2]
-        infofile <- "/projects/rpci/lsuchest/lsuchest/Rserve/ImputeData/var/db/gwas/imputed_data/BMT093013_forImpute/BMT093013_forImpute.chr1-0-5000000.impute2_info"
-        
         # read genotype
         gds <- GdsGenotypeReader(gdsfile)
         # read in snp data
