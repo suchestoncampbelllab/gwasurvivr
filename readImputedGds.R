@@ -28,7 +28,7 @@ readImputedGds <- function(gdsfile, snpfile, scanfile, infofile){
         
         # read in info table
         infofile <- read.table(infofile, header=F, stringsAsFactors = F)
-        colnames(infoFile) <- c("snp_id",
+        colnames(infofile) <- c("snp_id",
                                 "rs_id",
                                 "position",
                                 "exp_freq_a1",
@@ -71,6 +71,6 @@ readImputedGds <- function(gdsfile, snpfile, scanfile, infofile){
         se <- SummarizedExperiment(assays=list(input.files=genotypes),
                                    colData=scan,
                                    rowRanges=dat.gr)
-        
         return(se)
 }
+
