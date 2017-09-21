@@ -61,7 +61,6 @@ readImputedGds <- function(gdsfile, scanfile, snpfile, infofile){
         
         # close gds files so you can reopen them
         close(gds)
-        #unlink(c(gdsfile, scanfile, snpfile))
         return(se)
 }
 
