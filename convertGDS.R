@@ -19,3 +19,5 @@ convertImputeGds <- function(args){
                           snp.annot.filename = snpfile,
                           scan.annot.filename = scanfile)
 }
+
+convertImputeGds(args)
