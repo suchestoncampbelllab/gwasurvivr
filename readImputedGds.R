@@ -1,4 +1,4 @@
-readImputedGds <- function(gdsfile, snpfile, scanfile, infofile){
+readImputedGds <- function(gdsfile, scanfile, snpfile, infofile){
         library(GWASTools)
         library(magrittr)
         library(dplyr)
@@ -58,6 +58,10 @@ readImputedGds <- function(gdsfile, snpfile, scanfile, infofile){
         se <- SummarizedExperiment(assays=list(input.files=genotypes),
                                    colData=scan,
                                    rowRanges=snp)
+        
+        # close gds files so you can reopen them
+        unlink(gdsfile, scanfile, snpfile)
+        close(gds)
         return(se)
 }
 
