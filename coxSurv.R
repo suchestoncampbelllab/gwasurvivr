@@ -11,10 +11,12 @@ coxSurv <- function(se, time, event, covariates){
                           ") ~ input.genotype + ",
                           paste(covariates, collapse=" + "))
         
+        
         survFit <- function(input.genotype){
-                stat <- tryCatch(coxph(as.formula(formula), data=data.frame(colData(se))),
-                                 warning=function(warn)NA,
-                                 error=function(err)NA
+                env <- new.env()
+                stat <- tryCatch(coxph(as.formula(formula), data=colData(se)),
+                                 warning=function(warn) env[["warnings"]] <- warn,
+                                 error=function(err) env[["errors"]] <- err
                 )
                 if(any(is.na(stat))){
                         rep(NA, 7)
