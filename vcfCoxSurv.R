@@ -1,23 +1,40 @@
 library(VariantAnnotation)
 vcf <- VcfFile("chr21.dose.vcf.gz")
 vcf <- VcfFile("chr21.dose.vcf.gz", yieldSize=5000)
-scanVcfHeader(vcf)
-yieldTabix(vcf)
-scanVcfHeader(vcf)
+# scanVcfHeader(vcf)
+# yieldTabix(vcf)
+# scanVcfHeader(vcf)
 
-info(scanVcfHeader(vcf))
-vcf.file <- readVcf(vcf)
+# info(scanVcfHeader(vcf))
+# vcf.file <- readVcf(vcf)
+
+
+x <- 1
+
+repeat {
+        print(x)
+        x = x+1
+        if (x == 6){
+                break
+        }
+}
 
 open(vcf.file)
 
-
 ## write function
+vcf.file="chr21.dose.vcf.gz"; chunk.size=100
 
-vcfCoxSurv <- function(vcf.file, chunk.size){
-        open(vcf.file)
-        repeat{
-                vcf <- VcfFile(vcf.file, yieldSize=chunk.size)
-                data <- readVcf(vcf)
+vcfCoxSurv <- function(vcf.file, chunk.size, pheno.file){
+        
+        vcf <- VcfFile(vcf.file, yieldSize=chunk.size)
+        open(vcf)
+        
+        repeat{ 
+                data <- readVcf(vcf, param=ScanVcfParam(geno="DS"))
+                dosage <- geno(data)$DS
+                info <- info(data)
+                data
+                
                 if(nrow(data==0)){
                         break
                 }
