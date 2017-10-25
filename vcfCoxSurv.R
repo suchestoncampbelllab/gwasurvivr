@@ -1,74 +1,108 @@
 library(VariantAnnotation)
-vcf <- VcfFile("chr21.dose.vcf.gz")
-vcf <- VcfFile("chr21.dose.vcf.gz", yieldSize=5000)
-# scanVcfHeader(vcf)
-# yieldTabix(vcf)
-# scanVcfHeader(vcf)
+library(survival)
+library(data.table)
+library(dplyr); library(tidyr)
 
-# info(scanVcfHeader(vcf))
-# vcf.file <- readVcf(vcf)
+pdata <-fread("/projects/rpci/lsuchest/lsuchest/DBMT_PhenoData/DBMTpheno_EA_long_20171023.txt")
 
-
-x <- 1
-
-repeat {
-        print(x)
-        x = x+1
-        if (x == 6){
-                break
-        }
-}
-
-open(vcf.file)
 
 ## write function
-vcf.file="chr21.dose.vcf.gz"; chunk.size=100
+vcf.file="./chr21_sub/chr21.25000000-26000000.dose.vcf.recode.vcf.gz"
+chunk.size=100000
+time="intxsurv_1Y"
+event="dead_1Y"
+covariates=c("distatD", "age")
+pheno.file = pdata %>% 
+                mutate(sample.ids=paste0("SAMP", 1:nrow(.))) %>%
+                dplyr::select(sample.ids, intxsurv_1Y, age, distatD, intxsurv_1Y, dead_1Y)
+sample.ids = paste0("SAMP", sample(1:1000, size=200))
+output.name="test_survivR/chr21"
 
-vcfCoxSurv <- function(vcf.file, chunk.size, pheno.file){
-        
+
+
+vcfCoxSurv <- function(vcf.file, chunk.size, pheno.file, time, event, 
+                       covariates, sample.ids, output.name){
+
+        # subset phenotype file for sample ids
+        pheno.file <- pheno.file[match(sample.ids, pheno.file$sample.ids), ]
+        # define the formula for CoxPH
+        formula <- paste0("Surv(time=",
+                          time,
+                          ", event=",
+                          event,
+                          ") ~ input.genotype + ",
+                          paste(covariates, collapse=" + "))
+        # assign survival function with the defined formula
+        survFit <- function(input.genotype) {
+                fit <- coxph(formula=as.formula(formula), data=pheno.file)
+                res <- summary(fit)
+                
+                # following deals with snps that has no variance 
+                # e.g. (have the same genotpye probability accross samples)
+                if(dim(res$coef)[1] == 1+length(covariates)){#includes snp
+                        out <- c(res$coef[1,],res$conf.int[1,-c(1:2)], n=res$n, n.event=res$nevent)
+                }else{ 
+                        out <- rep(NA, 11)
+                }
+        }
+           
+        # define vcf.file and chunks, open vcf file
         vcf <- VcfFile(vcf.file, yieldSize=chunk.size)
         open(vcf)
+        chunk_start <- 0
+        chunk_end <- chunk.size
         
+        write.table(t(c("coef", "exp.coef", "se.coef", "z", "p.value",
+                                       "lower.CI95", "upper.CI95", "n","n.event")), 
+                            paste0(output.name, ".coxph"),
+                            append = F, 
+                            row.names = F,
+                            col.names = F,
+                            quote = F,
+                            sep="\t")
+        
+        # get genotype probabilities by chunks
+        # apply the survival function and save output
         repeat{ 
+                # read in just dosage data from Vcf file
                 data <- readVcf(vcf, param=ScanVcfParam(geno="DS"))
-                dosage <- geno(data)$DS
-                info <- info(data)
-                data
+                # read dosage data from collapsed vcf, subset for defined ids
+                genotype <- geno(data)$DS[, sample.ids]
+
+                # message user
+                message("Analyzing chunk ", chunk_start, "-", chunk_end)
+
+                # apply survival function
+                snp.out <- t(apply(genotype, 1, survFit))
+                # change colnames to be more programming friendly
+                colnames(snp.out) <- c("coef", "exp.coef", "se.coef", "z", "p.value",
+                                       "lower.CI95", "upper.CI95", "n","n.event")
+                write.table(snp.out, 
+                            paste0(output.name, ".coxph"),
+                            append = T, 
+                            row.names = F,
+                            col.names = F,
+                            quote = F,
+                            sep="\t")
+
+                chunk_start <- chunk_start+chunk.size
+                chunk_end <- chunk_end+chunk.size
                 
-                if(nrow(data==0)){
+
+                # if(chunk_end==10000){
+                #         break
+                # }
+
+
+
+                if(nrow(data)==0){
                         break
                 }
-                
-                # grab data so that it is in SE
-                
-                # write a survival function
-                
-                # save output in chunks        
-                
         }
+        
         close(vcf.file)
-
 }
 
 
 
 
-repeat {
-        data <- readVcf(vcf)
-        if(nrow(data==0)) break
-        ## do whatever with chunk
-        # right here you'd fit 100 survival models and accumulate results
-        # save results and move onto next chunk
-        # next time through loop assign next chunk to same variable
-        ## so the previous memory is free to be garbage collected
-}
-
-
-
-
-newVcf <- readVcf(vcf,param=ScanVcfParam(geno="DS"))
-
-newVcf <- readVcf(vcf,param=ScanVcfParam(geno="DS", fixed=c("REF", "ALT"), info=c("MAF", "R2")))
-
-# just the DS matrix
-vcf.ds <- readGeno(vcf, "DS")
