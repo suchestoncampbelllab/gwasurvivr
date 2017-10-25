@@ -8,7 +8,7 @@ pdata <-fread("/projects/rpci/lsuchest/lsuchest/DBMT_PhenoData/DBMTpheno_EA_long
 
 ## write function
 vcf.file="./chr21_sub/chr21.25000000-26000000.dose.vcf.recode.vcf.gz"
-chunk.size=100000
+chunk.size=10000
 time="intxsurv_1Y"
 event="dead_1Y"
 covariates=c("distatD", "age")
@@ -39,11 +39,19 @@ vcfCoxSurv <- function(vcf.file, chunk.size, pheno.file, time, event,
                 
                 # following deals with snps that has no variance 
                 # e.g. (have the same genotpye probability accross samples)
-                if(dim(res$coef)[1] == 1+length(covariates)){#includes snp
-                        out <- c(res$coef[1,],res$conf.int[1,-c(1:2)], n=res$n, n.event=res$nevent)
-                }else{ 
-                        out <- rep(NA, 11)
+                fit <- tryCatch(coxph(as.formula(formula), data=pheno.file),
+                                 warning=function(warn) NA,
+                                 error=function(err) NA
+                )
+                
+                if(anyNA(fit)){
+                        rep(NA, 9)
+                }else{
+                        m <- summary(fit)
+                        c(m$coef[1,], m$conf.int[1,-c(1:2)] ,n=m$n, nevents=m$nevent)
                 }
+                                
+
         }
            
         # define vcf.file and chunks, open vcf file
@@ -52,8 +60,8 @@ vcfCoxSurv <- function(vcf.file, chunk.size, pheno.file, time, event,
         chunk_start <- 0
         chunk_end <- chunk.size
         
-        write.table(t(c("coef", "exp.coef", "se.coef", "z", "p.value",
-                                       "lower.CI95", "upper.CI95", "n","n.event")), 
+        write.table(data.frame(t(c("coef", "exp.coef", "se.coef", "z", "p.value",
+                                       "lower.CI95", "upper.CI95", "n", "n.event"))), 
                             paste0(output.name, ".coxph"),
                             append = F, 
                             row.names = F,
@@ -77,7 +85,7 @@ vcfCoxSurv <- function(vcf.file, chunk.size, pheno.file, time, event,
                 # change colnames to be more programming friendly
                 colnames(snp.out) <- c("coef", "exp.coef", "se.coef", "z", "p.value",
                                        "lower.CI95", "upper.CI95", "n","n.event")
-                write.table(snp.out, 
+                write.table(data.frame(snp.out), 
                             paste0(output.name, ".coxph"),
                             append = T, 
                             row.names = F,
