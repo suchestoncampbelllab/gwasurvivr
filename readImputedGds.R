@@ -56,7 +56,7 @@ readImputedGds <- function(gdsfile, scanfile, snpfile, infofile){
         # assign names (so summarizedexperiment object has colnames and rownames filled out)
         dimnames(genotypes) <- list(snp$rsID, scan$ID_2)
         
-        assay.name <- as.character(gsub(".gds", "", gdsfile))
+        chunk.name <- as.character(gsub(".gds", "", gdsfile))
         
         # put into summarizedexperiment 
         se <- SummarizedExperiment(assays=setNames(list(genotypes), chunk.name),

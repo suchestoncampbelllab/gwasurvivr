@@ -34,11 +34,15 @@ vcfCoxSurv <- function(vcf.file, chunk.size, pheno.file, time, event,
                           paste(covariates, collapse=" + "))
         # assign survival function with the defined formula
         survFit <- function(input.genotype) {
-                fit <- coxph(formula=as.formula(formula), data=pheno.file)
-                res <- summary(fit)
+                # make sure this function always returns something that always has same structure
                 
                 # following deals with snps that has no variance 
                 # e.g. (have the same genotpye probability accross samples)
+                
+                # process data ahead of time to exclude rows that we know would fail
+                # e.g. NA or no variability
+                # filter data before hand before it enters function
+                
                 fit <- tryCatch(coxph(as.formula(formula), data=pheno.file),
                                  warning=function(warn) NA,
                                  error=function(err) NA
@@ -48,13 +52,14 @@ vcfCoxSurv <- function(vcf.file, chunk.size, pheno.file, time, event,
                         rep(NA, 9)
                 }else{
                         m <- summary(fit)
-                        c(m$coef[1,], m$conf.int[1,-c(1:2)] ,n=m$n, nevents=m$nevent)
+                        c(m$coef[1,], m$conf.int[1,-c(1:2)], n=m$n, nevents=m$nevent)
                 }
                                 
 
         }
            
         # define vcf.file and chunks, open vcf file
+        
         vcf <- VcfFile(vcf.file, yieldSize=chunk.size)
         open(vcf)
         chunk_start <- 0
@@ -71,20 +76,33 @@ vcfCoxSurv <- function(vcf.file, chunk.size, pheno.file, time, event,
         
         # get genotype probabilities by chunks
         # apply the survival function and save output
+        library(parallel)
+        
+        # for a single machine
+        cl <- makeForkCluster(nnodes=32)
+        
+
         repeat{ 
                 # read in just dosage data from Vcf file
                 data <- readVcf(vcf, param=ScanVcfParam(geno="DS"))
+                
+                if(nrow(data)==0){
+                        break
+                }
                 # read dosage data from collapsed vcf, subset for defined ids
                 genotype <- geno(data)$DS[, sample.ids]
 
                 # message user
                 message("Analyzing chunk ", chunk_start, "-", chunk_end)
-
+                
                 # apply survival function
-                snp.out <- t(apply(genotype, 1, survFit))
+                
+                snp.out <- t(parApply(cl=cl, X=genotype, MARGIN=1, FUN=survFit))
+                
                 # change colnames to be more programming friendly
                 colnames(snp.out) <- c("coef", "exp.coef", "se.coef", "z", "p.value",
                                        "lower.CI95", "upper.CI95", "n","n.event")
+                
                 write.table(data.frame(snp.out), 
                             paste0(output.name, ".coxph"),
                             append = T, 
@@ -96,16 +114,6 @@ vcfCoxSurv <- function(vcf.file, chunk.size, pheno.file, time, event,
                 chunk_start <- chunk_start+chunk.size
                 chunk_end <- chunk_end+chunk.size
                 
-
-                # if(chunk_end==10000){
-                #         break
-                # }
-
-
-
-                if(nrow(data)==0){
-                        break
-                }
         }
         
         close(vcf.file)
