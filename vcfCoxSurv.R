@@ -1,7 +1,10 @@
 library(VariantAnnotation)
 library(survival)
 library(data.table)
-library(dplyr); library(tidyr)
+library(dplyr)
+library(tidyr)
+library(microbenchmark)
+library(parallel)
 
 pdata <-fread("/projects/rpci/lsuchest/lsuchest/DBMT_PhenoData/DBMTpheno_EA_long_20171023.txt")
 
@@ -23,6 +26,7 @@ output.name="test_survivR/chr21"
 vcfCoxSurv <- function(vcf.file, chunk.size, pheno.file, time, event, 
                        covariates, sample.ids, output.name){
 
+        
         # subset phenotype file for sample ids
         pheno.file <- pheno.file[match(sample.ids, pheno.file$sample.ids), ]
         # define the formula for CoxPH
@@ -43,45 +47,54 @@ vcfCoxSurv <- function(vcf.file, chunk.size, pheno.file, time, event,
                 # e.g. NA or no variability
                 # filter data before hand before it enters function
                 
-                fit <- tryCatch(coxph(as.formula(formula), data=pheno.file),
-                                 warning=function(warn) NA,
-                                 error=function(err) NA
-                )
                 
-                if(anyNA(fit)){
-                        rep(NA, 9)
+                fit <-coxph(formula=as.formula(formula), data=pheno.file)
+                res <- summary(fit)
+                
+                if(dim(res$coef)[1] == 1+length(covariates)){
+                        out <- c(res$coef[1,], res$conf.int[1,-c(1:2)], n=res$n, n.events=res$nevent)
                 }else{
-                        m <- summary(fit)
-                        c(m$coef[1,], m$conf.int[1,-c(1:2)], n=m$n, nevents=m$nevent)
+                        out <- rep(NA, 9)
                 }
-                                
+                
+                # fit <- tryCatch(coxph(as.formula(formula), data=pheno.file),
+                #                  warning=function(warn) NA,
+                #                  error=function(err) NA
+                # )
+                # 
+                # if(anyNA(fit)){
+                #         rep(NA, 9)
+                # }else{
+                #         m <- summary(fit)
+                #         c(m$coef[1,], m$conf.int[1,-c(1:2)], n=m$n, nevents=m$nevent)
+                # }
+                #                 
 
         }
-           
-        # define vcf.file and chunks, open vcf file
-        
+
         vcf <- VcfFile(vcf.file, yieldSize=chunk.size)
         open(vcf)
+        
         chunk_start <- 0
         chunk_end <- chunk.size
         
-        write.table(data.frame(t(c("coef", "exp.coef", "se.coef", "z", "p.value",
-                                       "lower.CI95", "upper.CI95", "n", "n.event"))), 
-                            paste0(output.name, ".coxph"),
-                            append = F, 
-                            row.names = F,
-                            col.names = F,
-                            quote = F,
-                            sep="\t")
+        write.table(t(c("coef", "exp.coef", "se.coef", "z", "p.value",
+                                   "lower.CI95", "upper.CI95", "n", "n.event")), 
+                    paste0(output.name, ".coxph"),
+                    append = F, 
+                    row.names = F,
+                    col.names = F,
+                    quote = F,
+                    sep="\t")
         
         # get genotype probabilities by chunks
         # apply the survival function and save output
         library(parallel)
         
         # for a single machine
-        cl <- makeForkCluster(nnodes=32)
+        cl <- makeForkCluster(nnodes=16)
         
-
+        microbenchmark(
         repeat{ 
                 # read in just dosage data from Vcf file
                 data <- readVcf(vcf, param=ScanVcfParam(geno="DS"))
@@ -91,7 +104,7 @@ vcfCoxSurv <- function(vcf.file, chunk.size, pheno.file, time, event,
                 }
                 # read dosage data from collapsed vcf, subset for defined ids
                 genotype <- geno(data)$DS[, sample.ids]
-
+                
                 # message user
                 message("Analyzing chunk ", chunk_start, "-", chunk_end)
                 
@@ -103,20 +116,23 @@ vcfCoxSurv <- function(vcf.file, chunk.size, pheno.file, time, event,
                 colnames(snp.out) <- c("coef", "exp.coef", "se.coef", "z", "p.value",
                                        "lower.CI95", "upper.CI95", "n","n.event")
                 
-                write.table(data.frame(snp.out), 
+                write.table(snp.out, 
                             paste0(output.name, ".coxph"),
                             append = T, 
                             row.names = F,
                             col.names = F,
                             quote = F,
                             sep="\t")
-
+                
                 chunk_start <- chunk_start+chunk.size
                 chunk_end <- chunk_end+chunk.size
                 
-        }
+        },
+        times = 1)
+        # define vcf and chunks, open vcf file
         
-        close(vcf.file)
+        
+        close(vcf)
 }
 
 
