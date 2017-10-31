@@ -125,18 +125,53 @@ $(document).ready(function () {
 <ul>
 <li><a href="#introduction"><span class="toc-section-number">1</span> Introduction</a></li>
 <li><a href="#getting-started"><span class="toc-section-number">2</span> Getting started</a></li>
-<li><a href="#session-info"><span class="toc-section-number">3</span> Session info</a></li>
+<li><a href="#impute2-data"><span class="toc-section-number">3</span> IMPUTE2 data</a><ul>
+<li><a href="#convert-impute2-data-to-gds"><span class="toc-section-number">3.1</span> Convert IMPUTE2 data to GDS</a></li>
+<li><a href="#read-in-files-as-summarizedexperiment"><span class="toc-section-number">3.2</span> Read in files as SummarizedExperiment</a></li>
+<li><a href="#add-covariates"><span class="toc-section-number">3.3</span> Add covariates</a></li>
+<li><a href="#run-survival"><span class="toc-section-number">3.4</span> Run survival</a></li>
+</ul></li>
+<li><a href="#compressed-vcf-files"><span class="toc-section-number">4</span> Compressed VCF files</a><ul>
+<li><a href="#run-survival-1"><span class="toc-section-number">4.1</span> Run survival</a></li>
+</ul></li>
+<li><a href="#new-implementation-of-coxph"><span class="toc-section-number">5</span> New implementation of coxph</a></li>
+<li><a href="#session-info"><span class="toc-section-number">6</span> Session info</a></li>
 </ul>
 </div>
 
 <div id="introduction" class="section level1">
 <h1><span class="header-section-number">1</span> Introduction</h1>
+<p>This package provides a workflow for how to use imputed data GWAS data from either IMPUTE2 or the Michigan server and conduct survival analysis.</p>
 </div>
 <div id="getting-started" class="section level1">
 <h1><span class="header-section-number">2</span> Getting started</h1>
 </div>
+<div id="impute2-data" class="section level1">
+<h1><span class="header-section-number">3</span> IMPUTE2 data</h1>
+<div id="convert-impute2-data-to-gds" class="section level2">
+<h2><span class="header-section-number">3.1</span> Convert IMPUTE2 data to GDS</h2>
+</div>
+<div id="read-in-files-as-summarizedexperiment" class="section level2">
+<h2><span class="header-section-number">3.2</span> Read in files as SummarizedExperiment</h2>
+</div>
+<div id="add-covariates" class="section level2">
+<h2><span class="header-section-number">3.3</span> Add covariates</h2>
+</div>
+<div id="run-survival" class="section level2">
+<h2><span class="header-section-number">3.4</span> Run survival</h2>
+</div>
+</div>
+<div id="compressed-vcf-files" class="section level1">
+<h1><span class="header-section-number">4</span> Compressed VCF files</h1>
+<div id="run-survival-1" class="section level2">
+<h2><span class="header-section-number">4.1</span> Run survival</h2>
+</div>
+</div>
+<div id="new-implementation-of-coxph" class="section level1">
+<h1><span class="header-section-number">5</span> New implementation of coxph</h1>
+</div>
 <div id="session-info" class="section level1">
-<h1><span class="header-section-number">3</span> Session info</h1>
+<h1><span class="header-section-number">6</span> Session info</h1>
 <p>Here is the output of <code>sessionInfo()</code> on the system that this document was compiled:</p>
 <pre><code>## R version 3.4.1 (2017-06-30)
 ## Platform: x86_64-pc-linux-gnu (64-bit)

@@ -24,8 +24,24 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 # Introduction
+This package provides a workflow for how to use imputed data GWAS data from either IMPUTE2 or the Michigan server and conduct survival analysis. 
 
 # Getting started
+
+# IMPUTE2 data
+## Convert IMPUTE2 data to GDS
+
+## Read in files as SummarizedExperiment
+
+## Add covariates
+
+## Run survival
+
+# Compressed VCF files
+
+## Run survival
+
+# New implementation of coxph
 
 # Session info
 Here is the output of `sessionInfo()` on the system that this document was compiled:
