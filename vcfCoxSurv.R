@@ -68,7 +68,7 @@ vcfCoxSurv <- function(vcf.file, chunk.size, pheno.file, time, event,
                 #         m <- summary(fit)
                 #         c(m$coef[1,], m$conf.int[1,-c(1:2)], n=m$n, nevents=m$nevent)
                 # }
-                #                 
+
 
         }
 
@@ -78,8 +78,15 @@ vcfCoxSurv <- function(vcf.file, chunk.size, pheno.file, time, event,
         chunk_start <- 0
         chunk_end <- chunk.size
         
-        write.table(t(c("coef", "exp.coef", "se.coef", "z", "p.value",
-                                   "lower.CI95", "upper.CI95", "n", "n.event")), 
+        write.table(t(c("coef",
+                        "exp.coef",
+                        "se.coef",
+                        "z",
+                        "p.value",
+                        "lower.CI95",
+                        "upper.CI95",
+                        "n",
+                        "n.event")), 
                     paste0(output.name, ".coxph"),
                     append = F, 
                     row.names = F,
