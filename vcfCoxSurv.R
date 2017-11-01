@@ -23,8 +23,14 @@ output.name="test_survivR/chr21"
 
 
 
-vcfCoxSurv <- function(vcf.file, chunk.size, pheno.file, time, event, 
-                       covariates, sample.ids, output.name){
+vcfCoxSurv <- function(vcf.file,
+                       chunk.size,
+                       pheno.file,
+                       time,
+                       event, 
+                       covariates,
+                       sample.ids,
+                       output.name){
 
         
         # subset phenotype file for sample ids
@@ -78,7 +84,8 @@ vcfCoxSurv <- function(vcf.file, chunk.size, pheno.file, time, event,
         chunk_start <- 0
         chunk_end <- chunk.size
         
-        write.table(t(c("coef",
+        write.table(t(c("snp",
+                        "coef",
                         "exp.coef",
                         "se.coef",
                         "z",
@@ -99,7 +106,7 @@ vcfCoxSurv <- function(vcf.file, chunk.size, pheno.file, time, event,
         library(parallel)
         
         # for a single machine
-        cl <- makeForkCluster(nnodes=16)
+        cl <- makeForkCluster(detectCores())
         
         microbenchmark(
         repeat{ 
@@ -110,7 +117,7 @@ vcfCoxSurv <- function(vcf.file, chunk.size, pheno.file, time, event,
                         break
                 }
                 # read dosage data from collapsed vcf, subset for defined ids
-                genotype <- geno(data)$DS[, sample.ids]
+                genotype <- geno(data)$DS[, sample.ids, drop=F]
                 
                 # message user
                 message("Analyzing chunk ", chunk_start, "-", chunk_end)
@@ -119,9 +126,19 @@ vcfCoxSurv <- function(vcf.file, chunk.size, pheno.file, time, event,
                 
                 snp.out <- t(parApply(cl=cl, X=genotype, MARGIN=1, FUN=survFit))
                 
+
                 # change colnames to be more programming friendly
-                colnames(snp.out) <- c("coef", "exp.coef", "se.coef", "z", "p.value",
-                                       "lower.CI95", "upper.CI95", "n","n.event")
+                colnames(snp.out) <- c("coef",
+                                       "exp.coef",
+                                       "se.coef",
+                                       "z",
+                                       "p.value",
+                                       "lower.CI95",
+                                       "upper.CI95",
+                                       "n",
+                                       "n.event")
+                
+                snp.out <- cbind(snp=rownames(snp.out), snp.out)
                 
                 write.table(snp.out, 
                             paste0(output.name, ".coxph"),
@@ -136,9 +153,7 @@ vcfCoxSurv <- function(vcf.file, chunk.size, pheno.file, time, event,
                 
         },
         times = 1)
-        # define vcf and chunks, open vcf file
-        
-        
+
         close(vcf)
 }
 
