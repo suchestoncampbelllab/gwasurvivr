@@ -1,0 +1,50 @@
+---
+title: "GWAS SurvivR Vignette"
+author:
+- name: Abbas Rizvi
+  affiliation: The Ohio State University, Columbus, OH
+- name: Ezgi Karaesmen
+  affiliation: The Ohio State University, Columbus, OH
+- name: Martin Morgan
+  affiliation: Roswell Park Cancer Institute, Buffalo, NY    
+- name: Lara Sucheston-Campbell  
+  affiliation: The Ohio State University, Columbus, OH
+package: GWAS SurvivR
+date: "October 31, 2017"
+output:
+        BiocStyle::html_document2
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}          
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introduction
+This package provides a workflow for how to use imputed data GWAS data from either IMPUTE2 or the Michigan imputation server and conduct survival analysis. 
+
+# Getting started
+
+# IMPUTE2 data
+## Convert IMPUTE2 data to GDS
+
+## Read in files as SummarizedExperiment
+
+## Add covariates
+
+## Run survival
+
+# Compressed VCF files
+
+## Run survival
+
+# New implementation of coxph
+
+# Session info
+Here is the output of `sessionInfo()` on the system that this document was compiled:
+```{r, echo=F}
+sessionInfo()
+```
