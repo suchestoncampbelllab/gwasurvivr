@@ -23,9 +23,6 @@ output.name="test_survivR/chr21"
 info.file <- "chr21.info"
 
 
-<<<<<<< HEAD:R/vcfCoxSurv.R
-vcfCoxSurv <- function(vcf.file, chunk.size, info.file, pheno.file, time, event, covariates, sample.ids, output.name){
-=======
 
 vcfCoxSurv <- function(vcf.file,
                        chunk.size,
@@ -35,8 +32,6 @@ vcfCoxSurv <- function(vcf.file,
                        covariates,
                        sample.ids,
                        output.name){
-
->>>>>>> 5ce982623072949f0f454d06eee4fe7971e04272:vcfCoxSurv.R
         
         # subset phenotype file for sample ids
         pheno.file <- pheno.file[match(sample.ids, pheno.file$sample.ids), ]
@@ -114,15 +109,14 @@ vcfCoxSurv <- function(vcf.file,
 
         # for a single machine
         cl <- makeForkCluster(detectCores())
-<<<<<<< HEAD:R/vcfCoxSurv.R
+
         
         # read in info file
         info <- read.table(info.file, header=T, na.strings="-", stringsAsFactors = F, sep="\t")
         info <- info %>%
                 rename(REF="REF.0.",
                        ALT="ALT.1.")
-=======
->>>>>>> 5ce982623072949f0f454d06eee4fe7971e04272:vcfCoxSurv.R
+
         
         microbenchmark(
         repeat{ 
@@ -133,7 +127,6 @@ vcfCoxSurv <- function(vcf.file,
                         break
                 }
                 # read dosage data from collapsed vcf, subset for defined ids
-<<<<<<< HEAD:R/vcfCoxSurv.R
                 genotype <- geno(data)$DS[1:100, sample.ids, drop=F] 
                 genotype <- genotype %>%
                         data.table(keep.rownames = T) %>%
@@ -149,9 +142,7 @@ vcfCoxSurv <- function(vcf.file,
                 
                 genotype.merged <- data.frame(info.data, data.table(genotype))
                 
-=======
                 genotype <- geno(data)$DS[, sample.ids, drop=F]
->>>>>>> 5ce982623072949f0f454d06eee4fe7971e04272:vcfCoxSurv.R
                 
                 # message user
                 message("Analyzing chunk ", chunk_start, "-", chunk_end)
