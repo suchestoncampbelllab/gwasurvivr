@@ -24,7 +24,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 # Introduction
-This package provides a workflow for how to use imputed data GWAS data from either IMPUTE2 or the Michigan imputation server and conduct survival analysis. 
+This package provides a workflow for how to use imputed data GWAS data from either IMPUTE2 or the Michigan server and conduct survival analysis. 
 
 # Getting started
 
