@@ -1,4 +1,4 @@
-export(convertGDS)
+export(convertImputeGds)
 export(readImputedGds)
 export(addCov) 
 export(flipDosage)
