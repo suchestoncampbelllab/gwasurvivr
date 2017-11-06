@@ -1,11 +1,5 @@
-library(GWASTools)
-# so we can submit using R CMD BATCH
-args <- commandArgs(TRUE)
-
-# run GWAS tools to convert imputed data to GDS
-# arguments: 1. chunk name, 2. chromosome number
-
 convertImputeGds <- function(args){
+        library(GWASTools)
         path <- "/projects/rpci/lsuchest/lsuchest/Rserve/ImputeData/var/db/gwas/imputed_data/BMT093013_forImpute/"
         gdsfile <- paste0(args[1], ".gds")
         snpfile <- paste0(args[1], ".snp.rdata")
@@ -19,5 +13,3 @@ convertImputeGds <- function(args){
                           snp.annot.filename = snpfile,
                           scan.annot.filename = scanfile)
 }
-
-convertImputeGds(args)
