@@ -1,38 +1,12 @@
-library(VariantAnnotation)
-library(survival)
-library(data.table)
-library(dplyr)
-library(tidyr)
-library(microbenchmark)
-library(parallel)
+vcfCoxSurv <- function(vcf.file, chunk.size, pheno.file, time, event, covariates, sample.ids, output.name){
+        library(VariantAnnotation)
+        library(survival)
+        library(data.table)
+        library(dplyr)
+        library(tidyr)
+        library(microbenchmark)
+        library(parallel)
 
-pdata <-fread("/projects/rpci/lsuchest/lsuchest/DBMT_PhenoData/DBMTpheno_EA_long_20171023.txt")
-
-
-## write function
-vcf.file="./chr21_sub/chr21.25000000-26000000.dose.vcf.recode.vcf.gz"
-chunk.size=10000
-time="intxsurv_1Y"
-event="dead_1Y"
-covariates=c("distatD", "age")
-pheno.file = pdata %>% 
-                mutate(sample.ids=paste0("SAMP", 1:nrow(.))) %>%
-                dplyr::select(sample.ids, intxsurv_1Y, age, distatD, intxsurv_1Y, dead_1Y)
-sample.ids = paste0("SAMP", sample(1:1000, size=200))
-output.name="test_survivR/chr21"
-info.file <- "chr21.info"
-
-
-
-vcfCoxSurv <- function(vcf.file,
-                       chunk.size,
-                       pheno.file,
-                       time,
-                       event, 
-                       covariates,
-                       sample.ids,
-                       output.name){
-        
         # subset phenotype file for sample ids
         pheno.file <- pheno.file[match(sample.ids, pheno.file$sample.ids), ]
         
