@@ -1,0 +1,17 @@
+Package: SurvivR
+Type: Package
+Title: GWAS survival analysis
+Version: 1.0.0
+Authors@R: c(person("Abbas", "Rizvi", email="aarizv@gmail.com", role="cre"),
+	person("Ezgi", "Karaesmen", email="ezgi.karaesmen@gmail.com", role="ctb"),
+	person("Martin", "Morgan", role="ctb"),
+	person("Lara", "Sucheston-Campbell", email="sucheston-campbell.1@osu.edu", role="ctb"))
+Maintainer: Abbas Rizvi <aarizv@gmail.com>
+Description: Conduct survival analysis of imputed GWAS data using R
+VignetteBuilder: knitr
+Imports:
+	GWASTools,
+	survival,
+	SummarizedExperiment,
+	VariantAnnotation
+License: Artistic-2.0
