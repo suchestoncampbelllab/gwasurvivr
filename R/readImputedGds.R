@@ -22,7 +22,10 @@ readImputedGds <- function(gdsfile, scanfile, snpfile, infofile){
         genotypes <- getGenotype(genoData)
         
         # grab map data and remove the row number column
-        snp <- getAnnotation(getSnpAnnotation(genoData)) 
+        snp <- getAnnotation(getSnpAnnotation(genoData)) %>%
+                dplyr::rename(snp.index=snpID,
+                              rsid=rsID,
+                              snpid=snp)
         # grab sample file data
         scan <- getAnnotation(getScanAnnotation(genoData))
         
