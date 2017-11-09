@@ -28,8 +28,8 @@ readImputedGds <- function(gdsfile, scanfile, snpfile, infofile){
         
         # read in info table
         infofile <- read.table(infofile, header=T, stringsAsFactors = F)
-        colnames(infofile) <- c("snp_id",
-                                "rs_id",
+        colnames(infofile) <- c("snpid",
+                                "rsid",
                                 "position",
                                 "exp_freq_a1",
                                 "info",
@@ -39,8 +39,8 @@ readImputedGds <- function(gdsfile, scanfile, snpfile, infofile){
                                 "concord_type0",
                                 "r2_type0")
 
-        infofile <- infofile %>% dplyr::select(snp_id, rs_id, exp_freq_a1, info, certainty) %>%  # only grab columns of interest
-        dplyr::rename(rsID=rs_id, snp=snp_id) # need to be able to generalize the following renaming in function
+        infofile <- infofile %>%
+                dplyr::select(snpid, rsid, exp_freq_a1, info, certainty)
         
         # merge snp file with info file
         snp <- snp %>% dplyr::left_join(infofile) %>%
@@ -54,7 +54,7 @@ readImputedGds <- function(gdsfile, scanfile, snpfile, infofile){
                 DataFrame()
         
         # assign names (so summarizedexperiment object has colnames and rownames filled out)
-        dimnames(genotypes) <- list(snp$rsID, scan$ID_2)
+        dimnames(genotypes) <- list(snp$rsid, scan$ID_2)
         
         chunk.name <- as.character(gsub(".gds", "", gdsfile))
         
