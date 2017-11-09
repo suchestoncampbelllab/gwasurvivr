@@ -4,6 +4,7 @@ vcfCoxSurv <- function(vcf.file, chunk.size, pheno.file, time, event, covariates
         library(data.table)
         library(dplyr)
         library(tidyr)
+        library(broom)
         library(microbenchmark)
         library(parallel)
 
@@ -30,29 +31,16 @@ vcfCoxSurv <- function(vcf.file, chunk.size, pheno.file, time, event, covariates
                 # e.g. NA or no variability
                 # filter data before hand before it enters function
                 
-                
-                fit <-coxph(formula=as.formula(formula), data=pheno.file)
-                res <- summary(fit)
-                
-                if(dim(res$coef)[1] == 1+length(covariates)){
-                        out <- c(res$coef[1,], res$conf.int[1,-c(1:2)], n=res$n, n.events=res$nevent)
-                }else{
-                        out <- rep(NA, 9)
+                # number of NAs should be changed according to stats outputted
+                if(sd(input.genotype)==0) {rep(NA, 8)} else { 
+                    fit <-coxph(formula=as.formula(formula), data=pheno.file)
+                    res <- summary(fit)
+                    tidy(fit) %>% 
+                        filter(!str_detect(term, paste0(covariates, collapse="|"))) %>%
+                        mutate(n=res$n, n.event=res$nevent) %>%
+                        select(-term) %>% as.numeric()
                 }
-                
-                # fit <- tryCatch(coxph(as.formula(formula), data=pheno.file),
-                #                  warning=function(warn) NA,
-                #                  error=function(err) NA
-                # )
-                # 
-                # if(anyNA(fit)){
-                #         rep(NA, 9)
-                # }else{
-                #         m <- summary(fit)
-                #         c(m$coef[1,], m$conf.int[1,-c(1:2)], n=m$n, nevents=m$nevent)
-                # }
-
-
+        
         }
 
         vcf <- VcfFile(vcf.file, yieldSize=chunk.size)
@@ -63,7 +51,7 @@ vcfCoxSurv <- function(vcf.file, chunk.size, pheno.file, time, event, covariates
         
         write.table(t(c("snp",
                         "coef",
-                        "exp.coef",
+                        # "exp.coef",
                         "se.coef",
                         "z",
                         "p.value",
@@ -86,10 +74,10 @@ vcfCoxSurv <- function(vcf.file, chunk.size, pheno.file, time, event, covariates
 
         
         # read in info file
-        info <- read.table(info.file, header=T, na.strings="-", stringsAsFactors = F, sep="\t")
-        info <- info %>%
-                rename(REF="REF.0.",
-                       ALT="ALT.1.")
+        # info <- read.table(info.file, header=T, na.strings="-", stringsAsFactors = F, sep="\t")
+        # info <- info %>%
+        #         rename(REF="REF.0.",
+        #                ALT="ALT.1.")
 
         
         microbenchmark(
@@ -101,48 +89,49 @@ vcfCoxSurv <- function(vcf.file, chunk.size, pheno.file, time, event, covariates
                         break
                 }
                 # read dosage data from collapsed vcf, subset for defined ids
-                genotype <- geno(data)$DS[1:100, sample.ids, drop=F] 
-                genotype <- genotype %>%
-                        data.table(keep.rownames = T) %>%
-                        rename(SNP=rn)
-                
-                write.table(genotype, "genotype.dosage", quote=F, row.names=F, sep="\t", col.names=T)
-                
-                info.data <- data.frame(cbind(rownames(data), data.frame(rowRanges(data)))) %>%
-                        rename(SNP=rownames.data.) %>%
-                        select(SNP, REF, ALT) %>%
-                        mutate(SNP=as.character(SNP),
-                               ALT=as.character(ALT))
-                
-                genotype.merged <- data.frame(info.data, data.table(genotype))
-                
                 genotype <- geno(data)$DS[, sample.ids, drop=F]
+                
+                # genotype <- genotype %>%
+                #         data.table(keep.rownames = T) %>%
+                #         rename(SNP=rn)
+                
+                # write.table(genotype, "genotype.dosage", quote=F, row.names=F, sep="\t", col.names=T)
+                
+                # info.data <- data.frame(cbind(rownames(data), 
+                #                               data.frame(rowRanges(data)))) %>%
+                #         rename(SNP=rownames.data.) %>%
+                #         select(SNP, REF, ALT) %>%
+                #         mutate(SNP=as.character(SNP),
+                #                ALT=as.character(ALT)) 
+                # 
+                # genotype.merged <- data.frame(info.data, data.table(genotype))
+                # 
+                # genotype <- geno(data)$DS[, sample.ids, drop=F]
                 
                 # message user
                 message("Analyzing chunk ", chunk_start, "-", chunk_end)
                 
                 # apply survival function
-                
                 snp.out <- t(parApply(cl=cl, X=genotype, MARGIN=1, FUN=survFit))
                 
 
                 # change colnames to be more programming friendly
-                colnames(snp.out) <- c("coef",
-                                       "exp.coef",
-                                       "se.coef",
-                                       "z",
-                                       "p.value",
-                                       "lower.CI95",
-                                       "upper.CI95",
-                                       "n",
-                                       "n.event")
+                # colnames(snp.out) <- c("coef",
+                #                        # "exp.coef",
+                #                        "se.coef",
+                #                        "z",
+                #                        "p.value",
+                #                        "lower.CI95",
+                #                        "upper.CI95",
+                #                        "n",
+                #                        "n.event")
                 
-                snp.out <- cbind(snp=rownames(snp.out), snp.out)
+                # snp.out <- cbind(snp=rownames(snp.out), snp.out)
                 
                 write.table(snp.out, 
                             paste0(output.name, ".coxph"),
                             append = T, 
-                            row.names = F,
+                            row.names = T,
                             col.names = F,
                             quote = F,
                             sep="\t")
