@@ -2,7 +2,7 @@ convertImputeGds <- function(chunk.impute, chunk.sample, chr, outfile.name){
         gdsfile <- paste0(outfile.name, ".gds")
         snpfile <- paste0(outfile.name, ".snp.rdata")
         scanfile <- paste0(outfile.name, ".scan.rdata")
-        imputedDosageFile(input.files=chunk.impute, chunk.sample),
+        imputedDosageFile(input.files=c(chunk.impute, chunk.sample),
                           filename=gdsfile,
                           chromosome=as.numeric(chr),
                           input.type="IMPUTE2",
