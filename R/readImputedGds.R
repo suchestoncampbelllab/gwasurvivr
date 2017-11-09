@@ -46,13 +46,18 @@ readImputedGds <- function(gdsfile, scanfile, snpfile, infofile){
                 dplyr::select(snpid, rsid, exp_freq_a1, info, certainty)
         
         # merge snp file with info file
-        snp <- snp %>% dplyr::left_join(infofile) %>%
+        snp <- snp %>%
+                dplyr::left_join(infofile) %>%
                 mutate(end=position) %>% # create 'end' position -- since these are SNPs they are the same 
-                dplyr::rename(start=position, chr=chromosome) %>% # rename position to start so we can convert into GRanges object
+                dplyr::rename(start=position,
+                              chr=chromosome, 
+                              allele0=alleleA, 
+                              allele1=alleleB) %>% # rename position to start so we can convert into GRanges object
                 makeGRangesFromDataFrame(keep.extra.columns=T) # create GRanges object because needed for rowRanges in se
         
         # parse sample file ... but might not do this
-        scan <- scan %>% select(ID_1, ID_2, missing, sex) %>% 
+        scan <- scan %>%
+                dplyr::select(ID_1, ID_2, missing, sex) %>% 
                 dplyr::rename(sex_fromSampleFile="sex") %>%
                 DataFrame()
         
