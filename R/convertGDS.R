@@ -1,12 +1,10 @@
-convertImputeGds <- function(chunk.name){
-        library(GWASTools)
-        path <- "/projects/rpci/lsuchest/lsuchest/Rserve/ImputeData/var/db/gwas/imputed_data/BMT093013_forImpute/"
-        gdsfile <- paste0(chunk.name[1], ".gds")
-        snpfile <- paste0(chunk.name[1], ".snp.rdata")
-        scanfile <- paste0(chunk.name[1], ".scan.rdata")
-        imputedDosageFile(input.files=c(paste0(path, args[1], ".impute2"), paste0(path, args[1],".impute2_samples")),
+convertImputeGds <- function(chunk.impute, chunk.sample, chr, outfile.name){
+        gdsfile <- paste0(outfile.name, ".gds")
+        snpfile <- paste0(outfile.name, ".snp.rdata")
+        scanfile <- paste0(outfile.name, ".scan.rdata")
+        imputedDosageFile(input.files=chunk.impute, chunk.sample),
                           filename=gdsfile,
-                          chromosome=as.numeric(args[2]),
+                          chromosome=as.numeric(chr),
                           input.type="IMPUTE2",
                           input.dosage=F,
                           file.type="gds",
