@@ -8,6 +8,7 @@ readImputedGds <- function(gdsfile, scanfile, snpfile, infofile){
         # read genotype
         gds <- GdsGenotypeReader(gdsfile)
         # close gds file on exit of the function
+        on.exit(close(gds))
         # read in snp data
         snpAnnot <- getobj(snpfile)
         # read scan
@@ -69,9 +70,6 @@ readImputedGds <- function(gdsfile, scanfile, snpfile, infofile){
         se <- SummarizedExperiment(assays=setNames(list(genotypes), chunk.name),
                                    colData=scan,
                                    rowRanges=snp)
-        
-        close(gds)
-        
         return(se)
 }
 
