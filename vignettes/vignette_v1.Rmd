@@ -10,7 +10,7 @@ author:
 - name: Lara Sucheston-Campbell  
   affiliation: The Ohio State University, Columbus, OH
 package: GWAS SurvivR
-date: "November 8, 2017"
+date: "November 13, 2017"
 output:
         BiocStyle::html_document2
 vignette: >
@@ -20,10 +20,14 @@ vignette: >
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, cache=T)
+knitr::opts_chunk$set(echo = TRUE)
 library(knitr)
-library(data.table)
 library(tidyverse)
+library(SurvivR)
+library(magrittr)
+library(data.table)
+library(SummarizedExperiment)
+library(GWASTools)
 ```
 
 # Introduction
@@ -196,23 +200,48 @@ This function creates 3 files that will be saved to your working directory (or a
 Since users may be interested in seeing the data within an R/Bioconductor framework, we read in our GDS files are `SummarizedExperiment` objects to allow for access to 
 
 ```{r}
-library(magrittr)
-library(dplyr)
-library(data.table)
-library(SummarizedExperiment)
-library(GWASTools)
 se <- readImputedGds(gdsfile = "~/Google Drive/OSU_PHD/survivR/data/example.gds",
                      scanfile = "~/Google Drive/OSU_PHD/survivR/data/example.scan.rdata",
                      snpfile = "~/Google Drive/OSU_PHD/survivR/data/example.snp.rdata",
                      infofile = "~/Google Drive/OSU_PHD/survivR/data/example.info")
+se
+assay(se)[1:5,1:10]
+rowRanges(se)
+colData(se)
 ```
-
-
-
+## Flip dosage
+Users can flip the dosage if needed.
 
 ## Add covariates
+Covariates can be added to the `colData` slot of the `SummarizedExperiment` by using the `addCov` function. It is required that the first column is the sample ID. These sample ID must match the IDs that are in the `ID_2` column of `colData(se)`.
+
+```{r, echo=F}
+cov.cols <- c("ID_2", "event", "time", "age", "bmiOVWT", "sex")
+cov.ids <- colData(se)$ID_2
+event <-  sample(seq(0,1), 1500, replace=T)
+time <-  sample(seq(0,12,by=0.01), 1500, replace=T)
+age <- sample(seq(18,65,by=0.001), 1500, replace=T)
+bmiOVWT <- sample(seq(0,1), 1500, replace=T, prob=c(0.25, 0.75))
+sex <- sample(seq(0,1), 1500, replace=T, prob=c(0.35, 0.65))
+covfile <- data.frame(cbind(cov.ids, event, time, age, bmiOVWT,sex))
+colnames(covfile) <- cov.cols
+#write.table(covfile, file="example.covariate", sep="\t", row.names=F, quote=F)
+```
+
+```{r}
+covfile <- "example.covariate"
+se <- addCov(se, covfile)
+```
+
+To check and see if the covariate merger was successful:
+
+```{r}
+colData(se)
+```
 
 ## Run survival
+Now we can run survival analysis using CoxPH
+
 
 # Michigan Imputation Server Output
 
