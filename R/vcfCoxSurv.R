@@ -91,6 +91,17 @@ vcfCoxSurv <- function(vcf.file, chunk.size, pheno.file, time, event, covariates
                 # read dosage data from collapsed vcf, subset for defined ids
                 genotype <- geno(data)$DS[, sample.ids, drop=F]
                 
+                ## Add step to check for sd of the snps with:
+                # indx <- which(matrixStats::rowSds(genotype) == 0)
+                
+                ## List of snps tha have a MAF=0
+                # snps_maf0 <- rownames(genotyoe)[indx]
+                
+                ## Remove MAF=0 snps
+                # genotype <- genotype[-indx,]
+                
+                ## then save a file 
+                
                 # genotype <- genotype %>%
                 #         data.table(keep.rownames = T) %>%
                 #         rename(SNP=rn)
@@ -114,7 +125,9 @@ vcfCoxSurv <- function(vcf.file, chunk.size, pheno.file, time, event, covariates
                 # apply survival function
                 snp.out <- t(parApply(cl=cl, X=genotype, MARGIN=1, FUN=survFit))
                 
-
+                
+                
+                
                 # change colnames to be more programming friendly
                 # colnames(snp.out) <- c("coef",
                 #                        # "exp.coef",
