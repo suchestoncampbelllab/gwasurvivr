@@ -107,7 +107,9 @@ summary(fit)
 str(fit)
 coef=fit$coefficients[1]
 se=sqrt(diag(fit$var)[1])
-
+z=coef/se,
+pval=2*pnorm(abs(z), lower.tail = F),
+SNP=names(fit$coefficients[1])
 
 # get summary data
 (coef <- data.frame(
@@ -126,25 +128,25 @@ summary(fit.org)
 
 # system time for our coxph.fit
 system.time({
-    all <- apply(geno[1:5,], 1, function(x) {
+    all <- t(apply(geno, 1, function(x) {
         X <- cbind(x,X)
         fit <- coxph.fit(
             X, Y, STRATA, OFFSET, INIT, CONTROL, WEIGHTS, METHOD, ROWNAMES
         )
-        (coef <- data.frame(
-            coef=fit$coefficients[1],
-            se=sqrt(diag(fit$var)[1])) %>%
-                mutate(z=coef/se,
-                       pval=2*pnorm(abs(z), lower.tail = F),
-                       SNP=names(fit$coefficients[1])))
+        coef=fit$coefficients[1]
+        se=sqrt(diag(fit$var)[1])
+        cbind(coef, se)
     }
-    )        
+    ))
+    z <- all[,1]/all[,2]
+    pval <- 2*pnorm(abs(z), lower.tail=F)
+    all <- cbind(all,z,pval)
 })
 
 # system time for coxph from survival package
 system.time({
-    all1 <- apply(geno[1:5,], 1, function(x) {
+    all1 <- t(apply(geno, 1, function(x) {
         fit.org <- coxph(Y ~ x + pheno$age + pheno$distatD)
-        summary(fit.org)$coef[1]
-    })     
+        summary(fit.org)$coef[1,]
+    }) )    
 })
