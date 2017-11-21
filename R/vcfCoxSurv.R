@@ -44,6 +44,7 @@ vcfCoxSurv <- function(vcf.file, # character, path to vcf file
                 )
             )
             
+            OFFSET <- NULL
             WEIGHTS <- NULL
             METHOD <- "efron"
             ROWNAMES <- rownames(pheno.file)
