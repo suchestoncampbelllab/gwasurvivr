@@ -8,28 +8,29 @@ library(broom)
 library(microbenchmark)
 library(parallel)
 
+### genotype data as numeric matrix, snp ids are rownames
 geno <- fread("~/GoogleDrive/Sucheston-Campbell Lab/survivR/data/genotype.dosage")
 snps <- geno[[1]]
 geno <- as.matrix(geno[,-1])
 rownames(geno) <- snps
 
+### phenotype data as numeric matrix sample ids are rownames
 pheno <- read.table("~/GoogleDrive/Sucheston-Campbell Lab/survivR/data/pheno_file.txt", 
                     header=T, sep="\t", stringsAsFactors = T, row.names = "sample.ids")
-pheno$distatD <- as.integer(pheno$distatD) -1
+pheno$distatD <- as.integer(pheno$distatD) - 1L
+covariates=c("distatD", "age")
+pheno.file = as.matrix(pheno)[,covariates]
 
 
 input.genotype <- geno[1,]
 
-vcf.file="./chr21_sub/chr21.25000000-26000000.dose.vcf.recode.vcf.gz"
-chunk.size=10000
-time="intxsurv_1Y"
-event="dead_1Y"
-covariates=c("distatD", "age")
-pheno.file = as.matrix(pheno)
-sample.ids = paste0("SAMP", sample(1:1000, size=200))
-output.name="test_survivR_chr21"
+### define time and event outside the survFit
+### Y does not change for every snp
+Y <- Surv(time=pheno.file[,time], event=pheno.file[,event])
+rownames(Y) <- as.character(seq_len(nrow(Y)))
 
-
+### pre-defined does not chnage for snps
+STRATA <- NULL
 
 survFit <- function(input.genotype){}
 
@@ -39,17 +40,6 @@ X <- cbind(
     pheno.file[,covariates]
 )
 
-# 
-
-Y <- Surv(time=pheno.file[,time], event=pheno.file[,event])
-
-rownames(Y) <- as.character(seq_len(nrow(Y)))
-
-STRATA <- NULL
-
-OFFSET <- rep(0, nrow(X))
-
-INIT <- NULL
 
 # check to see if control is interesting
 # think of doing: 
@@ -57,11 +47,7 @@ INIT <- NULL
 ## and first pass do filtering ... just a hand full of iterations
 # and that will be enough info to determine if shuold continue on to do more expensive work
 # sometimes statistic is figured out early iteration
-
-
 # look into INIT 
-
-
 # use predict as init 
 
 INIT <- NULL
