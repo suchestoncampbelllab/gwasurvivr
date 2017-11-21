@@ -1,4 +1,29 @@
-vcfCoxSurv <- function(vcf.file, chunk.size, pheno.file, time, event, covariates, sample.ids, output.name){
+vcf.file="./data/chr21.25000000-26000000.dose.vcf.recode.vcf.gz"
+chunk.size=100
+time="intxsurv_1Y"
+event="dead_1Y"
+covariates=c("distatD", "age")
+pheno.file <- read.table("~/GoogleDrive/Sucheston-Campbell Lab/survivR/data/pheno_file.txt", 
+                    header=T, sep="\t", stringsAsFactors = T, row.names = "sample.ids")
+pheno.file$distatD <- as.integer(pheno.file$distatD) - 1L
+pheno.file <- as.matrix(pheno.file)
+set.seed(2211)
+sample.ids = sample(rownames(pheno.file), size=190)
+output.name="test_survivR_chr21"
+
+
+
+
+
+vcfCoxSurv <- function(vcf.file, # character, path to vcf file
+                       chunk.size, # integer, defines the size of the chunk
+                       pheno.file, # this needs to be disussed either a matrix or file path to a file with specific format
+                       time, # character, column defining time
+                       event, # character, column defining event
+                       covariates, # character vector, columns defining covariates
+                       sample.ids, # character vector, list of samples that will be analyzed, could also be a file path?
+                       output.name # character, name of the output file
+                       ){
         library(VariantAnnotation)
         library(survival)
         library(data.table)
@@ -9,40 +34,53 @@ vcfCoxSurv <- function(vcf.file, chunk.size, pheno.file, time, event, covariates
         library(parallel)
 
         # subset phenotype file for sample ids
-        pheno.file <- pheno.file[match(sample.ids, pheno.file$sample.ids), ]
-        
-        # define the formula for CoxPH
-        formula <- paste0("Surv(time=",
-                          time,
-                          ", event=",
-                          event,
-                          ") ~ input.genotype + ",
-                          paste(covariates, collapse=" + "))
-        
-        # assign survival function with the defined formula
+        pheno.file <- pheno.file[sample.ids, ]
 
-        survFit <- function(input.genotype) {
-                # make sure this function always returns something that always has same structure
-                
-                # following deals with snps that has no variance 
-                # e.g. (have the same genotpye probability accross samples)
-                
-                # process data ahead of time to exclude rows that we know would fail
-                # e.g. NA or no variability
-                # filter data before hand before it enters function
-                
-                # number of NAs should be changed according to stats outputted
-                if(sd(input.genotype)==0) {rep(NA, 8)} else { 
-                    fit <-coxph(formula=as.formula(formula), data=pheno.file)
-                    res <- summary(fit)
-                    tidy(fit) %>% 
-                        filter(!str_detect(term, paste0(covariates, collapse="|"))) %>%
-                        mutate(n=res$n, n.event=res$nevent) %>%
-                        select(-term) %>% as.numeric()
-                }
-        
+        ### define survFit
+        survFit <- function(input.genotype){
+            
+            ### building arguments for coxph.fit ###
+            Y <- Surv(time=pheno.file[,time], event=pheno.file[,event])
+            rownames(Y) <- as.character(seq_len(nrow(Y)))
+            STRATA <- NULL
+            CONTROL <- structure(
+                list(
+                    eps = 1e-09,
+                    toler.chol = 1.81898940354586e-12,
+                    iter.max = 20L, # potentially select a more optimal max
+                    toler.inf = 3.16227766016838e-05,
+                    outer.max = 10L, 
+                    timefix = TRUE),
+                .Names = c(
+                    "eps",
+                    "toler.chol",
+                    "iter.max", 
+                    "toler.inf", 
+                    "outer.max", 
+                    "timefix"
+                )
+            )
+            
+            WEIGHTS <- NULL
+            METHOD <- "efron"
+            ROWNAMES <- rownames(pheno.file)
+            
+            # maybe change init?
+            INIT <- NULL
+            
+            ## only thing that's changing
+            X <- cbind(input.genotype,pheno.file[,covariates])
+            ## run fit
+            fit <- coxph.fit(
+                X, Y, STRATA, OFFSET, INIT, CONTROL, WEIGHTS, METHOD, ROWNAMES
+            )
+            
+            ## extract statistics
+            coef <- fit$coefficients[1]
+            se <- sqrt(diag(fit$var)[1])
+            cbind(coef, se)
         }
-
+        
         vcf <- VcfFile(vcf.file, yieldSize=chunk.size)
         open(vcf)
         
@@ -54,11 +92,12 @@ vcfCoxSurv <- function(vcf.file, chunk.size, pheno.file, time, event, covariates
                         # "exp.coef",
                         "se.coef",
                         "z",
-                        "p.value",
-                        "lower.CI95",
-                        "upper.CI95",
-                        "n",
-                        "n.event")), 
+                        "p.value"
+                        # "lower.CI95",
+                        # "upper.CI95",
+                        # "n",
+                        # "n.event"
+                        )), 
                     paste0(output.name, ".coxph"),
                     append = F, 
                     row.names = F,
@@ -72,15 +111,6 @@ vcfCoxSurv <- function(vcf.file, chunk.size, pheno.file, time, event, covariates
         # for a single machine
         cl <- makeForkCluster(detectCores())
 
-        
-        # read in info file
-        # info <- read.table(info.file, header=T, na.strings="-", stringsAsFactors = F, sep="\t")
-        # info <- info %>%
-        #         rename(REF="REF.0.",
-        #                ALT="ALT.1.")
-
-        
-        microbenchmark(
         repeat{ 
                 # read in just dosage data from Vcf file
                 data <- readVcf(vcf, param=ScanVcfParam(geno="DS"))
@@ -92,32 +122,16 @@ vcfCoxSurv <- function(vcf.file, chunk.size, pheno.file, time, event, covariates
                 genotype <- geno(data)$DS[, sample.ids, drop=F]
                 
                 ## Add step to check for sd of the snps with:
-                # indx <- which(matrixStats::rowSds(genotype) == 0)
+                indx <- which(matrixStats::rowSds(genotype) == 0)
                 
-                ## List of snps tha have a MAF=0
-                # snps_maf0 <- rownames(genotyoe)[indx]
+                ## Save list of snps that have a MAF=0
+                snps_maf0 <- rownames(genotype)[indx]
+                write.table(snps_maf0, 
+                            file= paste0(output.name, ".MAF0snps"),
+                            append = T)
                 
                 ## Remove MAF=0 snps
-                # genotype <- genotype[-indx,]
-                
-                ## then save a file 
-                
-                # genotype <- genotype %>%
-                #         data.table(keep.rownames = T) %>%
-                #         rename(SNP=rn)
-                
-                # write.table(genotype, "genotype.dosage", quote=F, row.names=F, sep="\t", col.names=T)
-                
-                # info.data <- data.frame(cbind(rownames(data), 
-                #                               data.frame(rowRanges(data)))) %>%
-                #         rename(SNP=rownames.data.) %>%
-                #         select(SNP, REF, ALT) %>%
-                #         mutate(SNP=as.character(SNP),
-                #                ALT=as.character(ALT)) 
-                # 
-                # genotype.merged <- data.frame(info.data, data.table(genotype))
-                # 
-                # genotype <- geno(data)$DS[, sample.ids, drop=F]
+                genotype <- genotype[-indx,]
                 
                 # message user
                 message("Analyzing chunk ", chunk_start, "-", chunk_end)
@@ -126,21 +140,10 @@ vcfCoxSurv <- function(vcf.file, chunk.size, pheno.file, time, event, covariates
                 snp.out <- t(parApply(cl=cl, X=genotype, MARGIN=1, FUN=survFit))
                 
                 
-                
-                
-                # change colnames to be more programming friendly
-                # colnames(snp.out) <- c("coef",
-                #                        # "exp.coef",
-                #                        "se.coef",
-                #                        "z",
-                #                        "p.value",
-                #                        "lower.CI95",
-                #                        "upper.CI95",
-                #                        "n",
-                #                        "n.event")
-                
-                # snp.out <- cbind(snp=rownames(snp.out), snp.out)
-                
+                z <- snp.out[,1]/snp.out[,2]
+                pval <- 2*pnorm(abs(z), lower.tail=F)
+                snp.out <- cbind(snp.out,z,pval)
+
                 write.table(snp.out, 
                             paste0(output.name, ".coxph"),
                             append = T, 
@@ -152,8 +155,7 @@ vcfCoxSurv <- function(vcf.file, chunk.size, pheno.file, time, event, covariates
                 chunk_start <- chunk_start+chunk.size
                 chunk_end <- chunk_end+chunk.size
                 
-        },
-        times = 1)
+        }
 
         close(vcf)
 }
