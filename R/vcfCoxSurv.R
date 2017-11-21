@@ -1,20 +1,3 @@
-vcf.file="./data/chr21.25000000-26000000.dose.vcf.recode.vcf.gz"
-chunk.size=100
-time="intxsurv_1Y"
-event="dead_1Y"
-covariates=c("distatD", "age")
-pheno.file <- read.table("~/GoogleDrive/Sucheston-Campbell Lab/survivR/data/pheno_file.txt", 
-                    header=T, sep="\t", stringsAsFactors = T, row.names = "sample.ids")
-pheno.file$distatD <- as.integer(pheno.file$distatD) - 1L
-pheno.file <- as.matrix(pheno.file)
-set.seed(2211)
-sample.ids = sample(rownames(pheno.file), size=190)
-output.name="test_survivR_chr21"
-
-
-
-
-
 vcfCoxSurv <- function(vcf.file, # character, path to vcf file
                        chunk.size, # integer, defines the size of the chunk
                        pheno.file, # this needs to be disussed either a matrix or file path to a file with specific format
