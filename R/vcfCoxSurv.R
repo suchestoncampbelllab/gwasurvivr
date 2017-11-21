@@ -7,14 +7,6 @@ vcfCoxSurv <- function(vcf.file, # character, path to vcf file
                        sample.ids, # character vector, list of samples that will be analyzed, could also be a file path?
                        output.name # character, name of the output file
                        ){
-        library(VariantAnnotation)
-        library(survival)
-        library(data.table)
-        library(dplyr)
-        library(tidyr)
-        library(broom)
-        library(microbenchmark)
-        library(parallel)
 
         # subset phenotype file for sample ids
         pheno.file <- pheno.file[sample.ids, ]
