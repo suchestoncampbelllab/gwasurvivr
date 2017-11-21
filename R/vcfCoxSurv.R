@@ -112,6 +112,7 @@ vcfCoxSurv <- function(vcf.file, # character, path to vcf file
                 snps_maf0 <- rownames(genotype)[indx]
                 write.table(snps_maf0, 
                             file= paste0(output.name, ".MAF0snps"),
+                            col.names = F,
                             append = T)
                 
                 ## Remove MAF=0 snps
