@@ -1,3 +1,29 @@
+#' Fit cox survival to all variants in a VCF file
+#' 
+#' Performs survival analysis using Cox proportional hazard models on imputed genetic data stored in compressed VCF files 
+#' 
+#' @param vcf.file character(1) path to VCF file.
+#' @param chunk.size integer(1) number of variants to process per thread
+#' @param pheno.file matrix(1) comprising phenotype data
+#' @param time character(1) string that matches time column name in pheno.file
+#' @param event character(1) string that matches event column name in pheno.file
+#' @param covariates character vector with matching column names in pheno.file of covariates of interest
+#' @param sample.ids character vector with sample ids to include in analysis
+#' @param output.name character(1) string with output name
+#' 
+#' @return ???
+#' 
+#' @examples 
+#' vcf.file <- system.file(package="SurvivR", "extdata", "chr21.25000005-25500000.vcf.gz")
+#'  
+#'  
+#'  
+#'  
+#' @importFrom survival Surv coxph.fit
+#' @importFrom parallel detectCores
+#' @importFrom parallel parApply
+#' @export
+
 vcfCoxSurv <- function(vcf.file, # character, path to vcf file
                        chunk.size, # integer, defines the size of the chunk
                        pheno.file, # this needs to be disussed either a matrix or file path to a file with specific format
@@ -12,7 +38,7 @@ vcfCoxSurv <- function(vcf.file, # character, path to vcf file
         pheno.file <- pheno.file[sample.ids, ]
 
         ### define survFit
-        survFit <- function(input.genotype){
+        survFit <- function(input.genotype, INIT = NULL){
             
             ### building arguments for coxph.fit ###
             Y <- Surv(time=pheno.file[,time], event=pheno.file[,event])
@@ -41,7 +67,7 @@ vcfCoxSurv <- function(vcf.file, # character, path to vcf file
             METHOD <- "efron"
             ROWNAMES <- rownames(pheno.file)
             
-            # maybe change init?
+            # maybe change init
             INIT <- NULL
             
             ## only thing that's changing
@@ -86,6 +112,7 @@ vcfCoxSurv <- function(vcf.file, # character, path to vcf file
 
         # for a single machine
         cl <- makeForkCluster(detectCores())
+        INIT <- # fit phenotypic data
 
         repeat{ 
                 # read in just dosage data from Vcf file
@@ -114,8 +141,8 @@ vcfCoxSurv <- function(vcf.file, # character, path to vcf file
                 message("Analyzing chunk ", chunk_start, "-", chunk_end)
                 
                 # apply survival function
-                snp.out <- t(parApply(cl=cl, X=genotype, MARGIN=1, FUN=survFit))
-                
+                snp.out <- t(parApply(cl=cl, X=genotype, MARGIN=1, FUN=survFit, INIT = INIT))
+                INIT <- snp.out[1]
                 
                 z <- snp.out[,1]/snp.out[,2]
                 pval <- 2*pnorm(abs(z), lower.tail=F)
