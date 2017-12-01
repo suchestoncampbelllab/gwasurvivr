@@ -11,13 +11,21 @@
 #' @param sample.ids character vector with sample ids to include in analysis
 #' @param output.name character(1) string with output name
 #' 
-#' @return ???
+#' @return 
+#' Saves text file directly to disk that contains survival analysis results
 #' 
 #' @examples 
+#' set.seed(222)
 #' vcf.file <- system.file(package="SurvivR", "extdata", "chr21.25000005-25500000.vcf.gz")
-#'  
-#'  
-#'  
+#' fl <- system.file(package="SurvivR", "extdata", "pheno_file.txt") 
+#' time <- "intxsurv_1Y"
+#' event <- "dead_1Y" 
+#' covariates <- c("distatD", "age") 
+#' sample.ids = sample(rownames(pheno.file), size=190)
+#' pheno.file$distatD <- as.integer(pheno.file$distatD) - 1L
+#' pheno.file <- as.matrix(pheno.file)
+#' output.name <- tempfile()
+#' vcfCoxSurv(vcf.file, chunk.size, pheno.file, time, event, covariates, sample.ids, output.name)
 #'  
 #' @importFrom survival Surv coxph.fit
 #' @importFrom parallel detectCores

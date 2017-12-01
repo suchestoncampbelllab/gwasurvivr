@@ -2,15 +2,16 @@
 #'
 #' Convert flat file in genotype format (.gen or .impute) to compressed GDS format. This should be done as the first step of performing survival analysis with IMPUTE2 files. 
 #'
-#' @param chunk.impute character(1)
+#' @param chunk.impute character(1) file name of impute genotype file
 #'
-#' @param chunk.sample character(1)
+#' @param chunk.sample character(1) file name of impute sample file
 #'
-#' @param chr integer(1) 
+#' @param chr integer(1) defining the chromosome that is being compressed 
 #'
-#' @param outfile.name character(1)
+#' @param outfile.name character(1) string defining 
 #' 
-#' @return ???
+#' @return
+#' Three files: 1) GDS file, 2) SNP RData file, 3) Scan RData file
 #' 
 #' @example
 #' chunk.impute <- "chr21.25000005-25500000.impute"
