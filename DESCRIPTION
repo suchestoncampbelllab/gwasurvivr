@@ -15,3 +15,4 @@ Imports:
 	SummarizedExperiment,
 	VariantAnnotation
 License: Artistic-2.0
+RoxygenNote: 6.0.1

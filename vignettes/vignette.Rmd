@@ -10,7 +10,7 @@ author:
 - name: Lara Sucheston-Campbell  
   affiliation: The Ohio State University, Columbus, OH
 package: GWAS SurvivR
-date: "November 13, 2017"
+date: '`r format(Sys.Date(), "%B %d, %Y")`'
 output:
         BiocStyle::html_document2
 vignette: >
@@ -31,7 +31,7 @@ library(GWASTools)
 ```
 
 # Introduction
-This package provides a workflow for how to use imputed GWAS data from either IMPUTE2 or the Michigan server and conduct survival analysis. Survival analyses are methods for analyzing time-to-event outcomes. This vignette desribes the data structures that are used in these analyses and provides a tutorial using simulated data consisting of 10,000 SNPs and 1,500 samples. In a normal GWAS, users would impute genetic data from typically a chip of genotyping 750,000-1 million SNPs. The data would either be partitioned (e.g. 5Mb chromosome chunks until end of chromosome) or full chromosome.  
+This package provides a workflow for how to use imputed GWAS data from either IMPUTE2 or the Michigan server and conduct survival analysis. Survival analyses are methods for analyzing time-to-event outcomes. This vignette describes the data structures that are used in these analyses and provides a tutorial using simulated data consisting of 10,000 SNPs and 1,500 samples. After genotyping samples in a GWAS, typically, investigators would impute genetic data from typically a chip of genotyping 750,000-1 million SNPs, assigning genotypes at untyped markers, improving overall genome coverage. Here we aim to provide an R package and tutorial that will allow investigators to perform survival analysis on imputed datasets. The data would either be partitioned (e.g. 5Mb chromosome chunks until end of chromosome, IMPUTE2 default) or full chromosome.  
 
 # Getting started
 Install GWAS SurvivR from the [Sucheston-Campbell Lab Github repository](http://github.com/suchestoncampbelllab/survivR) using `devtools`.
@@ -144,7 +144,7 @@ kable(data.frame("Variables"=samp.l2, "Description"=samp.l2.desc), caption="Seco
 ```
 
 3. Individual information
-- The remainder of the `.sample` file consists of lines containing information for each of the columns headers. 
+ - The remainder of the `.sample` file consists of lines containing information for each of the columns headers. 
 
 **Note:** Missing values are set to `-9` by default. There is some history behind this value and thats why it keeps getting used.
 
@@ -178,7 +178,6 @@ head(example.info)
 ## Convert IMPUTE2 data to GDS
 Due to the size of genotype data, which in a typical GWAS can be quite large (full chromosome ~20GB, chromosome chunks ~1.5GB), we first convert the genotype data into [genomic data structure (GDS) format](https://github.com/zhengxwen/gdsfmt) by re-implementing a function from the package `GWASTools` which we call `convertImputeGds`. This will compress the imputed data substantially, as well as convert the data into dosage format. 
 
-
 `convertImputeGds` has 
 To convert the IMPUTE2 data to GDS format, we need to invoke our function `convertImputeGds`. This function takes 4 arguments:  
 
@@ -197,7 +196,7 @@ convertImputeGds("~/Google Drive/OSU_PHD/survivR/data/example.impute",
 This function creates 3 files that will be saved to your working directory (or an otherwise user specific path). The files are stored in your specified path or working directory and named `example.gds`, `example.snp.rdata`, and `example.scan.info`. 
 
 ## Read in files as SummarizedExperiment
-Since users may be interested in seeing the data within an R/Bioconductor framework, we read in our GDS files are `SummarizedExperiment` objects to allow for access to 
+Since users may be interested in seeing the data within an R/Bioconductor framework, we read in our GDS files as `SummarizedExperiment` objects to allow for access to 
 
 ```{r}
 se <- readImputedGds(gdsfile = "~/Google Drive/OSU_PHD/survivR/data/example.gds",
@@ -218,18 +217,19 @@ Covariates can be added to the `colData` slot of the `SummarizedExperiment` by u
 ```{r, echo=F}
 cov.cols <- c("ID_2", "event", "time", "age", "bmiOVWT", "sex")
 cov.ids <- colData(se)$ID_2
-event <-  sample(seq(0,1), 1500, replace=T)
+event <-  sample(seq(0,1), 1500, replace=T, prob=c(0.21,0.79))
 time <-  sample(seq(0,12,by=0.01), 1500, replace=T)
 age <- sample(seq(18,65,by=0.001), 1500, replace=T)
 bmiOVWT <- sample(seq(0,1), 1500, replace=T, prob=c(0.25, 0.75))
 sex <- sample(seq(0,1), 1500, replace=T, prob=c(0.35, 0.65))
 covfile <- data.frame(cbind(cov.ids, event, time, age, bmiOVWT,sex))
 colnames(covfile) <- cov.cols
-#write.table(covfile, file="example.covariate", sep="\t", row.names=F, quote=F)
+
+#write.table(covfile, file="~/Google Drive/OSU_PHD/survivR/data/example.covariate", sep="\t", row.names=F, quote=F)
 ```
 
 ```{r}
-covfile <- "example.covariate"
+covfile <- "~/Google Drive/OSU_PHD/survivR/data/example.covariate"
 se <- addCov(se, covfile)
 ```
 
@@ -240,10 +240,27 @@ colData(se)
 ```
 
 ## Run survival
-Now we can run survival analysis using CoxPH
+Now we can run survival analysis using `coxSurv`. The time, event, and additional covariates must go into the function as a character string. 
 
+```{r}
+se <- coxSurv(se, "time", "event", c("age", "bmiOVWT", "sex"))
+```
+
+The survival results are located in `rowRanges` slot of `se`.
+
+```{r}
+rowRanges(se)
+```
+
+And the `colData` is cleaned up to include only the covariates included in the model.
+```{r}
+colData(se)
+```
 
 # Michigan Imputation Server Output
+[Michigan Imputation Server](https://imputationserver.sph.umich.edu/index.html) outputs gunzipped variant call format files (`.vcf.gz`). These files are typically stored in full chromosome chunks. Imputation is done using the Minimac3 imputation engine. Pre-phasing is done using either HAPI-UR, SHAPEIT, or EAGLE (default is EAGLE2). 
+
+Minimac is a low memory, computationally efficient implementation of the MaCH algorithm for genotype imputation. It is desgined to work on phased genotypes and can handle very lage reference panels with hundreds or thousands of haplotypes.
 
 ## File structure
 
@@ -251,9 +268,25 @@ Now we can run survival analysis using CoxPH
 
 ## Run survival
 
+# Sanger Imputation Server
+[Sanger Imputation Server](https://imputation.sanger.ac.uk/) pre-phases using either SHAPEIT or EAGLE and then imputes using PBWT algorithm
+
+# References
+1. Terry M. Therneau and Patricia M. Grambsch (2000). Modeling Survival Data: Extending the Cox Model. Springer, New York. ISBN 0-387-98784-3.  
+
+2. Martin Morgan, Valerie Obenchain, Jim Hester and Hervé Pagès (2017). SummarizedExperiment: SummarizedExperiment container. R package version 1.6.3.  
+
+3. Gogarten SM, Bhangale T, Conomos MP, Laurie CA, McHugh CP, Painter I, Zheng X, Crosslin DR, Levine D, Lumley T, Nelson SC, Rice K, Shen J, Swarnkar R, Weir BS and Laurie CC (2012). “GWASTools: an R/Bioconductor package for quality control and analysis of genome-wide association studies.” Bioinformatics, 28(24), pp. 3329-3331. doi: 10.1093/bioinformatics/bts610.  
+
+4. B. N. Howie, P. Donnelly and J. Marchini (2009) A flexible and accurate genotype imputation method for the next generation of genome-wide association studies. PLoS Genetics 5(6): e1000529  
+
+5. Das S, Forer L, Schönherr S, Sidore C, Locke AE, Kwong A, Vrieze S, Chew EY, Levy S, McGue M, Schlessinger D, Stambolian D, Loh PR, Iacono WG, Swaroop A, Scott LJ, Cucca F, Kronenberg F, Boehnke M, Abecasis GR, Fuchsberger C. **Next-generation genotype imputation service and methods.** Nature Genetics 48, 1284–1287 (2016). [27571263](https://www.ncbi.nlm.nih.gov/pubmed/27571263)  
+
+6. Efficient haplotype matching and storage using the Positional Burrows-Wheeler Transform (PBWT)", Richard Durbin Bioinformatics 30:1266-72 (2014).   
 
 # Session info
 Here is the output of `sessionInfo()` on the system that this document was compiled:
 ```{r, echo=F}
 sessionInfo()
 ```
+
