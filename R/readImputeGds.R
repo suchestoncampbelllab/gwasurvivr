@@ -44,9 +44,10 @@ readImputeGds <- function(gdsfile, scanfile, snpfile, infofile){
                                 "info_type0", 
                                 "concord_type0",
                                 "r2_type0")
-
+        
+        
         infofile <- infofile %>%
-                dplyr::select(snpid, rsid, exp_freq_a1, info, certainty)
+                dplyr::select(snpid, rsid, position, exp_freq_a1, info, certainty)
         
         # merge snp file with info file
         snp <- snp %>%
