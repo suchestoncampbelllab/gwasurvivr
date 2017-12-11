@@ -144,7 +144,6 @@ vcfCoxSurv <- function(vcf.file, # character, path to vcf file
                     "iter",
                     "AvgCall",
                     "Rsq",
-                    "Genotyped",
                     "LooRsq",
                     "EmpR",
                     "EmpRsq",
