@@ -168,15 +168,16 @@ vcfCoxSurv <- function(vcf.file, # character, path to vcf file
         # read in just dosage data from Vcf file
         data <- readVcf(vcf, param=ScanVcfParam(geno="DS"))
         
-        # read info file
-        snp.info <- fread(info.file, 
-                      skip=chunk.start, 
-                      nrows = chunk.size,
-                      na.strings = "-")
-        
         if(nrow(data)==0){
             break
         }
+        
+        # read info file
+        snp.info <- fread(info.file, 
+                          skip=chunk.start, 
+                          nrows = chunk.size,
+                          na.strings = "-")
+        
         # read dosage data from collapsed vcf, subset for defined ids
         genotype <- geno(data)$DS[, sample.ids, drop=F]
         
@@ -184,7 +185,8 @@ vcfCoxSurv <- function(vcf.file, # character, path to vcf file
         ## MAF and Rsq thresholds
         indx <- sort(unique(c(which(matrixStats::rowSds(genotype) == 0),
                               which(snp.info[["MAF"]] < MAF & snp.info[["Rsq"]] < Rsq))))
-                  
+        
+        if(length(indx) != 0){          
         ## Save list of snps that have a MAF=0
         snps_maf0 <- rownames(genotype)[indx]
         snps_removed <- snps_removed + length(snps_maf0)
@@ -199,6 +201,7 @@ vcfCoxSurv <- function(vcf.file, # character, path to vcf file
         ## Remove MAF=0 snps
         genotype <- genotype[-indx,]
         snp.info <- snp.info[-indx,]
+        }
         
         # message user
         message("Analyzing chunk ", chunk.start, "-", chunk.start+chunk.size)
@@ -212,15 +215,16 @@ vcfCoxSurv <- function(vcf.file, # character, path to vcf file
         hr <- exp(snp.out[,1])
         lowerCI <-exp(snp.out[,1]-1.96*snp.out[,2])
         upperCI <-exp(snp.out[,1]+1.96*snp.out[,2])
-        cox.out <- cbind(snp.info[,c("SNP", 
-                                "Genotyped",
-                                "REF.0.", 
-                                "ALT.1.", 
-                                "ALT_Frq", 
-                                "MAF"), with=FALSE],
+        cox.out <- cbind(snp.info[,c(1, #"SNP", 
+                                     8, #"Genotyped",
+                                     2, #"REF.0.", 
+                                     3, #"ALT.1.", 
+                                     4, #"ALT_Frq", 
+                                     5  #"MAF"
+                                     ), with=FALSE],
                          hr, lowerCI, upperCI, pval, z, 
                          snp.out, 
-                         snp.info[,-c("SNP", "Genotyped", "REF.0.", "ALT.1.", "ALT_Frq", "MAF"), with=F])
+                         snp.info[,-c(1:5,8), with=F])
         
         write.table(cox.out, 
                     paste0(output.name, ".coxph"),
