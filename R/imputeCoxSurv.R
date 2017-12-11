@@ -37,12 +37,16 @@ imputeCoxSurv <- function(se, time, event, covariates){
     ### which() may produce integer(0), have a check
     if(length(indx) != 0){
         
+        message(length(indx), " SNPs were removed from the analysis for not meeting the threshold criteria.")
+        
         ## Remove MAF=0 snps
         se <- se[-indx,]
         
         # save list of snps that were removed
         metadata(se) <- list(removedSNPs=rowRanges(se)$rsid[indx])
     }
+    
+    message("Running survival models...")
         
     ### build arguments for coxph.fit ###
     Y <- Surv(time=colData(se)[[time]], event=colData(se)[[event]])
@@ -115,4 +119,5 @@ imputeCoxSurv <- function(se, time, event, covariates){
     mcols(rowRanges(se)) <- cbind(mcols(rowRanges(se)), data.frame(sres)[,,drop=T])
         
     return(se)
+    message("Analysis completed on ", format(Sys.time(), "%d/%b/%y"), " at ", format(Sys.time(), "%H:%M:%S"))
 }
