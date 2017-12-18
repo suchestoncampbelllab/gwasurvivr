@@ -1,4 +1,4 @@
-#'
+#' 
 #'
 #'
 #'
@@ -33,7 +33,7 @@ readImputeGds <- function(gdsfile, scanfile, snpfile, infofile){
         scan <- getAnnotation(getScanAnnotation(genoData))
         
         # read in info table
-        infofile <- read.table(infofile, header=T, stringsAsFactors = F)
+        infofile <- read.table(infofile, header=TRUE, stringsAsFactors = FALSE)
         colnames(infofile) <- c("snpid",
                                 "rsid",
                                 "position",
@@ -45,9 +45,14 @@ readImputeGds <- function(gdsfile, scanfile, snpfile, infofile){
                                 "concord_type0",
                                 "r2_type0")
         
-        
         infofile <- infofile %>%
-                dplyr::select(snpid, rsid, position, exp_freq_a1, info, certainty)
+                dplyr::select(snpid,
+                              rsid,
+                              position,
+                              exp_freq_a1, 
+                              info, 
+                              certainty) %>%
+                mutate(snp.index=1:nrow(infofile))
         
         # merge snp file with info file
         snp <- snp %>%
@@ -57,7 +62,7 @@ readImputeGds <- function(gdsfile, scanfile, snpfile, infofile){
                               chr=chromosome, 
                               allele0=alleleA, 
                               allele1=alleleB) %>% # rename position to start so we can convert into GRanges object
-                makeGRangesFromDataFrame(keep.extra.columns=T) # create GRanges object because needed for rowRanges in se
+                makeGRangesFromDataFrame(keep.extra.columns=TRUE) # create GRanges object because needed for rowRanges in se
         
         # parse sample file ... but might not do this
         scan <- scan %>%
