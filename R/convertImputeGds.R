@@ -1,4 +1,4 @@
-#' Convert IMPUTE2 data to GDS format
+subl#' Convert IMPUTE2 data to GDS format
 #'
 #' Convert flat file in genotype format (.gen or .impute) to compressed GDS format. This should be done as the first step of performing survival analysis with IMPUTE2 files. 
 #'
@@ -8,7 +8,7 @@
 #'
 #' @param chr integer(1) defining the chromosome that is being compressed 
 #'
-#' @param outfile.name character(1) string defining 
+#' @param outfile.name character(1) string defining output file names WITHOUT extension
 #' 
 #' @return
 #' Three files: 1) GDS file, 2) SNP RData file, 3) Scan RData file
