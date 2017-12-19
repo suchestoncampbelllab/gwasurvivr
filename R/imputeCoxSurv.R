@@ -100,7 +100,7 @@ imputeCoxSurv <- function(se, time, event, covariates){
     
     ## detect cores for a single machine
     cl <- makeForkCluster(detectCores())
-    
+    on.exit(stopCluster(cl))
     ## apply survival function
     snp.out <- t(parApply(cl=cl, X=assay(se,1), MARGIN=1, FUN=survFit))
     # snp.out <- parRapply(cl=cl, x=assay(se,1), FUN=survFit)
