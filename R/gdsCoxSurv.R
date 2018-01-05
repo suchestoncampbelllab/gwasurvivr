@@ -25,7 +25,8 @@ gdsCoxSurv <- function(gdsfile,
                        time, 
                        event,
                        covariates,
-                       effect.allele){
+                       effect.allele,
+                       verbose=TRUE){
         # read genotype
         gds <- GdsGenotypeReader(gdsfile)
         # close gds file on exit of the function
@@ -70,12 +71,14 @@ gdsCoxSurv <- function(gdsfile,
                                 "certainty")]
         
         infofile <- infofile[infofile$rsid %in% snp$rsid,]
-
+        
         # add snp.index so we can avoid some duplicate warnings
-#        infofile[duplicated(infofile$rsid) | duplicated(infofile$rsid, fromLast=TRUE),]
+        #        infofile[duplicated(infofile$rsid) | duplicated(infofile$rsid, fromLast=TRUE),]
         
         
         infofile$snp.index <- seq_len(nrow(infofile))
+        
+        
         
         # merge snp file with info file
         snp <- merge(infofile,
@@ -83,7 +86,26 @@ gdsCoxSurv <- function(gdsfile,
                      by=c("snp.index", "snpid", "rsid", "position"),
                      all.y=TRUE)
         
+        # change order into what we want final outside to be
+        colnames(snp)[colnames(snp)=="chromosome"] <- "chr"
+        colnames(snp)[colnames(snp)=="alleleA"] <- "allele0"
+        colnames(snp)[colnames(snp)=="alleleB"] <- "allele1"
+        
+        snp <- snp[,c("snp.index",
+                      "chr",
+                      "position",
+                      "snpid",
+                      "rsid",
+                      "allele0",
+                      "allele1", 
+                      "exp_freq_a1", 
+                      "info",
+                      "certainty")]
+        
         dimnames(genotypes) <- list(snp$rsid, scanAnn$ID_2)
+        
+        # flip dosage
+        genotypes <- 2 - genotypes
         
         # add covariates to scan file
         covfile <- read.table(covfile,
@@ -93,6 +115,9 @@ gdsCoxSurv <- function(gdsfile,
         
         colnames(covfile)[1] <- "ID_2" 
         
+        # only keep samples with complete data
+        #covfile <- covfile[complete.cases(covfile),]
+        
         # subset genotype data for patients of interest
         genotypes <- genotypes[,colnames(genotypes) %in% covfile[[1]]]
         
@@ -101,46 +126,43 @@ gdsCoxSurv <- function(gdsfile,
         
         
         scanAnn <- merge(scanAnn,
-                      covfile,
-                      by="ID_2",
-                      all.x=TRUE)
+                         covfile,
+                         by="ID_2",
+                         all.x=TRUE)
         
         # fix order
         scanAnn <- scanAnn[match(colnames(genotypes), scanAnn$ID_2),]
         
-        
         ## STARTING ANALYSIS PORTION
-        
-        message("Analysis started on ", format(Sys.time(), "%Y-%m-%d"), " at ", format(Sys.time(), "%H:%M:%S"))
+        if (verbose) message("Analysis started on ", format(Sys.time(), "%Y-%m-%d"), " at ", format(Sys.time(), "%H:%M:%S"))
         
         pheno.file <- as.matrix(scanAnn[,c(time, event, covariates)])
         
         # define Ns
         n.sample <- nrow(pheno.file)
         n.event <- sum(pheno.file[,event])
-        message("Analysis running for ", n.sample, " samples.")
+        if (verbose) message("Analysis running for ", n.sample, " samples.")
         
         # covariates are defined in pheno.file
         ok.covs <- colnames(pheno.file)[colnames(pheno.file) %in% covariates]
-        message("Covariates included in the models are: ", paste(ok.covs, collapse=", "))
-        message("If your covariates of interest are not included in the model\nplease stop the analysis and make sure user defined covariates\nmatch the column names in the colData(se)")
+        if (verbose) message("Covariates included in the models are: ", paste(ok.covs, collapse=", "))
+        if (verbose) message("If your covariates of interest are not included in the model\nplease stop the analysis and make sure user defined covariates\nmatch the column names in the colData(se)")
         
         ### Check fo snps with MAF = 0  ###  
         indx <- sort(unique(c(which(matrixStats::rowSds(genotypes) == 0))))
         
         ### which() may produce integer(0), have a check
         if(length(indx) != 0){
-                
                 message(length(indx), " SNPs were removed from the analysis for not meeting the threshold criteria.")
-                
                 ## Remove MAF=0 snps
                 genotypes <- genotypes[-indx,]
-                
+                # remove from snp list too that we will merge back later
+                snp <- snp[-indx,]
                 # save list of snps that were removed
                 rm.snps <- list(removedSNPs=snp$rsid[indx])
         }
         
-        message("Running survival models...")
+        if (verbose) message("Running survival models...")
         
         ### build arguments for coxph.fit ###
         Y <- Surv(time=scanAnn[[time]], event=scanAnn[[event]])
@@ -171,20 +193,33 @@ gdsCoxSurv <- function(gdsfile,
         # define INIT
         INIT <- NULL
         init.fit <- coxph.fit(pheno.file[,covariates], 
-                              Y, STRATA, OFFSET, INIT, 
-                              CONTROL, WEIGHTS, METHOD, ROWNAMES)
+                              Y, 
+                              STRATA,
+                              OFFSET,
+                              INIT, 
+                              CONTROL,
+                              WEIGHTS,
+                              METHOD, 
+                              ROWNAMES)
         
         INIT <- c(0,  init.fit$coefficients)
         
         ### define survFit
         survFit <- function(input.genotype){
                 
-                ## only thing that's changing
+                ## creating model matrix
                 X <- cbind(input.genotype, pheno.file[,covariates])
                 
                 ## run fit with pre-defined parameters including INIT
-                fit <- coxph.fit(X, Y, STRATA, OFFSET, INIT, 
-                                 CONTROL, WEIGHTS, METHOD, ROWNAMES)
+                fit <- coxph.fit(X,
+                                 Y,
+                                 STRATA,
+                                 OFFSET,
+                                 INIT, 
+                                 CONTROL,
+                                 WEIGHTS,
+                                 METHOD, 
+                                 ROWNAMES)
                 
                 ## extract statistics
                 coef <- fit$coefficients[1]
@@ -209,9 +244,10 @@ gdsCoxSurv <- function(gdsfile,
         colnames(sres) <- c("coef", "se.coef", "exp.coef", "lb", "ub", "z", "p.value", "n", "nevents")
         rownames(sres) <- NULL # remove rownames so we don't have a duplicated rownames issue
         
-        ## add survival results into summarizedexperiment object
-        mcols(rowRanges(se)) <- cbind(mcols(rowRanges(se)), data.frame(sres)[,,drop=T])
+        res <- cbind(snp,sres)
         
-        return(se)
-        message("Analysis completed on ", format(Sys.time(), "%d/%b/%y"), " at ", format(Sys.time(), "%H:%M:%S"))
+        
+        message("Analysis completed on ", format(Sys.time(), "%Y/%m/%d"), " at ", format(Sys.time(), "%H:%M:%S"))
 }
+
+
