@@ -1,4 +1,4 @@
-subl#' Convert IMPUTE2 data to GDS format
+#' Convert IMPUTE2 data to GDS format
 #'
 #' Convert flat file in genotype format (.gen or .impute) to compressed GDS format. This should be done as the first step of performing survival analysis with IMPUTE2 files. 
 #'
