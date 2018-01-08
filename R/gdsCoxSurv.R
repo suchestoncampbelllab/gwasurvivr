@@ -246,7 +246,7 @@ gdsCoxSurv <- function(gdsfile,
         
         res <- cbind(snp,sres)
         
-        
+        return(res)
         message("Analysis completed on ", format(Sys.time(), "%Y/%m/%d"), " at ", format(Sys.time(), "%H:%M:%S"))
 }
 
