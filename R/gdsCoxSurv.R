@@ -108,15 +108,15 @@ gdsCoxSurv <- function(gdsfile,
         genotypes <- 2 - genotypes
         
         # add covariates to scan file
-        covfile <- read.table(covfile,
-                              header=TRUE,
-                              stringsAsFactors=FALSE,
-                              sep="\t")
+        # covfile <- read.table(covfile,
+        #                       header=TRUE,
+        #                       stringsAsFactors=FALSE,
+        #                       sep="\t")
         
         colnames(covfile)[1] <- "ID_2" 
         
         # only keep samples with complete data
-        #covfile <- covfile[complete.cases(covfile),]
+        covfile <- covfile[complete.cases(covfile),]
         
         # subset genotype data for patients of interest
         genotypes <- genotypes[,colnames(genotypes) %in% covfile[[1]]]
