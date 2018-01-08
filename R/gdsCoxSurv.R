@@ -117,7 +117,7 @@ gdsCoxSurv <- function(gdsfile,
         
         # only keep samples with complete data
         covfile <- covfile[complete.cases(covfile),]
-        
+        covfile <- covfile[ID_2 %in% sample.ids,]
         # subset genotype data for patients of interest
         genotypes <- genotypes[,colnames(genotypes) %in% covfile[[1]]]
         
