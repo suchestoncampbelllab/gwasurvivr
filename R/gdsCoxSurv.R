@@ -15,15 +15,6 @@
 #'
 #'
 
-gdsfile = "ST2_chr2.gds"
-scanfile = "ST2_chr2.scan.rdata"
-snpfile = "ST2_chr2.snp.rdata"
-infofile = "Imp.ST2.chr2-100000000-105000000.impute_info"
-covfile = covfile
-sample.ids = c1.pts
-time = "intxsurv_1Y"
-event = "GVHD1yrCMB"
-covariates = c("dnrage", "bmiOBS", "bmiOVWT", "MDSdummy")
 
 gdsCoxSurv <- function(gdsfile, 
                        scanfile, 
