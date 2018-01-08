@@ -121,8 +121,7 @@ gdsCoxSurv <- function(gdsfile,
         # subset genotype data for patients of interest
         genotypes <- genotypes[,colnames(genotypes) %in% covfile[[1]]]
         
-        scanAnn <- scanAnn[,c("ID_2", "missing", "sex")]
-        colnames(scanAnn)[colnames(scanAnn)=="sex"] <- "sexFromSample"
+        scanAnn <- scanAnn[,c("ID_2", "missing", "sex.sample")]
         
         
         scanAnn <- merge(scanAnn,
