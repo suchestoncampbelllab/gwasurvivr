@@ -15,6 +15,15 @@
 #'
 #'
 
+gdsfile = "ST2_chr2.gds"
+scanfile = "ST2_chr2.scan.rdata"
+snpfile = "ST2_chr2.snp.rdata"
+infofile = "Imp.ST2.chr2-100000000-105000000.impute_info"
+covfile = covfile
+sample.ids = c1.pts
+time = "intxsurv_1Y"
+event = "GVHD1yrCMB"
+covariates = c("dnrage", "bmiOBS", "bmiOVWT", "MDSdummy")
 
 gdsCoxSurv <- function(gdsfile, 
                        scanfile, 
@@ -50,7 +59,7 @@ gdsCoxSurv <- function(gdsfile,
         scanAnn <- getAnnotation(getScanAnnotation(genoData))
         # read in info table
         infofile <- read.table(infofile,
-                               header = TRUE,
+                               header = FALSE,
                                stringsAsFactors = FALSE)
         colnames(infofile) <- c("snpid",
                                 "rsid",
@@ -148,7 +157,7 @@ gdsCoxSurv <- function(gdsfile,
         if (verbose) message("Covariates included in the models are: ", paste(ok.covs, collapse=", "))
         if (verbose) message("If your covariates of interest are not included in the model\nplease stop the analysis and make sure user defined covariates\nmatch the column names in the colData(se)")
         
-        ### Check fo snps with MAF = 0  ###  
+        ### Check of snps with MAF = 0  ###  
         indx <- sort(unique(c(which(matrixStats::rowSds(genotypes) == 0))))
         
         ### which() may produce integer(0), have a check
