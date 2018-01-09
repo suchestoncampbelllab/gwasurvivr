@@ -15,7 +15,6 @@
 #'
 #'
 
-
 gdsCoxSurv <- function(gdsfile, 
                        scanfile, 
                        snpfile, 
@@ -78,13 +77,21 @@ gdsCoxSurv <- function(gdsfile,
         
         infofile$snp.index <- seq_len(nrow(infofile))
         
-        
-        
         # merge snp file with info file
         snp <- merge(infofile,
                      snp,
                      by=c("snp.index", "snpid", "rsid", "position"),
                      all.y=TRUE)
+        
+        # fix snp order
+        infofile$snpid_rsid <- paste(infofile$snpid, infofile$rsid, sep=";")
+        snp$snpid_rsid <- paste(snp$snpid, snp$rsid, sep=";")
+        
+        snp <- snp[match(infofile$snpid_rsid, snp$snpid_rsid),]
+        
+        # remove extra cols
+        infofile$snpid_rsid <- NULL
+        snp$snpid_rsid <- NULL
         
         # change order into what we want final outside to be
         colnames(snp)[colnames(snp)=="chromosome"] <- "chr"
@@ -123,7 +130,6 @@ gdsCoxSurv <- function(gdsfile,
         
         scanAnn <- scanAnn[,c("ID_2", "missing", "sex.sample")]
         
-        
         scanAnn <- merge(scanAnn,
                          covfile,
                          by="ID_2",
@@ -145,8 +151,7 @@ gdsCoxSurv <- function(gdsfile,
         # covariates are defined in pheno.file
         ok.covs <- colnames(pheno.file)[colnames(pheno.file) %in% covariates]
         if (verbose) message("Covariates included in the models are: ", paste(ok.covs, collapse=", "))
-        if (verbose) message("If your covariates of interest are not included in the model\nplease stop the analysis and make sure user defined covariates\nmatch the column names in the colData(se)")
-        
+
         ### Check of snps with MAF = 0  ###  
         indx <- sort(unique(c(which(matrixStats::rowSds(genotypes) == 0))))
         
