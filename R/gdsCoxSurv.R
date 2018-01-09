@@ -249,7 +249,7 @@ gdsCoxSurv <- function(gdsfile,
         rownames(sres) <- NULL # remove rownames so we don't have a duplicated rownames issue
         
         res <- cbind(snp,sres)
-        if (verbose) message("Analysis completed on ", format(Sys.time(), "%Y/%m/%d"), " at ", format(Sys.time(), "%H:%M:%S"))
+        if (verbose) message("Analysis completed on ", format(Sys.time(), "%Y-%m-%d"), " at ", format(Sys.time(), "%H:%M:%S"))
         return(res)
 }
 
