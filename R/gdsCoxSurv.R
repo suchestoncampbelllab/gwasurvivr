@@ -78,20 +78,24 @@ gdsCoxSurv <- function(gdsfile,
         infofile$snp.index <- seq_len(nrow(infofile))
         
         # merge snp file with info file
-        snp <- merge(infofile,
-                     snp,
-                     by=c("snp.index", "snpid", "rsid", "position"),
-                     all.y=TRUE)
+        snp <- snp %>% left_join(infofile) 
         
-        # fix snp order
-        infofile$snpid_rsid <- paste(infofile$snpid, infofile$rsid, sep=";")
-        snp$snpid_rsid <- paste(snp$snpid, snp$rsid, sep=";")
-        
-        snp <- snp[match(infofile$snpid_rsid, snp$snpid_rsid),]
+                
+                
+        #         merge(infofile,
+        #              snp,
+        #              by=c("snp.index", "snpid", "rsid", "position"),
+        #              all.y=TRUE)
+        # 
+        # # fix snp order
+        # infofile$snpid_rsid <- paste(infofile$snpid, infofile$rsid, sep=";")
+        # snp$snpid_rsid <- paste(snp$snpid, snp$rsid, sep=";")
+        # 
+        # snp <- snp[match(infofile$snpid_rsid, snp$snpid_rsid),]
         
         # remove extra cols
-        infofile$snpid_rsid <- NULL
-        snp$snpid_rsid <- NULL
+        #infofile$snpid_rsid <- NULL
+        #snp$snpid_rsid <- NULL
         
         # change order into what we want final outside to be
         colnames(snp)[colnames(snp)=="chromosome"] <- "chr"
