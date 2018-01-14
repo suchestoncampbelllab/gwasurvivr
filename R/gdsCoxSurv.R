@@ -92,9 +92,7 @@ gdsCoxSurv <- function(impute.file,
         
         # merge snp file with info file
         snp <- snp %>% left_join(infofile) 
-        
-                
-                
+
         #         merge(infofile,
         #              snp,
         #              by=c("snp.index", "snpid", "rsid", "position"),
