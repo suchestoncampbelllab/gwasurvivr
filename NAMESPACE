@@ -1,7 +1,3 @@
-export(convertImputeGds)
-export(readImputeGds)
-export(addCov) 
-export(flipDosage)
 export(imputeCoxSurv)
 export(vcfCoxSurv)
 export(gdsCoxSurv)
