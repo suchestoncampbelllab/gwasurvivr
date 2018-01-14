@@ -2,30 +2,56 @@
 #'
 #' Performs survival analysis using Cox proportional hazard models on imputed genetic data stored in SummarizedExperiment object
 #'
-#' @param se SummarizedExperiment object as generated with `readImputeGds` and `addCov` functions 
-#' or includes 1 assay containing allele dosages; rowData with SNP information;
-#' colData including time, event and covariates.
-#' @param time character(1) string that matches time column name in pheno.file
-#' @param event character(1) string that matches event column name in pheno.file
-#' @param covariates character vector with matching column names in pheno.file of covariates of interest
+#' @param gdsfile Path to  file (full directory or current working directory)
+#' @param scanfile Path to 
+#' 
 #' 
 #' @return
 #' Generates se where survival results are kept in rowData.
 #'
 #'
 #'
+#'
+#'
 
-gdsCoxSurv <- function(gdsfile, 
-                       scanfile, 
-                       snpfile, 
-                       infofile, 
+library(GWASTools)
+library(SurvivR)
+library(SummarizedExperiment)
+library(batch)
+library(tidyverse)
+library(stringr)
+library(survival)
+
+
+
+setwd("~/Google Drive/OSU_PHD/benchmark_survivr/sr_impute/")
+
+
+gdsCoxSurv <- function(impute.file,
+                       sample.file,
+                       chromosome,
+                       infofile,
                        covfile, 
                        sample.ids, 
                        time, 
                        event,
                        covariates,
+                       outfile,
                        flip.dosage,
                        verbose=TRUE){
+        
+        gdsfile <- paste0(outfile, ".gds")
+        snpfile <- paste0(outfile, ".snp.rdata")
+        scanfile <- paste0(outfile, ".scan.rdata")
+        imputedDosageFile(input.files=c(impute.file, sample.file),
+                          filename=gdsfile,
+                          chromosome=as.numeric(chromosome),
+                          input.type="IMPUTE2",
+                          input.dosage=F,
+                          file.type="gds",
+                          snp.annot.filename = snpfile,
+                          scan.annot.filename = scanfile)
+        
         # read genotype
         gds <- GdsGenotypeReader(gdsfile)
         # close gds file on exit of the function
@@ -257,5 +283,24 @@ gdsCoxSurv <- function(gdsfile,
         if (verbose) message("Analysis completed on ", format(Sys.time(), "%Y-%m-%d"), " at ", format(Sys.time(), "%H:%M:%S"))
         return(res)
 }
+
+
+covfile <- "sim_7051samples.cov"
+covfile <- read.table(covfile, header=TRUE)
+sample.ids <- "ids_n100.txt"
+sample.ids <- scan(sample.ids, what=character())
+res <- gdsCoxSurv(impute.file="n100_snps10k_chr21.25000005-25500000.impute",
+                  sample.file="n100_chr21.25000005-25500000.impute.sample",
+                  chromosome=21,
+                  infofile="chr21.25000005-25500000.impute.info",
+                  covfile = covfile,
+                  sample.ids=sample.ids,
+                  time="time",
+                  event="event",
+                  covariates=c("age", "sex", "bmiOVWT"),
+                  outfile="test",
+                  flip.dosage=TRUE)
+
+
 
 
