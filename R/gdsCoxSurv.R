@@ -1,4 +1,4 @@
-#' Fit cox survival to all variants in a SummarizedExperiment object
+#' Fit cox survival to all variants from a standard IMPUTE2 output after genotype imputation
 #'
 #' Performs survival analysis using Cox proportional hazard models on imputed genetic data from IMPUTE2 output
 #'

@@ -2,7 +2,7 @@
 % Please edit documentation in R/gdsCoxSurv.R
 \name{gdsCoxSurv}
 \alias{gdsCoxSurv}
-\title{Fit cox survival to all variants in a SummarizedExperiment object}
+\title{Fit cox survival to all variants from a standard IMPUTE2 output after genotype imputation}
 \usage{
 gdsCoxSurv(impute.file, sample.file, chromosome, infofile, covfile, sample.ids,
   time, event, covariates, outfile, flip.dosage, verbose = TRUE)
