@@ -3,6 +3,7 @@
 export(gdsCoxSurv)
 export(vcfCoxSurv)
 import(GWASTools)
+import(VariantAnnotation)
 import(dplyr)
 importFrom(parallel,detectCores)
 importFrom(parallel,parApply)

@@ -1,6 +1,6 @@
 #' Fit cox survival to all variants in a SummarizedExperiment object
 #'
-#' Performs survival analysis using Cox proportional hazard models on imputed genetic data stored in SummarizedExperiment object
+#' Performs survival analysis using Cox proportional hazard models on imputed genetic data from IMPUTE2 output
 #'
 #' @param impute.file character(1) of IMPUTE2 file 
 #' @param sample.file character(1) of sample file affiliated with IMPUTE2 file

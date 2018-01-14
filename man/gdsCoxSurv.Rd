@@ -36,5 +36,5 @@ gdsCoxSurv(impute.file, sample.file, chromosome, infofile, covfile, sample.ids,
 Saves text file directly to disk that contains survival analysis results
 }
 \description{
-Performs survival analysis using Cox proportional hazard models on imputed genetic data stored in SummarizedExperiment object
+Performs survival analysis using Cox proportional hazard models on imputed genetic data from IMPUTE2 output
 }
