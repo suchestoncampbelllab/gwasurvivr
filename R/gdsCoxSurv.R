@@ -74,7 +74,7 @@ gdsCoxSurv <- function(impute.file,
         scanAnn <- getAnnotation(getScanAnnotation(genoData))
         # read in info table
         infofile <- read.table(infofile,
-                               header = FALSE,
+                               header = TRUE,
                                stringsAsFactors = FALSE)
         colnames(infofile) <- c("snpid",
                                 "rsid",
