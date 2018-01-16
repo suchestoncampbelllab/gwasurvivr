@@ -5,7 +5,7 @@
 \title{Fit cox survival to all variants in a VCF file}
 \usage{
 vcfCoxSurv(vcf.file, info.file, MAF, Rsq, chunk.size, pheno.file, time, event,
-  covariates, sample.ids, output.name)
+  covariates, sample.ids, output.name, verbose = TRUE)
 }
 \arguments{
 \item{vcf.file}{character(1) path to VCF file.}

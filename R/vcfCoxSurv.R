@@ -30,6 +30,7 @@
 #' vcfCoxSurv(vcf.file, chunk.size, pheno.file, time, event, covariates, sample.ids, output.name)
 #'  
 #' @importFrom survival Surv coxph.fit
+#' @importFrom data.table fread
 #' @import parallel
 #' @import VariantAnnotation
 #' 
@@ -45,21 +46,22 @@ vcfCoxSurv <- function(vcf.file, # character, path to vcf file
                        event, # character, column defining event
                        covariates, # character vector, columns defining covariates
                        sample.ids, # character vector, list of samples that will be analyzed, could also be a file path?
-                       output.name # character, name of the output file
+                       output.name, # character, name of the output file,
+                       verbose=TRUE
                        
 ){
     
-    message("Analysis started on ", format(Sys.time(), "%Y-%m-%d"), " at ", format(Sys.time(), "%H:%M:%S"))
+    if(verbose) message("Analysis started on ", format(Sys.time(), "%Y-%m-%d"), " at ", format(Sys.time(), "%H:%M:%S"))
    
     
     # subset phenotype file for sample ids
     pheno.file <- pheno.file[sample.ids, ]
-    message("Analysis running for ", nrow(pheno.file), " samples.")
+    if(verbose) message("Analysis running for ", nrow(pheno.file), " samples.")
     
     # covariates are defined in pheno.file
     ok.covs <- colnames(pheno.file)[colnames(pheno.file) %in% covariates]
-    message("Covariates included in the models are: ", paste(ok.covs, collapse=", "))
-    message("If your covariates of interest are not included in the model\nplease stop the analysis and make sure user defined covariates\nmatch the column names in the pheno.file")
+    if(verbose) message("Covariates included in the models are: ", paste(ok.covs, collapse=", "))
+    if(verbose) message("If your covariates of interest are not included in the model\nplease stop the analysis and make sure user defined covariates\nmatch the column names in the pheno.file")
     
     
     ### define arguments for the survfit
@@ -152,14 +154,15 @@ vcfCoxSurv <- function(vcf.file, # character, path to vcf file
                     "Dose1"    
                     )), 
     paste0(output.name, ".coxph"),
-    append = F, 
-    row.names = F,
-    col.names = F,
-    quote = F,
+    append = FALSE, 
+    row.names = FALSE,
+    col.names = FALSE,
+    quote = FALSE,
     sep="\t")
     
     # for a single machine
     cl <- makeForkCluster(detectCores())
+    on.exit(close(cl))
     
     # get genotype probabilities by chunks
     # apply the survival function and save output
@@ -204,7 +207,7 @@ vcfCoxSurv <- function(vcf.file, # character, path to vcf file
         }
         
         # message user
-        message("Analyzing chunk ", chunk.start, "-", chunk.start+chunk.size)
+        if(verbose) message("Analyzing chunk ", chunk.start, "-", chunk.start+chunk.size)
         
         # apply survival function
         snp.out <- t(parApply(cl=cl, X=genotype, MARGIN=1, FUN=survFit))
@@ -238,9 +241,9 @@ vcfCoxSurv <- function(vcf.file, # character, path to vcf file
         
     }
     close(vcf)
-    message("Analysis completed on ", format(Sys.time(), "%Y-%m-%d"), " at ", format(Sys.time(), "%H:%M:%S"))
-    message(length(snps_maf0), " SNPs were removed from the analysis for not meeting the threshold criteria.")
-    message("List of removed SNPs can be found in ", paste0(output.name, ".MAF0snps"))
+    if(verbose) message("Analysis completed on ", format(Sys.time(), "%Y-%m-%d"), " at ", format(Sys.time(), "%H:%M:%S"))
+    if(verbose) message(length(snps_maf0), " SNPs were removed from the analysis for not meeting the threshold criteria.")
+    if(verbose) message("List of removed SNPs can be found in ", paste0(output.name, ".MAF0snps"))
 }
 
 
