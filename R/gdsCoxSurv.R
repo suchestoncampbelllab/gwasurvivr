@@ -52,7 +52,7 @@ gdsCoxSurv <- function(impute.file,
                           scan.annot.filename = scanfile)
         
         # read genotype
-        gds <- GdsGenotypeReader(gdsfile)
+        gds <- GdsGenotypeReader(gdsfile, genotypeDim = "snp,scan")
         # close gds file on exit of the function
         on.exit(close(gds))
         # read in snp data
