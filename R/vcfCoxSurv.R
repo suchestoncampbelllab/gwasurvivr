@@ -30,8 +30,7 @@
 #' vcfCoxSurv(vcf.file, chunk.size, pheno.file, time, event, covariates, sample.ids, output.name)
 #'  
 #' @importFrom survival Surv coxph.fit
-#' @importFrom parallel detectCores
-#' @importFrom parallel parApply
+#' @import parallel
 #' @import VariantAnnotation
 #' 
 #' @export
