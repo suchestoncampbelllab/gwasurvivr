@@ -48,7 +48,7 @@ vcfCoxSurv <- function(vcf.file, # character, path to vcf file
                        
 ){
     
-    message("Analysis started on ", format(Sys.time(), "%d/%b/%y"), " at ", format(Sys.time(), "%H:%M:%S"))
+    message("Analysis started on ", format(Sys.time(), "%Y-%m-%d"), " at ", format(Sys.time(), "%H:%M:%S"))
    
     
     # subset phenotype file for sample ids
@@ -237,7 +237,7 @@ vcfCoxSurv <- function(vcf.file, # character, path to vcf file
         
     }
     close(vcf)
-    message("Analysis completed on ", format(Sys.time(), "%d/%b/%y"), " at ", format(Sys.time(), "%H:%M:%S"))
+    message("Analysis completed on ", format(Sys.time(), "%Y-%m-%d"), " at ", format(Sys.time(), "%H:%M:%S"))
     message(length(snps_maf0), " SNPs were removed from the analysis for not meeting the threshold criteria.")
     message("List of removed SNPs can be found in ", paste0(output.name, ".MAF0snps"))
 }
