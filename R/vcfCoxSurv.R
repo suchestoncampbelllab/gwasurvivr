@@ -32,6 +32,8 @@
 #' @importFrom survival Surv coxph.fit
 #' @importFrom parallel detectCores
 #' @importFrom parallel parApply
+#' @import VariantAnnotation
+#' 
 #' @export
 
 vcfCoxSurv <- function(vcf.file, # character, path to vcf file

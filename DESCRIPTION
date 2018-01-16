@@ -1,4 +1,4 @@
-Package: SurvivR
+Package: gwasurvivr
 Type: Package
 Title: GWAS survival analysis
 Version: 1.0.0
@@ -12,7 +12,7 @@ VignetteBuilder: knitr
 Imports:
 	GWASTools,
 	survival,
-	SummarizedExperiment,
-	VariantAnnotation
+	VariantAnnotation,
+	parallel
 License: Artistic-2.0
 RoxygenNote: 6.0.1

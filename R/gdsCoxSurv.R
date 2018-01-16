@@ -1,18 +1,30 @@
-#' Fit cox survival to all variants in a SummarizedExperiment object
+#' Fit cox survival to all variants from a standard IMPUTE2 output after genotype imputation
 #'
-#' Performs survival analysis using Cox proportional hazard models on imputed genetic data stored in SummarizedExperiment object
+#' Performs survival analysis using Cox proportional hazard models on imputed genetic data from IMPUTE2 output
 #'
-#' @param gdsfile Path to  file (full directory or current working directory)
-#' @param scanfile Path to 
-#' 
+#' @param impute.file character(1) of IMPUTE2 file 
+#' @param sample.file character(1) of sample file affiliated with IMPUTE2 file
+#' @param chromosome numeric(1) denoting chromosome number
+#' @param infofile character(1) of info file affiliated with IMPUTE2 file
+#' @param covfile data.frame(1) or matrix(1) comprising phenotype information; first column is required to be sample IDs
+#' @param sample.ids character vector of sample IDs to keep in survival analysis
+#' @param time character(1) of column name in covfile that represents the time interval of interest in the analysis
+#' @param event character(1) of column name in covfile that represents the event of interest to be included in the analysis
+#' @param covariates character vector with exact names of columns in covfile to include in analysis
+#' @param outfile character(1) of output file name (do not include extension) 
+#' @param flip.dosage logical(1) to flip which allele the dosage was calculated on, default=TRUE
+#' @param verbose logical(1) for messages that describe which part of the analysis is currently being run
 #' 
 #' @return
-#' Generates se where survival results are kept in rowData.
-#'
-#'
-#'
-#'
-#'
+#' Saves text file directly to disk that contains survival analysis results
+#' 
+#' @importFrom survival Surv coxph.fit
+#' @importFrom parallel detectCores
+#' @importFrom parallel parApply
+#' @import GWASTools
+#' @import dplyr
+#' 
+#' @export
 
 gdsCoxSurv <- function(impute.file,
                        sample.file,
@@ -62,7 +74,7 @@ gdsCoxSurv <- function(impute.file,
         scanAnn <- getAnnotation(getScanAnnotation(genoData))
         # read in info table
         infofile <- read.table(infofile,
-                               header = FALSE,
+                               header = TRUE,
                                stringsAsFactors = FALSE)
         colnames(infofile) <- c("snpid",
                                 "rsid",
@@ -255,7 +267,7 @@ gdsCoxSurv <- function(impute.file,
         # snp.out <- parRapply(cl=cl, x=assay(se,1), FUN=survFit)
         
         z <- snp.out[,1]/snp.out[,2]
-        pval <- 2*pnorm(abs(z), lower.tail=F)
+        pval <- 2*pnorm(abs(z), lower.tail=FALSE)
         hr <- exp(snp.out[,1])
         lowerCI <- exp(snp.out[,1]-1.96*snp.out[,2])
         upperCI <- exp(snp.out[,1]+1.96*snp.out[,2])
@@ -265,6 +277,8 @@ gdsCoxSurv <- function(impute.file,
         rownames(sres) <- NULL # remove rownames so we don't have a duplicated rownames issue
         
         res <- cbind(snp,sres)
+        write.table(res, file=paste0(outfile, ".txt"), sep="\t", quote=FALSE, row.names=FALSE, col.names=TRUE)
+        
         if (verbose) message("Analysis completed on ", format(Sys.time(), "%Y-%m-%d"), " at ", format(Sys.time(), "%H:%M:%S"))
         return(res)
 }
