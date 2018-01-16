@@ -19,8 +19,7 @@
 #' Saves text file directly to disk that contains survival analysis results
 #' 
 #' @importFrom survival Surv coxph.fit
-#' @importFrom parallel detectCores
-#' @importFrom parallel parApply
+#' @import parallel
 #' @import GWASTools
 #' @import dplyr
 #' 
