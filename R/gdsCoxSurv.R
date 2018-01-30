@@ -8,7 +8,7 @@
 #' @param infofile character(1) of info file affiliated with IMPUTE2 file
 #' @param covfile data.frame(1) or matrix(1) comprising phenotype information; first column is required to be sample IDs
 #' @param sample.ids character vector of sample IDs to keep in survival analysis
-#' @param time character(1) of column name in covfile that represents the time interval of interest in the analysis
+#' @param time.to.event character(1) of column name in covfile that represents the time interval of interest in the analysis
 #' @param event character(1) of column name in covfile that represents the event of interest to be included in the analysis
 #' @param covariates character vector with exact names of columns in covfile to include in analysis
 #' @param outfile character(1) of output file name (do not include extension) 
@@ -22,16 +22,18 @@
 #' @import parallel
 #' @import GWASTools
 #' @import dplyr
+#' @import matrixStats
 #' 
 #' @export
+
 
 gdsCoxSurv <- function(impute.file,
                        sample.file,
                        chromosome,
-                       infofile,
+                       #infofile,
                        covfile, 
                        sample.ids, 
-                       time, 
+                       time.to.event, 
                        event,
                        covariates,
                        outfile,
@@ -41,17 +43,23 @@ gdsCoxSurv <- function(impute.file,
         gdsfile <- paste0(outfile, ".gds")
         snpfile <- paste0(outfile, ".snp.rdata")
         scanfile <- paste0(outfile, ".scan.rdata")
-        imputedDosageFile(input.files=c(impute.file, sample.file),
-                          filename=gdsfile,
-                          chromosome=as.numeric(chromosome),
-                          input.type="IMPUTE2",
-                          input.dosage=F,
-                          file.type="gds",
-                          snp.annot.filename = snpfile,
-                          scan.annot.filename = scanfile)
+        
+        # see if files exist already ... if not convert to GDS ... still need to test if this works if files dont exist
+        if(!file.exists(gdsfile) | !file.exists(snpfile) | !file.exists(scanfile)){
+                imputedDosageFile(input.files=c(impute.file, sample.file),
+                                  filename=gdsfile,
+                                  chromosome=as.numeric(chromosome),
+                                  input.type="IMPUTE2",
+                                  input.dosage=FALSE,
+                                  file.type="gds",
+                                  snp.annot.filename = snpfile,
+                                  scan.annot.filename = scanfile)   
+        }
         
         # read genotype
+        ## need to add if statement about dimensions
         gds <- GdsGenotypeReader(gdsfile)
+        
         # close gds file on exit of the function
         on.exit(close(gds))
         # read in snp data
@@ -72,37 +80,47 @@ gdsCoxSurv <- function(impute.file,
         # grab sample file data
         scanAnn <- getAnnotation(getScanAnnotation(genoData))
         # read in info table
-        infofile <- read.table(infofile,
-                               header = TRUE,
-                               stringsAsFactors = FALSE)
-        colnames(infofile) <- c("snpid",
-                                "rsid",
-                                "position",
-                                "exp_freq_a1",
-                                "info",
-                                "certainty",
-                                "type",
-                                "info_type0", 
-                                "concord_type0",
-                                "r2_type0")
+        # infofile <- read.table(infofile,
+        #                        header = TRUE,
+        #                        stringsAsFactors = FALSE)
+        # 
+        # colnames(infofile) <- c("snpid",
+        #                         "rsid",
+        #                         "position",
+        #                         "exp_freq_a1",
+        #                         "info",
+        #                         "certainty",
+        #                         "type",
+        #                         "info_type0", 
+        #                         "concord_type0",
+        #                         "r2_type0")
+        # 
+        # infofile$snp.index <- 1:nrow(infofile)
+        # 
         # select columns of interest
-        infofile <- infofile[,c("snpid",
-                                "rsid",
-                                "position",
-                                "exp_freq_a1",
-                                "info",
-                                "certainty")]
+        # infofile <- infofile[,c("snp.index",
+        #                         "snpid",
+        #                         "rsid",
+        #                         "position",
+        #                         "exp_freq_a1",
+        #                         "info",
+        #                         "certainty")]
+        # 
         
-        infofile <- infofile[infofile$rsid %in% snp$rsid,]
         
+        
+        
+        
+        # infofile$snp.index <- seq_len(nrow(infofile))
+        # 
+        # genotypes[,1] %>% row
+
         # add snp.index so we can avoid some duplicate warnings
         #        infofile[duplicated(infofile$rsid) | duplicated(infofile$rsid, fromLast=TRUE),]
         
-        
-        infofile$snp.index <- seq_len(nrow(infofile))
-        
+
         # merge snp file with info file
-        snp <- snp %>% left_join(infofile) 
+        # snp <- snp %>% left_join(infofile) 
 
         #         merge(infofile,
         #              snp,
@@ -111,7 +129,7 @@ gdsCoxSurv <- function(impute.file,
         # 
         # # fix snp order
         # infofile$snpid_rsid <- paste(infofile$snpid, infofile$rsid, sep=";")
-        # snp$snpid_rsid <- paste(snp$snpid, snp$rsid, sep=";")
+        snp$snpid_rsid <- paste(snp$snpid, snp$rsid, sep=";")
         # 
         # snp <- snp[match(infofile$snpid_rsid, snp$snpid_rsid),]
         
@@ -119,21 +137,36 @@ gdsCoxSurv <- function(impute.file,
         #infofile$snpid_rsid <- NULL
         #snp$snpid_rsid <- NULL
         
+        
+        
         # change order into what we want final outside to be
         colnames(snp)[colnames(snp)=="chromosome"] <- "chr"
-        colnames(snp)[colnames(snp)=="alleleA"] <- "allele0"
-        colnames(snp)[colnames(snp)=="alleleB"] <- "allele1"
+        colnames(snp)[colnames(snp)=="alleleA"] <- "A0"
+        colnames(snp)[colnames(snp)=="alleleB"] <- "A1"
+        
+        
+        
+        snp$exp_freq_A1 <- round(1-matrixStats::rowMeans2(genotypes)*0.5,3)
+        
+        # calculate info score
+        obs.mean <- matrixStats::rowMeans2(genotypes)
+        obs.var <- matrixStats::rowVars(genotypes)
+        p <- obs.mean/2
+        p_all <- 2*p*(1-p)
+        info.score <- round(obs.var/p_all,3)
+        info.score[info.score>1] <- 1
+        
+        snp$info <- info.score
         
         snp <- snp[,c("snp.index",
                       "chr",
                       "position",
                       "snpid",
                       "rsid",
-                      "allele0",
-                      "allele1", 
-                      "exp_freq_a1", 
-                      "info",
-                      "certainty")]
+                      "A0",
+                      "A1", 
+                      "exp_freq_A1", 
+                      "info")]
         
         dimnames(genotypes) <- list(snp$rsid, scanAnn$ID_2)
         
@@ -168,7 +201,7 @@ gdsCoxSurv <- function(impute.file,
         ## STARTING ANALYSIS PORTION
         if (verbose) message("Analysis started on ", format(Sys.time(), "%Y-%m-%d"), " at ", format(Sys.time(), "%H:%M:%S"))
         
-        pheno.file <- as.matrix(scanAnn[,c(time, event, covariates)])
+        pheno.file <- as.matrix(scanAnn[,c(time.to.event, event, covariates)])
         
         # define Ns
         n.sample <- nrow(pheno.file)
@@ -184,7 +217,7 @@ gdsCoxSurv <- function(impute.file,
         
         ### which() may produce integer(0), have a check
         if(length(indx) != 0){
-                message(length(indx), " SNPs were removed from the analysis for not meeting the threshold criteria.")
+                if(verbose) message(length(indx), " SNPs were removed from the analysis for not meeting the threshold criteria.")
                 ## Remove MAF=0 snps
                 genotypes <- genotypes[-indx,]
                 # remove from snp list too that we will merge back later
@@ -196,7 +229,7 @@ gdsCoxSurv <- function(impute.file,
         if (verbose) message("Running survival models...")
         
         ### build arguments for coxph.fit ###
-        Y <- Surv(time=scanAnn[[time]], event=scanAnn[[event]])
+        Y <- Surv(time=scanAnn[[time.to.event]], event=scanAnn[[event]])
         rownames(Y) <- as.character(seq_len(nrow(Y)))
         STRATA <- NULL
         CONTROL <- structure(
