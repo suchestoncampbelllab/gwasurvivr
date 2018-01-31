@@ -30,15 +30,16 @@
 gdsCoxSurv <- function(impute.file,
                        sample.file,
                        chromosome,
-                       #infofile,
                        covfile, 
                        sample.ids, 
                        time.to.event, 
                        event,
                        covariates,
                        outfile,
-                       flip.dosage,
-                       verbose=TRUE){
+                       maf.filter,
+                       flip.dosage=TRUE,
+                       verbose=TRUE
+                       ){
         
         gdsfile <- paste0(outfile, ".gds")
         snpfile <- paste0(outfile, ".snp.rdata")
@@ -79,65 +80,6 @@ gdsCoxSurv <- function(impute.file,
         colnames(snp)[colnames(snp)=="snp"] <- "snpid"
         # grab sample file data
         scanAnn <- getAnnotation(getScanAnnotation(genoData))
-        # read in info table
-        # infofile <- read.table(infofile,
-        #                        header = TRUE,
-        #                        stringsAsFactors = FALSE)
-        # 
-        # colnames(infofile) <- c("snpid",
-        #                         "rsid",
-        #                         "position",
-        #                         "exp_freq_a1",
-        #                         "info",
-        #                         "certainty",
-        #                         "type",
-        #                         "info_type0", 
-        #                         "concord_type0",
-        #                         "r2_type0")
-        # 
-        # infofile$snp.index <- 1:nrow(infofile)
-        # 
-        # select columns of interest
-        # infofile <- infofile[,c("snp.index",
-        #                         "snpid",
-        #                         "rsid",
-        #                         "position",
-        #                         "exp_freq_a1",
-        #                         "info",
-        #                         "certainty")]
-        # 
-        
-        
-        
-        
-        
-        # infofile$snp.index <- seq_len(nrow(infofile))
-        # 
-        # genotypes[,1] %>% row
-
-        # add snp.index so we can avoid some duplicate warnings
-        #        infofile[duplicated(infofile$rsid) | duplicated(infofile$rsid, fromLast=TRUE),]
-        
-
-        # merge snp file with info file
-        # snp <- snp %>% left_join(infofile) 
-
-        #         merge(infofile,
-        #              snp,
-        #              by=c("snp.index", "snpid", "rsid", "position"),
-        #              all.y=TRUE)
-        # 
-        # # fix snp order
-        # infofile$snpid_rsid <- paste(infofile$snpid, infofile$rsid, sep=";")
-        snp$snpid_rsid <- paste(snp$snpid, snp$rsid, sep=";")
-        # 
-        # snp <- snp[match(infofile$snpid_rsid, snp$snpid_rsid),]
-        
-        # remove extra cols
-        #infofile$snpid_rsid <- NULL
-        #snp$snpid_rsid <- NULL
-        
-        
         
         # change order into what we want final outside to be
         colnames(snp)[colnames(snp)=="chromosome"] <- "chr"
@@ -145,7 +87,7 @@ gdsCoxSurv <- function(impute.file,
         colnames(snp)[colnames(snp)=="alleleB"] <- "A1"
         
         
-        
+        # calculate MAF
         snp$exp_freq_A1 <- round(1-matrixStats::rowMeans2(genotypes)*0.5,3)
         
         # calculate info score
@@ -155,9 +97,9 @@ gdsCoxSurv <- function(impute.file,
         p_all <- 2*p*(1-p)
         info.score <- round(obs.var/p_all,3)
         info.score[info.score>1] <- 1
-        
         snp$info <- info.score
         
+        # rearrange columns
         snp <- snp[,c("snp.index",
                       "chr",
                       "position",
@@ -174,10 +116,10 @@ gdsCoxSurv <- function(impute.file,
         if(flip.dosage) genotypes <- 2 - genotypes
         
         # add covariates to scan file
-        # covfile <- read.table(covfile,
-        #                       header=TRUE,
-        #                       stringsAsFactors=FALSE,
-        #                       sep="\t")
+        covfile <- read.table(covfile,
+                              header=TRUE,
+                              stringsAsFactors=FALSE,
+                              sep="\t")
         
         colnames(covfile)[1] <- "ID_2" 
         
@@ -291,12 +233,8 @@ gdsCoxSurv <- function(impute.file,
                 cbind(coef, serr)
         }
         
-        ## detect cores for a single machine
-        cl <- makeForkCluster(detectCores())
-        on.exit(stopCluster(cl))
-        ## apply survival function
-        snp.out <- t(parApply(cl=cl, X=genotypes, MARGIN=1, FUN=survFit))
-        # snp.out <- parRapply(cl=cl, x=assay(se,1), FUN=survFit)
+        snp.out <- t(apply(genotypes, 1, survFit))        
+        
         
         z <- snp.out[,1]/snp.out[,2]
         pval <- 2*pnorm(abs(z), lower.tail=FALSE)
@@ -308,7 +246,7 @@ gdsCoxSurv <- function(impute.file,
         colnames(sres) <- c("coef", "se.coef", "exp.coef", "lb", "ub", "z", "p.value", "n", "nevents")
         rownames(sres) <- NULL # remove rownames so we don't have a duplicated rownames issue
         
-        res <- cbind(snp,sres)
+        res <- data.frame(cbind(snp,sres))
         write.table(res, file=paste0(outfile, ".txt"), sep="\t", quote=FALSE, row.names=FALSE, col.names=TRUE)
         
         if (verbose) message("Analysis completed on ", format(Sys.time(), "%Y-%m-%d"), " at ", format(Sys.time(), "%H:%M:%S"))
