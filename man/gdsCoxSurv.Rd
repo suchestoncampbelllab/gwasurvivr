@@ -5,8 +5,8 @@
 \title{Fit cox survival to all variants from a standard IMPUTE2 output after genotype imputation}
 \usage{
 gdsCoxSurv(impute.file, sample.file, chromosome, covfile, sample.ids,
-  time.to.event, event, covariates, outfile, maf.filter, flip.dosage = TRUE,
-  verbose = TRUE)
+  time.to.event, event, covariates, outfile, maf.filter = NULL,
+  flip.dosage = TRUE, verbose = TRUE)
 }
 \arguments{
 \item{impute.file}{character(1) of IMPUTE2 file}
@@ -17,13 +17,13 @@ gdsCoxSurv(impute.file, sample.file, chromosome, covfile, sample.ids,
 
 \item{covfile}{data.frame(1) or matrix(1) comprising phenotype information; first column is required to be sample IDs}
 
-\item{sample.ids}{character vector of sample IDs to keep in survival analysis}
+\item{sample.ids}{character(1) vector of sample IDs to keep in survival analysis}
 
 \item{time.to.event}{character(1) of column name in covfile that represents the time interval of interest in the analysis}
 
 \item{event}{character(1) of column name in covfile that represents the event of interest to be included in the analysis}
 
-\item{covariates}{character vector with exact names of columns in covfile to include in analysis}
+\item{covariates}{character(1) vector with exact names of columns in covfile to include in analysis}
 
 \item{outfile}{character(1) of output file name (do not include extension)}
 
@@ -31,7 +31,7 @@ gdsCoxSurv(impute.file, sample.file, chromosome, covfile, sample.ids,
 
 \item{verbose}{logical(1) for messages that describe which part of the analysis is currently being run}
 
-\item{infofile}{character(1) of info file affiliated with IMPUTE2 file}
+\item{maf.filer}{numeric(1) to filter minor allele frequency (MAF), e.g. 0.005 for 0.5%, 0.05 for 5%, 0.01 for 1%}
 }
 \value{
 Saves text file directly to disk that contains survival analysis results

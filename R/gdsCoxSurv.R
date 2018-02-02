@@ -5,13 +5,13 @@
 #' @param impute.file character(1) of IMPUTE2 file 
 #' @param sample.file character(1) of sample file affiliated with IMPUTE2 file
 #' @param chromosome numeric(1) denoting chromosome number
-#' @param infofile character(1) of info file affiliated with IMPUTE2 file
 #' @param covfile data.frame(1) or matrix(1) comprising phenotype information; first column is required to be sample IDs
-#' @param sample.ids character vector of sample IDs to keep in survival analysis
+#' @param sample.ids character(1) vector of sample IDs to keep in survival analysis
 #' @param time.to.event character(1) of column name in covfile that represents the time interval of interest in the analysis
 #' @param event character(1) of column name in covfile that represents the event of interest to be included in the analysis
-#' @param covariates character vector with exact names of columns in covfile to include in analysis
+#' @param covariates character(1) vector with exact names of columns in covfile to include in analysis
 #' @param outfile character(1) of output file name (do not include extension) 
+#' @param maf.filer numeric(1) to filter minor allele frequency (MAF), e.g. 0.005 for 0.5%, 0.05 for 5%, 0.01 for 1%
 #' @param flip.dosage logical(1) to flip which allele the dosage was calculated on, default=TRUE
 #' @param verbose logical(1) for messages that describe which part of the analysis is currently being run
 #' 
@@ -36,7 +36,7 @@ gdsCoxSurv <- function(impute.file,
                        event,
                        covariates,
                        outfile,
-                       maf.filter,
+                       maf.filter=NULL,
                        flip.dosage=TRUE,
                        verbose=TRUE
                        ){
@@ -87,33 +87,11 @@ gdsCoxSurv <- function(impute.file,
         colnames(snp)[colnames(snp)=="alleleB"] <- "A1"
         
         
-        # calculate MAF
-        snp$exp_freq_A1 <- round(1-matrixStats::rowMeans2(genotypes)*0.5,3)
-        
-        # calculate info score
-        obs.mean <- matrixStats::rowMeans2(genotypes)
-        obs.var <- matrixStats::rowVars(genotypes)
-        p <- obs.mean/2
-        p_all <- 2*p*(1-p)
-        info.score <- round(obs.var/p_all,3)
-        info.score[info.score>1] <- 1
-        snp$info <- info.score
-        
-        # rearrange columns
-        snp <- snp[,c("snp.index",
-                      "chr",
-                      "position",
-                      "snpid",
-                      "rsid",
-                      "A0",
-                      "A1", 
-                      "exp_freq_A1", 
-                      "info")]
-        
-        dimnames(genotypes) <- list(snp$rsid, scanAnn$ID_2)
+        dimnames(genotypes) <- list(paste(snp$snpid, snp$rsid, sep=";"), scanAnn$ID_2)
         
         # flip dosage
         if(flip.dosage) genotypes <- 2 - genotypes
+        
         
         # add covariates to scan file
         covfile <- read.table(covfile,
@@ -139,6 +117,43 @@ gdsCoxSurv <- function(impute.file,
         
         # fix order
         scanAnn <- scanAnn[match(colnames(genotypes), scanAnn$ID_2),]
+        
+        
+        # calculate MAF
+        snp$exp_freq_A1 <- round(1-matrixStats::rowMeans2(genotypes)*0.5,3)
+        
+        # calculate info score
+        obs.mean <- matrixStats::rowMeans2(genotypes)
+        obs.var <- matrixStats::rowVars(genotypes)
+        p <- obs.mean/2
+        p_all <- 2*p*(1-p)
+        info.score <- round(obs.var/p_all,3)
+        info.score[info.score>1] <- 1
+        snp$info <- info.score
+        
+        # rearrange columns
+        snp <- snp[,c("snp.index",
+                      "chr",
+                      "position",
+                      "snpid",
+                      "rsid",
+                      "A0",
+                      "A1", 
+                      "exp_freq_A1", 
+                      "info")]
+        
+        
+
+        
+        if(!is.null(maf.filter)){
+                maf.idx <- snp$exp_freq_A1>maf.filter & snp$exp_freq_A1<(1-maf.filter)
+                rm.maf <- snp[!maf.idx, c("snpid", "rsid", "exp_freq_A1")]
+                snp <- snp[maf.idx,]
+                genotypes <- genotypes[maf.idx,]
+        }
+        
+        
+        
         
         ## STARTING ANALYSIS PORTION
         if (verbose) message("Analysis started on ", format(Sys.time(), "%Y-%m-%d"), " at ", format(Sys.time(), "%H:%M:%S"))
