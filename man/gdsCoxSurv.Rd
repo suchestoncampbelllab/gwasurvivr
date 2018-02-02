@@ -4,8 +4,9 @@
 \alias{gdsCoxSurv}
 \title{Fit cox survival to all variants from a standard IMPUTE2 output after genotype imputation}
 \usage{
-gdsCoxSurv(impute.file, sample.file, chromosome, infofile, covfile, sample.ids,
-  time, event, covariates, outfile, flip.dosage, verbose = TRUE)
+gdsCoxSurv(impute.file, sample.file, chromosome, covfile, sample.ids,
+  time.to.event, event, covariates, outfile, maf.filter, flip.dosage = TRUE,
+  verbose = TRUE)
 }
 \arguments{
 \item{impute.file}{character(1) of IMPUTE2 file}
@@ -14,13 +15,11 @@ gdsCoxSurv(impute.file, sample.file, chromosome, infofile, covfile, sample.ids,
 
 \item{chromosome}{numeric(1) denoting chromosome number}
 
-\item{infofile}{character(1) of info file affiliated with IMPUTE2 file}
-
 \item{covfile}{data.frame(1) or matrix(1) comprising phenotype information; first column is required to be sample IDs}
 
 \item{sample.ids}{character vector of sample IDs to keep in survival analysis}
 
-\item{time}{character(1) of column name in covfile that represents the time interval of interest in the analysis}
+\item{time.to.event}{character(1) of column name in covfile that represents the time interval of interest in the analysis}
 
 \item{event}{character(1) of column name in covfile that represents the event of interest to be included in the analysis}
 
@@ -31,6 +30,8 @@ gdsCoxSurv(impute.file, sample.file, chromosome, infofile, covfile, sample.ids,
 \item{flip.dosage}{logical(1) to flip which allele the dosage was calculated on, default=TRUE}
 
 \item{verbose}{logical(1) for messages that describe which part of the analysis is currently being run}
+
+\item{infofile}{character(1) of info file affiliated with IMPUTE2 file}
 }
 \value{
 Saves text file directly to disk that contains survival analysis results

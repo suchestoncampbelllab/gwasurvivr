@@ -216,12 +216,12 @@ Covariates can be added to the `colData` slot of the `SummarizedExperiment` by u
 
 ```{r, echo=F}
 cov.cols <- c("ID_2", "event", "time", "age", "bmiOVWT", "sex")
-cov.ids <- colData(se)$ID_2
-event <-  sample(seq(0,1), 1500, replace=T, prob=c(0.21,0.79))
-time <-  sample(seq(0,12,by=0.01), 1500, replace=T)
-age <- sample(seq(18,65,by=0.001), 1500, replace=T)
-bmiOVWT <- sample(seq(0,1), 1500, replace=T, prob=c(0.25, 0.75))
-sex <- sample(seq(0,1), 1500, replace=T, prob=c(0.35, 0.65))
+cov.ids <- paste0("sample", 1:7051)
+event <-  sample(seq(0,1), 7051, replace=T, prob=c(0.21,0.79))
+time <-  sample(seq(0,12,by=0.01), 7051, replace=T)
+age <- sample(seq(18,65,by=0.001), 7051, replace=T)
+bmiOVWT <- sample(seq(0,1), 7051, replace=T, prob=c(0.25, 0.75))
+sex <- sample(seq(0,1), 7051, replace=T, prob=c(0.35, 0.65))
 covfile <- data.frame(cbind(cov.ids, event, time, age, bmiOVWT,sex))
 colnames(covfile) <- cov.cols
 
