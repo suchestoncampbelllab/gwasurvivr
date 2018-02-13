@@ -11,13 +11,13 @@
 #' @param event character(1) of column name in covfile that represents the event of interest to be included in the analysis
 #' @param covariates character(1) vector with exact names of columns in covfile to include in analysis
 #' @param outfile character(1) of output file name (do not include extension) 
-#' @param maf.filer numeric(1) to filter minor allele frequency (MAF), e.g. 0.005 for 0.5%, 0.05 for 5%, 0.01 for 1%
+#' @param maf.filer numeric(1) to filter minor allele frequency (MAF)
 #' @param flip.dosage logical(1) to flip which allele the dosage was calculated on, default=TRUE
 #' @param verbose logical(1) for messages that describe which part of the analysis is currently being run
-#' 
+#'
 #' @return
 #' Saves text file directly to disk that contains survival analysis results
-#' 
+#'  
 #' @importFrom survival Surv coxph.fit
 #' @import parallel
 #' @import GWASTools

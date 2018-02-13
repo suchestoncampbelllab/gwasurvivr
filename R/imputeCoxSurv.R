@@ -108,8 +108,8 @@ imputeCoxSurv <- function(se, time, event, covariates){
     z <- snp.out[,1]/snp.out[,2]
     pval <- 2*pnorm(abs(z), lower.tail=F)
     hr <- exp(snp.out[,1])
-    lowerCI <-exp(snp.out[,1]-1.96*snp.out[,2])
-    upperCI <-exp(snp.out[,1]+1.96*snp.out[,2])
+    lowerCI <- exp(snp.out[,1]-1.96*snp.out[,2])
+    upperCI <- exp(snp.out[,1]+1.96*snp.out[,2])
     
     sres <- cbind(snp.out, hr, lowerCI, upperCI, z, pval, n.sample, n.event)
     colnames(sres) <- c("coef", "se.coef", "exp.coef", "lb", "ub", "z", "p.value", "n", "nevents")
