@@ -94,16 +94,18 @@ gdsCoxSurv <- function(impute.file,
         
         
         # add covariates to scan file
-        covfile <- read.table(covfile,
-                              header=TRUE,
-                              stringsAsFactors=FALSE,
-                              sep="\t")
-        
+        # user needs to input covfile 
+        # covfile <- read.table(covfile,
+        #                       header=TRUE,
+        #                       stringsAsFactors=FALSE,
+        #                       sep="\t")
+        # 
         colnames(covfile)[1] <- "ID_2" 
         
         # only keep samples with complete data
         covfile <- covfile[complete.cases(covfile),]
         covfile <- covfile[covfile$ID_2 %in% sample.ids,]
+        
         # subset genotype data for patients of interest
         genotypes <- genotypes[,colnames(genotypes) %in% covfile[[1]]]
         
@@ -142,18 +144,12 @@ gdsCoxSurv <- function(impute.file,
                       "exp_freq_A1", 
                       "info")]
         
-        
-
-        
         if(!is.null(maf.filter)){
                 maf.idx <- snp$exp_freq_A1>maf.filter & snp$exp_freq_A1<(1-maf.filter)
                 rm.maf <- snp[!maf.idx, c("snpid", "rsid", "exp_freq_A1")]
                 snp <- snp[maf.idx,]
                 genotypes <- genotypes[maf.idx,]
         }
-        
-        
-        
         
         ## STARTING ANALYSIS PORTION
         if (verbose) message("Analysis started on ", format(Sys.time(), "%Y-%m-%d"), " at ", format(Sys.time(), "%H:%M:%S"))
@@ -162,7 +158,7 @@ gdsCoxSurv <- function(impute.file,
         
         # define Ns
         n.sample <- nrow(pheno.file)
-        n.event <- sum(pheno.file[,event])
+        n.event <- sum(as.numeric(pheno.file[,event]))
         if (verbose) message("Analysis running for ", n.sample, " samples.")
         
         # covariates are defined in pheno.file
@@ -265,10 +261,8 @@ gdsCoxSurv <- function(impute.file,
         write.table(res, file=paste0(outfile, ".txt"), sep="\t", quote=FALSE, row.names=FALSE, col.names=TRUE)
         
         if (verbose) message("Analysis completed on ", format(Sys.time(), "%Y-%m-%d"), " at ", format(Sys.time(), "%H:%M:%S"))
-        return(res)
+        #return(res)
 }
-
-
 
 
 
