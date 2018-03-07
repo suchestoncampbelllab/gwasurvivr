@@ -4,7 +4,7 @@
 .survFit <- function(input.genotype, params){
         
         ## creating model matrix
-        X <- cbind(input.genotype, pheno.file[,covariates])
+        X <- cbind(input.genotype, params$pheno.file[,covariates])
         
         ## run fit with pre-defined parameters including INIT
         fit <- coxph.fit(X,

@@ -42,6 +42,6 @@
         
         INIT <- c(0,  init.fit$coefficients)
         
-        params <- list(Y=Y, STRATA=STRATA, OFFSET=OFFSET, CONTROL=CONTROL, WEIGHTS=WEIGHTS, METHOD=METHOD, ROWNAMES=ROWNAMES, INIT=INIT)
+        params <- list(pheno.file=pheno.file, Y=Y, STRATA=STRATA, OFFSET=OFFSET, CONTROL=CONTROL, WEIGHTS=WEIGHTS, METHOD=METHOD, ROWNAMES=ROWNAMES, INIT=INIT)
         return(params)
 }
