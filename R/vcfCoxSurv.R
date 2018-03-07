@@ -176,10 +176,10 @@ vcfCoxSurv <- function(vcf.file, # character, path to vcf file
         }
         
         # read info file
-        snp.info <- fread(info.file, 
-                          skip=chunk.start, 
-                          nrows = chunk.size,
-                          na.strings = "-")
+        # snp.info <- fread(info.file, 
+        #                   skip=chunk.start, 
+        #                   nrows = chunk.size,
+        #                   na.strings = "-")
         
         # read dosage data from collapsed vcf, subset for defined ids
         genotype <- geno(data)$DS[, sample.ids, drop=F]
