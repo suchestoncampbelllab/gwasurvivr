@@ -40,12 +40,12 @@ gdsCoxSurv <- function(impute.file,
                        verbose=TRUE
                        ){
         
-        gdsfile <- paste0(outfile, ".gds")
-        snpfile <- paste0(outfile, ".snp.rdata")
-        scanfile <- paste0(outfile, ".scan.rdata")
+        # gdsfile <- paste0(outfile, ".gds")
+        # snpfile <- paste0(outfile, ".snp.rdata")
+        # scanfile <- paste0(outfile, ".scan.rdata")
         
         # see if files exist already ... if not convert to GDS ... still need to test if this works if files dont exist
-        if(!file.exists(gdsfile) | !file.exists(snpfile) | !file.exists(scanfile)){
+        #if(!file.exists(gdsfile) | !file.exists(snpfile) | !file.exists(scanfile)){
                 GWASTools::imputedDosageFile(input.files=c(impute.file, sample.file),
                                              filename=tempfile(pattern=outfile, fileext = ".gds"),
                                              chromosome=as.numeric(chromosome),
@@ -58,7 +58,7 @@ gdsCoxSurv <- function(impute.file,
                 gdsfile <- paste0(tempdir(), "/", dir(path=tempdir(), pattern=".gds"))
                 snpfile <- paste0(tempdir(), "/", dir(path=tempdir(), pattern=".snp.rdata"))
                 scanfile <- paste0(tempdir(), "/", dir(path=tempdir(), pattern=".scan.rdata"))
-        }
+        #}
         
         # read genotype
         ## need to add if statement about dimensions
