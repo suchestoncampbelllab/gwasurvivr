@@ -25,7 +25,74 @@
 #' @import matrixStats
 #' 
 #' @export
+.coxParam <- function(pheno.file, time.to.event, event, covariates, sample.ids){
+        ### build arguments for coxph.fit ###
+        Y <- Surv(time=pheno.file[,time.to.event], event=pheno.file[,event])
+        rownames(Y) <- as.character(seq_len(nrow(Y)))
+        STRATA <- NULL
+        CONTROL <- structure(
+                list(eps = 1e-09,
+                     toler.chol = 1.81898940354586e-12,
+                     iter.max = 20L, # potentially select a more optimal max
+                     toler.inf = 3.16227766016838e-05,
+                     outer.max = 10L, 
+                     timefix = TRUE),
+                .Names = c(
+                        "eps",
+                        "toler.chol",
+                        "iter.max", 
+                        "toler.inf", 
+                        "outer.max", 
+                        "timefix"
+                )
+        )
+        
+        OFFSET <- NULL
+        WEIGHTS <- NULL
+        METHOD <- "efron"
+        ROWNAMES <- sample.ids
+        
+        # define INIT
+        INIT <- NULL
+        init.fit <- coxph.fit(pheno.file[,covariates], 
+                              Y, 
+                              STRATA,
+                              OFFSET,
+                              INIT, 
+                              CONTROL,
+                              WEIGHTS,
+                              METHOD, 
+                              ROWNAMES)
+        
+        INIT <- c(0,  init.fit$coefficients)
+        
+        params <- list(Y=Y, STRATA=STRATA, OFFSET=OFFSET, CONTROL=CONTROL, WEIGHTS=WEIGHTS, METHOD=METHOD, ROWNAMES=ROWNAMES, INIT=INIT)
+        return(params)
+}
 
+
+### define survFit
+.survFit <- function(input.genotype, params){
+        
+        ## creating model matrix
+        X <- cbind(input.genotype, pheno.file[,covariates])
+        
+        ## run fit with pre-defined parameters including INIT
+        fit <- coxph.fit(X,
+                         params$Y,
+                         params$STRATA,
+                         params$OFFSET,
+                         params$INIT, 
+                         params$CONTROL,
+                         params$WEIGHTS,
+                         params$METHOD, 
+                         params$ROWNAMES)
+        
+        ## extract statistics
+        coef <- fit$coefficients[1]
+        serr <- sqrt(diag(fit$var)[1])
+        cbind(coef, serr)
+}
 
 gdsCoxSurv <- function(impute.file,
                        sample.file,
@@ -47,14 +114,18 @@ gdsCoxSurv <- function(impute.file,
         
         # see if files exist already ... if not convert to GDS ... still need to test if this works if files dont exist
         if(!file.exists(gdsfile) | !file.exists(snpfile) | !file.exists(scanfile)){
-                imputedDosageFile(input.files=c(impute.file, sample.file),
-                                  filename=gdsfile,
-                                  chromosome=as.numeric(chromosome),
-                                  input.type="IMPUTE2",
-                                  input.dosage=FALSE,
-                                  file.type="gds",
-                                  snp.annot.filename = snpfile,
-                                  scan.annot.filename = scanfile)   
+                GWASTools::imputedDosageFile(input.files=c(impute.file, sample.file),
+                                             filename=tempfile(pattern=outfile, fileext = ".gds"),
+                                             chromosome=as.numeric(chromosome),
+                                             input.type="IMPUTE2",
+                                             input.dosage=FALSE,
+                                             file.type="gds",
+                                             snp.annot.filename = tempfile(pattern=outfile, fileext = ".snp.rdata"),
+                                             scan.annot.filename = tempfile(pattern=outfile, fileext = ".scan.rdata"))
+                # read in files from temp directory
+                gdsfile <- paste0(tempdir(), "/", dir(path=tempdir(), pattern=".gds"))
+                snpfile <- paste0(tempdir(), "/", dir(path=tempdir(), pattern=".snp.rdata"))
+                scanfile <- paste0(tempdir(), "/", dir(path=tempdir(), pattern=".scan.rdata"))
         }
         
         # read genotype
@@ -120,7 +191,6 @@ gdsCoxSurv <- function(impute.file,
         # fix order
         scanAnn <- scanAnn[match(colnames(genotypes), scanAnn$ID_2),]
         
-        
         # calculate MAF
         snp$exp_freq_A1 <- round(1-matrixStats::rowMeans2(genotypes)*0.5,3)
         
@@ -134,8 +204,7 @@ gdsCoxSurv <- function(impute.file,
         snp$info <- info.score
         
         # rearrange columns
-        snp <- snp[,c("snp.index",
-                      "chr",
+        snp <- snp[,c("chr",
                       "position",
                       "snpid",
                       "rsid",
@@ -181,78 +250,22 @@ gdsCoxSurv <- function(impute.file,
         
         if (verbose) message("Running survival models...")
         
-        ### build arguments for coxph.fit ###
-        Y <- Surv(time=scanAnn[[time.to.event]], event=scanAnn[[event]])
-        rownames(Y) <- as.character(seq_len(nrow(Y)))
-        STRATA <- NULL
-        CONTROL <- structure(
-                list(eps = 1e-09,
-                     toler.chol = 1.81898940354586e-12,
-                     iter.max = 20L, # potentially select a more optimal max
-                     toler.inf = 3.16227766016838e-05,
-                     outer.max = 10L, 
-                     timefix = TRUE),
-                .Names = c(
-                        "eps",
-                        "toler.chol",
-                        "iter.max", 
-                        "toler.inf", 
-                        "outer.max", 
-                        "timefix"
-                )
-        )
+        # build coxph.fit parameters
+        params <- .coxParam(pheno.file, time.to.event, event, covariates, sample.ids)
         
-        OFFSET <- NULL
-        WEIGHTS <- NULL
-        METHOD <- "efron"
-        ROWNAMES <- rownames(pheno.file)
-        
-        # define INIT
-        INIT <- NULL
-        init.fit <- coxph.fit(pheno.file[,covariates], 
-                              Y, 
-                              STRATA,
-                              OFFSET,
-                              INIT, 
-                              CONTROL,
-                              WEIGHTS,
-                              METHOD, 
-                              ROWNAMES)
-        
-        INIT <- c(0,  init.fit$coefficients)
-        
-        ### define survFit
-        survFit <- function(input.genotype){
-                
-                ## creating model matrix
-                X <- cbind(input.genotype, pheno.file[,covariates])
-                
-                ## run fit with pre-defined parameters including INIT
-                fit <- coxph.fit(X,
-                                 Y,
-                                 STRATA,
-                                 OFFSET,
-                                 INIT, 
-                                 CONTROL,
-                                 WEIGHTS,
-                                 METHOD, 
-                                 ROWNAMES)
-                
-                ## extract statistics
-                coef <- fit$coefficients[1]
-                serr <- sqrt(diag(fit$var)[1])
-                cbind(coef, serr)
-        }
-        
-        snp.out <- t(apply(genotypes, 1, survFit))        
-        
-        
+        snp.out <- t(apply(genotypes, 1, .survFit, params)) 
+
+        # calculate z-score
         z <- snp.out[,1]/snp.out[,2]
+        # calculate p-value
         pval <- 2*pnorm(abs(z), lower.tail=FALSE)
+        # calculate hazard ratio
         hr <- exp(snp.out[,1])
+        # confidence interval HR
         lowerCI <- exp(snp.out[,1]-1.96*snp.out[,2])
         upperCI <- exp(snp.out[,1]+1.96*snp.out[,2])
         
+        # putting everything back together
         sres <- cbind(snp.out, hr, lowerCI, upperCI, z, pval, n.sample, n.event)
         colnames(sres) <- c("coef", "se.coef", "exp.coef", "lb", "ub", "z", "p.value", "n", "nevents")
         rownames(sres) <- NULL # remove rownames so we don't have a duplicated rownames issue
