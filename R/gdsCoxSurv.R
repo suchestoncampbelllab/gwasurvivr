@@ -46,18 +46,20 @@ gdsCoxSurv <- function(impute.file,
         
         # see if files exist already ... if not convert to GDS ... still need to test if this works if files dont exist
         #if(!file.exists(gdsfile) | !file.exists(snpfile) | !file.exists(scanfile)){
-                GWASTools::imputedDosageFile(input.files=c(impute.file, sample.file),
-                                             filename=tempfile(pattern=outfile, fileext = ".gds"),
-                                             chromosome=as.numeric(chromosome),
-                                             input.type="IMPUTE2",
-                                             input.dosage=FALSE,
-                                             file.type="gds",
-                                             snp.annot.filename = tempfile(pattern=outfile, fileext = ".snp.rdata"),
-                                             scan.annot.filename = tempfile(pattern=outfile, fileext = ".scan.rdata"))
-                # read in files from temp directory
-                gdsfile <- paste0(tempdir(), "/", dir(path=tempdir(), pattern=".gds"))
-                snpfile <- paste0(tempdir(), "/", dir(path=tempdir(), pattern=".snp.rdata"))
-                scanfile <- paste0(tempdir(), "/", dir(path=tempdir(), pattern=".scan.rdata"))
+        GWASTools::imputedDosageFile(input.files=c(impute.file, sample.file),
+                                     filename=tempfile(pattern="", fileext = ".gds"),
+                                     chromosome=as.numeric(chromosome),
+                                     input.type="IMPUTE2",
+                                     input.dosage=FALSE,
+                                     file.type="gds",
+                                     snp.annot.filename = tempfile(pattern="", fileext = ".snp.rdata"),
+                                     scan.annot.filename = tempfile(pattern="", fileext = ".scan.rdata"))
+        # read in files from temp directory
+        gdsfile <- paste0(tempdir(), "/", dir(path=tempdir(), pattern=".gds"))
+        snpfile <- paste0(tempdir(), "/", dir(path=tempdir(), pattern=".snp.rdata"))
+        scanfile <- paste0(tempdir(), "/", dir(path=tempdir(), pattern=".scan.rdata"))
+        
+        
         #}
         
         # read genotype
