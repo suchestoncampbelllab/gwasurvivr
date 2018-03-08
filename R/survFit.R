@@ -1,7 +1,7 @@
 #' @export 
 
 ### define survFit
-survFit <- function(input.genotype, params){
+.survFit <- function(input.genotype, params){
         
         ## creating model matrix
         X <- cbind(input.genotype, params$pheno.file[,covariates])
