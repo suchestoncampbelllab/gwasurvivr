@@ -11,7 +11,7 @@
 #' @param event character(1) of column name in covfile that represents the event of interest to be included in the analysis
 #' @param covariates character(1) vector with exact names of columns in covfile to include in analysis
 #' @param outfile character(1) of output file name (do not include extension) 
-#' @param maf.filer numeric(1) to filter minor allele frequency (MAF)
+#' @param maf.filter numeric(1) to filter minor allele frequency (MAF)
 #' @param flip.dosage logical(1) to flip which allele the dosage was calculated on, default=TRUE
 #' @param verbose logical(1) for messages that describe which part of the analysis is currently being run
 #'
@@ -108,7 +108,7 @@ gdsCoxSurv <- function(impute.file,
         colnames(covfile)[1] <- "ID_2" 
         
         # only keep samples with complete data
-        covfile <- covfile[complete.cases(covfile),]
+#        covfile <- covfile[complete.cases(covfile),]
         covfile <- covfile[covfile$ID_2 %in% sample.ids,]
         
         # subset genotype data for patients of interest
@@ -209,6 +209,7 @@ gdsCoxSurv <- function(impute.file,
         
         if (verbose) message("Analysis completed on ", format(Sys.time(), "%Y-%m-%d"), " at ", format(Sys.time(), "%H:%M:%S"))
         #return(res)
+        unlink(dir(tempdir(), full.names=TRUE))
 }
 
 
