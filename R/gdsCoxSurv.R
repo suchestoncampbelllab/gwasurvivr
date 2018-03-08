@@ -203,7 +203,7 @@ gdsCoxSurv <- function(impute.file,
         rownames(sres) <- NULL # remove rownames so we don't have a duplicated rownames issue
         
         res <- data.frame(cbind(snp,sres))
-        write.table(res, file=paste0(outfile, ".txt"), sep="\t", quote=FALSE, row.names=FALSE, col.names=TRUE)
+        write.table(res, file=paste0(outfile, ".surv.results"), sep="\t", quote=FALSE, row.names=FALSE, col.names=TRUE)
         
         if (verbose) message("Analysis completed on ", format(Sys.time(), "%Y-%m-%d"), " at ", format(Sys.time(), "%H:%M:%S"))
         #return(res)
