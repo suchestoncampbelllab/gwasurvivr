@@ -89,8 +89,10 @@ vcfCoxSurv <- function(vcf.file, # character, path to vcf file
                     "HR",
                     "HR_lowerCI",
                     "HR_upperCI",
+                    "Z",
                     "PVALUE",
-                    "Z"
+                    "N",
+                    "NEVENT"
                     )), 
     paste0(output.name, ".coxph"),
     append = FALSE, 
@@ -105,8 +107,12 @@ vcfCoxSurv <- function(vcf.file, # character, path to vcf file
     
     # get genotype probabilities by chunks
     # apply the survival function and save output
-    pheno.file <- as.matrix(pheno.file[,-1])
+    pheno.file <- pheno.file[,-1]
+    pheno.file <- as.matrix(pheno.file[,c(time.to.event, event, covariates)])
     params <- .coxParam(pheno.file, time.to.event, event, covariates, sample.ids)
+    
+    N <- nrow(pheno.file)
+    NEVENTS <- sum(pheno.file[,event]==1)
     
     repeat{ 
         # read in just dosage data from Vcf file
@@ -191,10 +197,12 @@ vcfCoxSurv <- function(vcf.file, # character, path to vcf file
                          HR, 
                          HR_lowerCI,
                          HR_upperCI,
+                         Z,
                          PVALUE,
-                         Z)
+                         N,
+                         NEVENTS)
         
-        write.table(cox.out, 
+        write.table(cox.out,
                     paste0(output.name, ".coxph"),
                     append = TRUE, 
                     row.names = FALSE,
