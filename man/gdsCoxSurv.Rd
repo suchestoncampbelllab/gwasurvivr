@@ -27,11 +27,11 @@ gdsCoxSurv(impute.file, sample.file, chromosome, covfile, sample.ids,
 
 \item{outfile}{character(1) of output file name (do not include extension)}
 
+\item{maf.filter}{numeric(1) to filter minor allele frequency (MAF)}
+
 \item{flip.dosage}{logical(1) to flip which allele the dosage was calculated on, default=TRUE}
 
 \item{verbose}{logical(1) for messages that describe which part of the analysis is currently being run}
-
-\item{maf.filer}{numeric(1) to filter minor allele frequency (MAF)}
 }
 \value{
 Saves text file directly to disk that contains survival analysis results

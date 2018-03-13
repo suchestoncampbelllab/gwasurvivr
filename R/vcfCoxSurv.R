@@ -160,9 +160,9 @@ vcfCoxSurv <- function(vcf.file, # character, path to vcf file
         
         ## record removed SNPs by filtering
         snp_maf_removed <- rownames(genotype)[-idx]
-        snps_removed <- snps_removed + length(snps_maf_removed)
+        snps_removed <- snps_removed + length(snp_maf_removed)
         
-        write.table(snps_maf_removed, 
+        write.table(snp_maf_removed, 
                     file= paste0(output.name, ".MAF_INFO_removed"),
                     append = TRUE, 
                     row.names = FALSE,

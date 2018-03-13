@@ -4,8 +4,8 @@
 \alias{vcfCoxSurv}
 \title{Fit cox survival to all variants in a VCF file}
 \usage{
-vcfCoxSurv(vcf.file, info.file, MAF, Rsq, chunk.size, pheno.file, time, event,
-  covariates, sample.ids, output.name, verbose = TRUE)
+vcfCoxSurv(vcf.file, info.filter, maf.filter, chunk.size, pheno.file,
+  time.to.event, event, covariates, sample.ids, output.name, verbose = TRUE)
 }
 \arguments{
 \item{vcf.file}{character(1) path to VCF file.}
@@ -13,8 +13,6 @@ vcfCoxSurv(vcf.file, info.file, MAF, Rsq, chunk.size, pheno.file, time, event,
 \item{chunk.size}{integer(1) number of variants to process per thread}
 
 \item{pheno.file}{numeric matrix(1) comprising phenotype data.}
-
-\item{time}{character(1) string that matches time column name in pheno.file}
 
 \item{event}{character(1) string that matches event column name in pheno.file}
 
@@ -25,6 +23,8 @@ vcfCoxSurv(vcf.file, info.file, MAF, Rsq, chunk.size, pheno.file, time, event,
 \item{output.name}{character(1) string with output name}
 
 \item{vcf.file}{character(1) path to corresponding info file.}
+
+\item{time}{character(1) string that matches time column name in pheno.file}
 }
 \value{
 Saves text file directly to disk that contains survival analysis results
@@ -34,8 +34,8 @@ Performs survival analysis using Cox proportional hazard models on imputed genet
 }
 \examples{
 set.seed(222)
-vcf.file <- system.file(package="SurvivR", "extdata", "chr21.25000005-25500000.vcf.gz")
-fl <- system.file(package="SurvivR", "extdata", "pheno_file.txt") 
+vcf.file <- system.file(package="gwasurvivr", "extdata", "chr21.25000005-25500000.vcf.gz")
+fl <- system.file(package="gwasurvivr", "extdata", "pheno_file.txt") 
 pheno.file <- read.table(fl, sep="\\t", header = T)
 time <- "intxsurv_1Y"
 event <- "dead_1Y" 
