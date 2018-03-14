@@ -102,7 +102,7 @@ vcfCoxSurv <- function(vcf.file, # character, path to vcf file
     
     # for a single machine
     cl <- makeForkCluster(getOption("gwasurvivr.cores", detectCores()))
-    on.exit(close(cl))
+    on.exit(stopCluster(cl))
     
     # get genotype probabilities by chunks
     # apply the survival function and save output
@@ -129,7 +129,6 @@ vcfCoxSurv <- function(vcf.file, # character, path to vcf file
         # calculates sample MAF
         snp.ids <- rownames(data)
         snp.ranges <- data.frame(SummarizedExperiment::rowRanges(data))
-        #snp.ramges <- 
         snp.ranges <- snp.ranges[,c("seqnames", "start", "REF", "ALT")]
         snp.meta <- data.frame(info(data))[,c("RefPanelAF", "TYPED", "INFO")]
         samp.maf <- round(matrixStats::rowMeans2(genotype)*0.5, 4)
@@ -138,15 +137,6 @@ vcfCoxSurv <- function(vcf.file, # character, path to vcf file
                            snp.ranges,
                            snp.meta,
                            SAMP_MAF=samp.maf)
-        
-        
-        # mcols(rowRanges(data)) <- cbind(mcols(rowRanges(data))[,c("REF", "ALT")],
-        #                                 info(data)[,c("RefPanelAF", "TYPED", "INFO")],
-        #                                 DataFrame(RSID=rownames(data),
-        #                                           SAMP_MAF=round(matrixStats::rowMeans2(genotype)*0.5,4)))
-        # 
-        # # put them all in rowRanges
-        # snp.info <- rowRanges(data)
         
         #### filtering by MAF and INFO Score #####
         # info > 0.7
