@@ -188,7 +188,7 @@ vcfCoxSurv <- function(vcf.file, # character, path to vcf file
         
         # calculate statistics
         Z <- snp.out[,1]/snp.out[,2]
-        PVALUE <- 2*pnorm(abs(z), lower.tail=F)
+        PVALUE <- 2*pnorm(abs(Z), lower.tail=F)
         HR <- exp(snp.out[,1])
         HR_lowerCI <- exp(snp.out[,1] - 1.96*snp.out[,2])
         HR_upperCI <- exp(snp.out[,1] + 1.96*snp.out[,2])
