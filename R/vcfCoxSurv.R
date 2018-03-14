@@ -30,7 +30,6 @@
 #' vcfCoxSurv(vcf.file, chunk.size, pheno.file, time, event, covariates, sample.ids, output.name)
 #'  
 #' @importFrom survival Surv coxph.fit
-#' @importFrom data.table fread
 #' @import parallel
 #' @import VariantAnnotation
 #' 
@@ -103,7 +102,7 @@ vcfCoxSurv <- function(vcf.file, # character, path to vcf file
     
     # for a single machine
     cl <- makeForkCluster(getOption("gwasurvivr.cores", detectCores()))
-#    on.exit(close(cl))
+    on.exit(close(cl))
     
     # get genotype probabilities by chunks
     # apply the survival function and save output
@@ -129,7 +128,7 @@ vcfCoxSurv <- function(vcf.file, # character, path to vcf file
         # grab info, REFPAN_AF, TYPED/IMPUTED, INFO
         # calculates sample MAF
         snp.ids <- rownames(data)
-        snp.ranges <- data.frame(rowRanges(data))
+        snp.ranges <- data.frame(SummarizedExperiment::rowRanges(data))
         #snp.ramges <- 
         snp.ranges <- snp.ranges[,c("seqnames", "start", "REF", "ALT")]
         snp.meta <- data.frame(info(data))[,c("RefPanelAF", "TYPED", "INFO")]
