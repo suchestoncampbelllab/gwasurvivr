@@ -33,6 +33,7 @@
 #' @importFrom data.table fread
 #' @import parallel
 #' @import VariantAnnotation
+#' @import S4Vectors
 #' 
 #' @export
 
@@ -129,7 +130,9 @@ vcfCoxSurv <- function(vcf.file, # character, path to vcf file
         # grab info, REFPAN_AF, TYPED/IMPUTED, INFO
         # calculates sample MAF
         snp.ids <- rownames(data)
-        snp.ranges <- data.frame(rowRanges(data))[,c("seqnames", "start", "REF", "ALT")]
+        snp.ranges <- data.frame(rowRanges(data))
+        #snp.ramges <- 
+        snp.ranges <- snp.ranges[,c("seqnames", "start", "REF", "ALT")]
         snp.meta <- data.frame(info(data))[,c("RefPanelAF", "TYPED", "INFO")]
         samp.maf <- round(matrixStats::rowMeans2(genotype)*0.5, 4)
         
