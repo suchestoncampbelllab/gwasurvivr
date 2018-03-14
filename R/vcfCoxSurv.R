@@ -5,7 +5,7 @@
 #' @param vcf.file character(1) path to VCF file.
 #' @param vcf.file character(1) path to corresponding info file.
 #' @param chunk.size integer(1) number of variants to process per thread
-#' @param pheno.file numeric matrix(1) comprising phenotype data. 
+#' @param pheno.file matrix(1) comprising phenotype data. 
 #' @param time character(1) string that matches time column name in pheno.file
 #' @param event character(1) string that matches event column name in pheno.file
 #' @param covariates character vector with matching column names in pheno.file of covariates of interest
@@ -103,7 +103,7 @@ vcfCoxSurv <- function(vcf.file, # character, path to vcf file
     
     # for a single machine
     cl <- makeForkCluster(getOption("gwasurvivr.cores", detectCores()))
-    on.exit(close(cl))
+#    on.exit(close(cl))
     
     # get genotype probabilities by chunks
     # apply the survival function and save output
@@ -125,15 +125,6 @@ vcfCoxSurv <- function(vcf.file, # character, path to vcf file
         # read dosage data from collapsed vcf, subset for defined ids
         genotype <- geno(data)$DS[, match(sample.ids, colnames(data)) , drop=F]
         
-        ## Check for sd of the snps, remove snps that doesn't meet
-        ## MAF and Rsq thresholds
-        # indx <- sort(unique(c(which(matrixStats::rowSds(genotype) == 0),
-        #                       which(snp.info[["MAF"]] < maf.filter & snp.info[["Rsq"]] < Rsq))))
-        
-        #if(length(indx) != 0){          
-        ## Save list of snps that have a MAF=0
-        #snps_maf0 <- rownames(genotype)[indx]
-
         
         # grab info, REFPAN_AF, TYPED/IMPUTED, INFO
         # calculates sample MAF
@@ -172,6 +163,8 @@ vcfCoxSurv <- function(vcf.file, # character, path to vcf file
         
         # clean data
         snp.maf.filt <- data.frame(snp.maf.filt, row.names=NULL)
+        snp.maf.filt$ALT <- sapply(snp.maf.filt$ALT, as.character)
+        snp.maf.filt$RefPanelAF <- sapply(snp.maf.filt$RefPanelAF, as.numeric)
         colnames(snp.maf.filt) <- c("CHR", "POS", "END", "WIDTH" ,"STRAND", "RefPanelAF", "TYPED", "INFO", "RSID", "SAMP_MAF","REF", "ALT")
         snp.maf.filt <- snp.maf.filt[,c("RSID", "TYPED", "CHR", "POS", "REF", "ALT", "RefPanelAF", "SAMP_MAF", "INFO")]
         
@@ -180,7 +173,7 @@ vcfCoxSurv <- function(vcf.file, # character, path to vcf file
         
         # message user
         if(verbose) message("Analyzing chunk ", chunk.start, "-", chunk.start+chunk.size)
-
+        
         # apply survival function
         snp.out <- t(parApply(cl=cl, X=genotype, MARGIN=1, FUN=.survFit, params))
         colnames(snp.out) <- c("SE", "SE.COEF")
