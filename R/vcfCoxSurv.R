@@ -33,7 +33,6 @@
 #' @importFrom data.table fread
 #' @import parallel
 #' @import VariantAnnotation
-#' @import S4Vectors
 #' 
 #' @export
 
