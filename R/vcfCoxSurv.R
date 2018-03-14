@@ -128,26 +128,37 @@ vcfCoxSurv <- function(vcf.file, # character, path to vcf file
         
         # grab info, REFPAN_AF, TYPED/IMPUTED, INFO
         # calculates sample MAF
-        mcols(rowRanges(data)) <- cbind(mcols(rowRanges(data))[,c("REF", "ALT")],
-                                        info(data)[,c("RefPanelAF", "TYPED", "INFO")],
-                                        DataFrame(RSID=rownames(data),
-                                                  SAMP_MAF=round(matrixStats::rowMeans2(genotype)*0.5,4)))
+        snp.ids <- rownames(data)
+        snp.ranges <- data.frame(rowRanges(data))[,c("seqnames", "start", "REF", "ALT")]
+        snp.meta <- data.frame(info(data))[,c("RefPanelAF", "TYPED", "INFO")]
+        samp.maf <- round(matrixStats::rowMeans2(genotype)*0.5, 4)
         
-        # put them all in rowRanges
-        snp.info <- rowRanges(data)
+        snp.info <- cbind(RSID=snp.ids,
+                           snp.ranges,
+                           snp.meta,
+                           SAMP_MAF=samp.maf)
+        
+        
+        # mcols(rowRanges(data)) <- cbind(mcols(rowRanges(data))[,c("REF", "ALT")],
+        #                                 info(data)[,c("RefPanelAF", "TYPED", "INFO")],
+        #                                 DataFrame(RSID=rownames(data),
+        #                                           SAMP_MAF=round(matrixStats::rowMeans2(genotype)*0.5,4)))
+        # 
+        # # put them all in rowRanges
+        # snp.info <- rowRanges(data)
         
         #### filtering by MAF and INFO Score #####
         # info > 0.7
         # maf > 0.005 & maf < 0.995
         
-        idx <- sort(unique(c(which(snp.info@elementMetadata$INFO > info.filter &
-                                         as.numeric(snp.info@elementMetadata$RefPanelAF) > maf.filter &
-                                         as.numeric(snp.info@elementMetadata$RefPanelAF) < (1-maf.filter))
+        idx <- sort(unique(c(which(snp.info$INFO > info.filter &
+                                         snp.info$RefPanelAF > maf.filter &
+                                         snp.info$RefPanelAF < (1-maf.filter))
                              )
                            )
                     )
         
-        snp.maf.filt <- snp.info[idx]
+        snp.maf.filt <- snp.info[idx,]
         
         ## record removed SNPs by filtering
         snp_maf_removed <- rownames(genotype)[-idx]
@@ -162,10 +173,10 @@ vcfCoxSurv <- function(vcf.file, # character, path to vcf file
                     sep="\t")
         
         # clean data
-        snp.maf.filt <- data.frame(snp.maf.filt, row.names=NULL)
+
         snp.maf.filt$ALT <- sapply(snp.maf.filt$ALT, as.character)
         snp.maf.filt$RefPanelAF <- sapply(snp.maf.filt$RefPanelAF, as.numeric)
-        colnames(snp.maf.filt) <- c("CHR", "POS", "END", "WIDTH" ,"STRAND", "RefPanelAF", "TYPED", "INFO", "RSID", "SAMP_MAF","REF", "ALT")
+        colnames(snp.maf.filt) <- c("RSID", "CHR", "POS", "REF", "ALT", "RefPanelAF", "TYPED", "INFO", "SAMP_MAF")
         snp.maf.filt <- snp.maf.filt[,c("RSID", "TYPED", "CHR", "POS", "REF", "ALT", "RefPanelAF", "SAMP_MAF", "INFO")]
         
         # now we need to filter the genotype file
