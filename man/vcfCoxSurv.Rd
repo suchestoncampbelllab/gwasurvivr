@@ -12,7 +12,7 @@ vcfCoxSurv(vcf.file, info.filter, maf.filter, chunk.size, pheno.file,
 
 \item{chunk.size}{integer(1) number of variants to process per thread}
 
-\item{pheno.file}{numeric matrix(1) comprising phenotype data.}
+\item{pheno.file}{matrix(1) comprising phenotype data.}
 
 \item{event}{character(1) string that matches event column name in pheno.file}
 
