@@ -40,19 +40,24 @@ gdsCoxSurv <- function(impute.file,
                        verbose=TRUE
                        ){
         
+        
+        gds.tmp.filename=tempfile(pattern="", fileext = ".gds")
+        snp.annot.tmp.filename = tempfile(pattern="", fileext = ".snp.rdata")
+        scan.annot.tmp.filename = tempfile(pattern="", fileext = ".scan.rdata")
+        
         GWASTools::imputedDosageFile(input.files=c(impute.file, sample.file),
-                                     filename=tempfile(pattern="", fileext = ".gds"),
+                                     filename=gds.tmp.filename,
                                      chromosome=as.numeric(chromosome),
                                      input.type="IMPUTE2",
                                      input.dosage=FALSE,
                                      file.type="gds",
-                                     snp.annot.filename = tempfile(pattern="", fileext = ".snp.rdata"),
-                                     scan.annot.filename = tempfile(pattern="", fileext = ".scan.rdata"))
+                                     snp.annot.filename = snp.annot.tmp.filename,
+                                     scan.annot.filename = scan.annot.tmp.filename)
         
         # read in files from temp directory
-        gdsfile <- paste0(tempdir(), "/", dir(path=tempdir(), pattern=".gds"))
-        snpfile <- paste0(tempdir(), "/", dir(path=tempdir(), pattern=".snp.rdata"))
-        scanfile <- paste0(tempdir(), "/", dir(path=tempdir(), pattern=".scan.rdata"))
+        gdsfile <- gds.tmp.filename
+        snpfile <- snp.annot.tmp.filename
+        scanfile <- scan.annot.tmp.filename
         
         # read genotype
         ## need to add if statement about dimensions
@@ -202,7 +207,7 @@ gdsCoxSurv <- function(impute.file,
         
         if (verbose) message("Analysis completed on ", format(Sys.time(), "%Y-%m-%d"), " at ", format(Sys.time(), "%H:%M:%S"))
         #return(res)
-        on.exit(unlink(dir(tempdir(), full.names=TRUE)))
+        on.exit(unlink(tempdir(), recursive = TRUE))
 }
 
 
