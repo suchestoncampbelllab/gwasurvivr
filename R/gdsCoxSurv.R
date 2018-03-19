@@ -21,7 +21,6 @@
 #' @importFrom survival Surv coxph.fit
 #' @import parallel
 #' @import GWASTools
-#' @import dplyr
 #' @import matrixStats
 #' 
 #' @export
