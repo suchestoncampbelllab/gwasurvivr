@@ -130,6 +130,7 @@ gdsCoxSurv <- function(impute.file,
                 if(verbose) message(sum(maf.idx), " SNPs were removed from the analysis for not meeting the given MAF < ", maf.filter)
                 
         } else {
+            
             indx <- sort(unique(c(which(matrixStats::rowSds(genotypes) == 0))))
 
             ### which() may produce integer(0), have a check
@@ -140,7 +141,7 @@ gdsCoxSurv <- function(impute.file,
                     snp <- snp[-indx,]
                     # save list of snps that were removed
                     rm.snps <- snp[-indx, c("snpid", "rsid", "exp_freq_A1", "info")]
-                    if(verbose) message(length(indx), " SNPs were removed from the analysis for sd = 0")
+                    if(verbose) message(length(indx), " SNPs were removed from the analysis for having sd = 0")
                     }
         }
         
@@ -174,25 +175,10 @@ gdsCoxSurv <- function(impute.file,
         cl <- makeForkCluster(getOption("gwasurvivr.cores", detectCores()))
         on.exit(stopCluster(cl))
     
-        snp.out <- t(parApply(cl=cl, X=genotypes, MARGIN=1, FUN=survFit, params))
+        cox.out <- t(parApply(cl=cl, X=genotypes, MARGIN=1, FUN=survFit, params))
     
+        res <- coxExtract(cox.out, snp, n.sample, n.event)
         
-        # calculate z-score
-        z <- snp.out[,1]/snp.out[,2]
-        # calculate p-value
-        pval <- 2*pnorm(abs(z), lower.tail=FALSE)
-        # calculate hazard ratio
-        hr <- exp(snp.out[,1])
-        # confidence interval HR
-        lowerCI <- exp(snp.out[,1]-1.96*snp.out[,2])
-        upperCI <- exp(snp.out[,1]+1.96*snp.out[,2])
-        
-        # putting everything back together
-        sres <- cbind(snp.out, hr, lowerCI, upperCI, z, pval, n.sample, n.event)
-        colnames(sres) <- c("coef", "se.coef", "exp.coef", "lb", "ub", "z", "p.value", "n", "nevents")
-        rownames(sres) <- NULL # remove rownames so we don't have a duplicated rownames issue
-        
-        res <- data.frame(cbind(snp,sres))
         write.table(res, file=paste0(outfile, ".surv.results"), sep="\t", quote=FALSE, row.names=FALSE, col.names=TRUE)
         
         if (verbose) message("Analysis completed on ", format(Sys.time(), "%Y-%m-%d"), " at ", format(Sys.time(), "%H:%M:%S"))
