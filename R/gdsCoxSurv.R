@@ -40,23 +40,18 @@ gdsCoxSurv <- function(impute.file,
                        ){
         
         
-        gds.tmp.filename=tempfile(pattern="", fileext = ".gds")
-        snp.annot.tmp.filename = tempfile(pattern="", fileext = ".snp.rdata")
-        scan.annot.tmp.filename = tempfile(pattern="", fileext = ".scan.rdata")
+        gdsfile <- tempfile(pattern="", fileext = ".gds")
+        snpfile <- tempfile(pattern="", fileext = ".snp.rdata")
+        scanfile <- tempfile(pattern="", fileext = ".scan.rdata")
         
         GWASTools::imputedDosageFile(input.files=c(impute.file, sample.file),
-                                     filename=gds.tmp.filename,
+                                     filename=gdsfile,
                                      chromosome=as.numeric(chromosome),
                                      input.type="IMPUTE2",
                                      input.dosage=FALSE,
                                      file.type="gds",
-                                     snp.annot.filename = snp.annot.tmp.filename,
-                                     scan.annot.filename = scan.annot.tmp.filename)
-        
-        # read in files from temp directory
-        gdsfile <- gds.tmp.filename
-        snpfile <- snp.annot.tmp.filename
-        scanfile <- scan.annot.tmp.filename
+                                     snp.annot.filename = snpfile,
+                                     scan.annot.filename = scanfile)
         
         # read genotype
         ## need to add if statement about dimensions
@@ -74,52 +69,28 @@ gdsCoxSurv <- function(impute.file,
                                  scanAnnot=scanAnnot)
         # store genotype, sample info and, and snp info
         genotypes <- getGenotype(genoData)
+        
         # grab map data and rename some columns
         snp <- getAnnotation(getSnpAnnotation(genoData)) 
-        colnames(snp)[colnames(snp)=="snpID"] <- "snp.index"
-        colnames(snp)[colnames(snp)=="rsID"] <- "rsid"
-        colnames(snp)[colnames(snp)=="snp"] <- "snpid"
+
         # grab sample file data
         scanAnn <- getAnnotation(getScanAnnotation(genoData))
         
-        # change order into what we want final outside to be
-        colnames(snp)[colnames(snp)=="chromosome"] <- "chr"
-        colnames(snp)[colnames(snp)=="alleleA"] <- "A0"
-        colnames(snp)[colnames(snp)=="alleleB"] <- "A1"
-        
-        
-        dimnames(genotypes) <- list(paste(snp$snpid, snp$rsid, sep=";"), scanAnn$ID_2)
-        
+        # assign rsIDs (pasted with imputation status) as rows 
+        # and sample ID as columns to genotype file
+        dimnames(genotypes) <- list(paste(snp$snp, snp$rsID, sep=";"), 
+                                    scanAnn$ID_2)
         # flip dosage
         if(flip.dosage) genotypes <- 2 - genotypes
         
-        
-        # add covariates to scan file
         # user needs to input covfile 
-        # covfile <- read.table(covfile,
-        #                       header=TRUE,
-        #                       stringsAsFactors=FALSE,
-        #                       sep="\t")
-        # 
         colnames(covfile)[1] <- "ID_2" 
         
-        # only keep samples with complete data
-        # covfile <- covfile[complete.cases(covfile),]
+        # only keep samples given with sample.ids argument
         covfile <- covfile[covfile$ID_2 %in% sample.ids,]
         
         # subset genotype data for patients of interest
         genotypes <- genotypes[,covfile[[1]]]
-        
-        #colnames(scanAnn)[colnames(scanAnn)=="sex"] <- "sex.sample"
-        #scanAnn <- scanAnn[,c("ID_2", "missing", "sex.sample")]
-        
-        # scanAnn <- merge(scanAnn,
-        #                  covfile,
-        #                  by="ID_2",
-        #                  all.x=TRUE)
-        
-        # fix order
-        # scanAnn <- scanAnn[match(colnames(genotypes), scanAnn$ID_2),]
         
         # calculate MAF
         snp$exp_freq_A1 <- round(1-matrixStats::rowMeans2(genotypes)*0.5,3)
@@ -134,6 +105,9 @@ gdsCoxSurv <- function(impute.file,
         snp$info <- info.score
         
         # rearrange columns
+        colnames(snp) <- c("snpID", "snpid", "rsid", "position", 
+                           "A0", "A1", "chr", "exp_freq_A1", "info")
+        
         snp <- snp[,c("chr",
                       "position",
                       "snpid",
@@ -143,48 +117,65 @@ gdsCoxSurv <- function(impute.file,
                       "exp_freq_A1", 
                       "info")]
         
- 
+        ### Check snps for MAF = 0  ###
+        # if MAF threshold is set, subset by the given value,
+        # otherwise check for SD = 0 and remove
+        
         if(!is.null(maf.filter)){
-                maf.idx <- snp$exp_freq_A1>maf.filter & snp$exp_freq_A1<(1-maf.filter)
-                rm.maf <- snp[!maf.idx, c("snpid", "rsid", "exp_freq_A1")]
-                snp <- snp[maf.idx,]
-                genotypes <- genotypes[maf.idx,]
+                maf.idx <- snp$exp_freq_A1<maf.filter & snp$exp_freq_A1>(1-maf.filter)
+                rm.snps <- snp[maf.idx, c("snpid", "rsid", "exp_freq_A1", "info")]
+                snp <- snp[!maf.idx,]
+                genotypes <- genotypes[!maf.idx,]
+                
+                if(verbose) message(sum(maf.idx), " SNPs were removed from the analysis for not meeting the given MAF < ", maf.filter)
+                
+        } else {
+            indx <- sort(unique(c(which(matrixStats::rowSds(genotypes) == 0))))
+
+            ### which() may produce integer(0), have a check
+            if(length(indx) != 0){
+                    ## Remove MAF=0 snps
+                    genotypes <- genotypes[-indx,]
+                    # remove from snp list too that we will merge back later
+                    snp <- snp[-indx,]
+                    # save list of snps that were removed
+                    rm.snps <- snp[-indx, c("snpid", "rsid", "exp_freq_A1", "info")]
+                    if(verbose) message(length(indx), " SNPs were removed from the analysis for sd = 0")
+                    }
         }
         
+        write.table(rm.snps, paste0(outfile, ".snps_removed"),
+                    row.names = FALSE, sep="\t", quote = FALSE)
+        if(verbose) message("List of removed SNPs are saved to ", paste0(outfile, ".snps_removed"))
+        
         ## STARTING ANALYSIS PORTION
-        if (verbose) message("Analysis started on ", format(Sys.time(), "%Y-%m-%d"), " at ", format(Sys.time(), "%H:%M:%S"))
         
         pheno.file <- as.matrix(covfile[,c(time.to.event, event, covariates)])
-        
-        # define Ns
-        n.sample <- nrow(pheno.file)
-        n.event <- sum(as.numeric(pheno.file[,event]))
-        if (verbose) message("Analysis running for ", n.sample, " samples.")
         
         # covariates are defined in pheno.file
         ok.covs <- colnames(pheno.file)[colnames(pheno.file) %in% covariates]
         if (verbose) message("Covariates included in the models are: ", paste(ok.covs, collapse=", "))
         
-        # ### Check of snps with MAF = 0  ###  
-        # indx <- sort(unique(c(which(matrixStats::rowSds(genotypes) == 0))))
-        # 
-        # ### which() may produce integer(0), have a check
-        # if(length(indx) != 0){
-        #         if(verbose) message(length(indx), " SNPs were removed from the analysis for not meeting the threshold criteria.")
-        #         ## Remove MAF=0 snps
-        #         genotypes <- genotypes[-indx,]
-        #         # remove from snp list too that we will merge back later
-        #         snp <- snp[-indx,]
-        #         # save list of snps that were removed
-        #         rm.snps <- list(removedSNPs=snp$rsid[indx])
-        # }
+        if (!typeof(pheno.file) %in% c("numeric", "double", "integer") ) {
+            stop("Provided covariates must be numeric! e.g. categorical variables should be recoded as indicator or dummy variables.")
+        }
         
-        if (verbose) message("Running survival models...")
+        # define Ns
+        n.sample <- nrow(pheno.file)
+        n.event <- sum(as.numeric(pheno.file[,event]))
+        if (verbose) message(n.sample, " samples are included in the analysis")
         
         # build coxph.fit parameters
-        params <- .coxParam(pheno.file, time.to.event, event, covariates, sample.ids)
+        params <- coxParam(pheno.file, time.to.event, event, covariates, sample.ids)
         
-        snp.out <- t(apply(genotypes, 1, .survFit, params)) 
+        if (verbose) message("Analysis started on ", format(Sys.time(), "%Y-%m-%d"), " at ", format(Sys.time(), "%H:%M:%S"))
+        
+        # create cluster, also create option to input number of cores
+        cl <- makeForkCluster(getOption("gwasurvivr.cores", detectCores()))
+        on.exit(stopCluster(cl))
+    
+        snp.out <- t(parApply(cl=cl, X=genotypes, MARGIN=1, FUN=survFit, params))
+    
         
         # calculate z-score
         z <- snp.out[,1]/snp.out[,2]
@@ -205,7 +196,6 @@ gdsCoxSurv <- function(impute.file,
         write.table(res, file=paste0(outfile, ".surv.results"), sep="\t", quote=FALSE, row.names=FALSE, col.names=TRUE)
         
         if (verbose) message("Analysis completed on ", format(Sys.time(), "%Y-%m-%d"), " at ", format(Sys.time(), "%H:%M:%S"))
-        #return(res)
         # on.exit(unlink(tempdir(), recursive = TRUE))
 }
 

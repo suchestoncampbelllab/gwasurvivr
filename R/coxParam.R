@@ -1,7 +1,7 @@
 #' @export 
 
 # additional helper functions for survival models
-.coxParam <- function(pheno.file, time.to.event, event, covariates, sample.ids){
+coxParam <- function(pheno.file, time.to.event, event, covariates, sample.ids){
         ### build arguments for coxph.fit ###
         Y <- Surv(time=pheno.file[,time.to.event], event=pheno.file[,event])
         rownames(Y) <- as.character(seq_len(nrow(Y)))

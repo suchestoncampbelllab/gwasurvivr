@@ -108,7 +108,7 @@ vcfCoxSurv <- function(vcf.file, # character, path to vcf file
     # apply the survival function and save output
     pheno.file <- pheno.file[,-1]
     pheno.file <- as.matrix(pheno.file[,c(time.to.event, event, covariates)])
-    params <- .coxParam(pheno.file, time.to.event, event, covariates, sample.ids)
+    params <- coxParam(pheno.file, time.to.event, event, covariates, sample.ids)
     
     N <- nrow(pheno.file)
     NEVENTS <- sum(pheno.file[,event]==1)
@@ -177,7 +177,7 @@ vcfCoxSurv <- function(vcf.file, # character, path to vcf file
         if(verbose) message("Analyzing chunk ", chunk.start, "-", chunk.start+chunk.size)
         
         # apply survival function
-        snp.out <- t(parApply(cl=cl, X=genotype, MARGIN=1, FUN=.survFit, params))
+        snp.out <- t(parApply(cl=cl, X=genotype, MARGIN=1, FUN=survFit, params))
         colnames(snp.out) <- c("SE", "SE.COEF")
         
         
