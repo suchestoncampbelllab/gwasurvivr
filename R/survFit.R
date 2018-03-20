@@ -1,5 +1,3 @@
-#' @export 
-
 ### define survFit
 survFit <- function(input.genotype, params){
         

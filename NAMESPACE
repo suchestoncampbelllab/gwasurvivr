@@ -2,7 +2,6 @@
 
 export(coxParam)
 export(gdsCoxSurv)
-export(survFit)
 export(vcfCoxSurv)
 import(GWASTools)
 import(VariantAnnotation)
