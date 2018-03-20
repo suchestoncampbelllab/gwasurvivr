@@ -206,7 +206,7 @@ gdsCoxSurv <- function(impute.file,
         
         if (verbose) message("Analysis completed on ", format(Sys.time(), "%Y-%m-%d"), " at ", format(Sys.time(), "%H:%M:%S"))
         #return(res)
-        on.exit(unlink(tempdir(), recursive = TRUE))
+        # on.exit(unlink(tempdir(), recursive = TRUE))
 }
 
 
