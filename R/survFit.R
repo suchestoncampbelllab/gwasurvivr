@@ -1,4 +1,3 @@
-### define survFit
 survFit <- function(input.genotype, params){
         
         ## creating model matrix

@@ -1,5 +1,3 @@
-#' @export 
-
 coxExtract <- function(cox.out, snp, n.sample, n.event){
     # calculate z-score
     z <- cox.out[,1]/cox.out[,2]
