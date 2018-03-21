@@ -36,15 +36,15 @@
 #' @export
 
 vcfCoxSurv <- function(vcf.file, # character, path to vcf file
-                       info.filter, # character, path to corresponding info file
-                       maf.filter, # double, defining the MAF threshold. Any SNP with lower MAF will be excluded from analysis.
-                       chunk.size, # integer, defines the size of the chunk
                        pheno.file, # this needs to be disussed either a matrix or file path to a file with specific format
                        time.to.event, # character, column defining time
                        event, # character, column defining event
                        covariates, # character vector, columns defining covariates
                        sample.ids, # character vector, list of samples that will be analyzed, could also be a file path?
                        output.name, # character, name of the output file,
+                       chunk.size, # integer, defines the size of the chunk
+                       info.filter, # double, numeric specifying filter threshold
+                       maf.filter, # double, defining the MAF threshold. Any SNP with lower MAF will be excluded from analysis.
                        verbose=TRUE
                        
 ){
