@@ -83,7 +83,7 @@ vcfCoxSurv <- function(vcf.file, # character, path to vcf file
                     "RefPanelAF",
                     "SAMP_MAF",
                     "INFO",
-                    "SE",
+                    "COEF",
                     "SE.COEF",
                     "HR",
                     "HR_lowerCI",
