@@ -102,7 +102,7 @@ vcfCoxSurv <- function(vcf.file, # character, path to vcf file
     
     # for a single machine
     cl <- makeForkCluster(getOption("gwasurvivr.cores", detectCores()))
-    on.exit(stopCluster(cl))
+    on.exit(stopCluster(cl), add=TRUE)
     
     # get genotype probabilities by chunks
     # apply the survival function and save output
@@ -115,7 +115,7 @@ vcfCoxSurv <- function(vcf.file, # character, path to vcf file
     
     repeat{ 
         # read in just dosage data from Vcf file
-        data <- readVcf(vcf, param=ScanVcfParam(geno="DS"))
+        data <- readVcf(vcf, param=ScanVcfParam(geno="DS", info=c("RefPanelAF", "TYPED", "INFO")))
         
         if(nrow(data)==0){
             break
@@ -131,7 +131,16 @@ vcfCoxSurv <- function(vcf.file, # character, path to vcf file
         snp.ranges <- data.frame(SummarizedExperiment::rowRanges(data))
         snp.ranges <- snp.ranges[,c("seqnames", "start", "REF", "ALT")]
         snp.meta <- data.frame(info(data))[,c("RefPanelAF", "TYPED", "INFO")]
+        
+        rowRanges(data)$SAMP_MAF <- round(matrixStats::rowMeans2(genotype)*0.5, 4)
+        
+        
+        
+        
         samp.maf <- round(matrixStats::rowMeans2(genotype)*0.5, 4)
+        
+        
+        
         
         snp.info <- cbind(RSID=snp.ids,
                            snp.ranges,
@@ -210,7 +219,7 @@ vcfCoxSurv <- function(vcf.file, # character, path to vcf file
     }
     close(vcf)
     if(verbose) message("Analysis completed on ", format(Sys.time(), "%Y-%m-%d"), " at ", format(Sys.time(), "%H:%M:%S"))
-    if(verbose) message(length(snps_maf_removed), " SNPs were removed from the analysis for not meeting the threshold criteria.")
+    if(verbose) message(length(snp_maf_removed), " SNPs were removed from the analysis for not meeting the threshold criteria.")
     if(verbose) message("List of removed SNPs can be found in ", paste0(output.name, ".MAF_INFO_removed"))
 }
 
