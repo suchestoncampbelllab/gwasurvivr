@@ -1,0 +1,292 @@
+---
+title: "gwasurvivr Vignette"
+author:
+- name: Abbas Rizvi
+  affiliation: The Ohio State University, Columbus, OH
+- name: Ezgi Karaesmen
+  affiliation: The Ohio State University, Columbus, OH
+- name: Martin Morgan
+  affiliation: Roswell Park Cancer Institute, Buffalo, NY    
+- name: Lara Sucheston-Campbell  
+  affiliation: The Ohio State University, Columbus, OH
+package: GWAS gwasurvivr
+date: '`r format(Sys.Date(), "%B %d, %Y")`'
+output:
+        BiocStyle::html_document2
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}          
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(knitr)
+library(tidyverse)
+library(gwasurvivr)
+library(magrittr)
+library(data.table)
+library(SummarizedExperiment)
+library(GWASTools)
+```
+
+# Introduction
+This package provides a workflow for how to use imputed GWAS data from either using the imputation software IMPUTE2 or an imputation server (Michigan/Sanger imputation servers) and conduct survival analysis. Survival analyses are methods for analyzing time-to-event outcomes. This vignette describes the data structures that are used in these analyses and provides a tutorial using simulated data consisting of 10,000 SNPs and 1,500 samples. After genotyping samples in a GWAS, typically, investigators would impute genetic data from typically a SNP chip of genotyping ~1 million SNPs, assigning genotypes at untyped markers, improving overall genome coverage. Here we aim to provide an R package and tutorial that will allow investigators to perform survival analysis on imputed datasets. The data would either be partitioned in chunks (e.g. 5Mb chromosome chunks until end of chromosome, IMPUTE2 default) or full chromosome (typically the output from the imputation servers).  
+
+# Getting started
+Install gwasurvivr from the [Sucheston-Campbell Lab Github repository](http://github.com/suchestoncampbelllab/gwasurvivr) using `devtools`.
+
+```{r, eval=F}
+devtools::install_github("suchestoncampbelllab/gwasurvivr")
+library(gwasurvivr)
+```
+
+**Note:** This package depends on `GWASTools` which uses netcdf framework on linux. Therefore, for linux users, please install `libnetcdf-dev` and `netcdf-bin` before installing `gwasurvivr`. 
+
+# Basics of survival analysis in GWAS setting
+To test for association using GWAS data, often times investigators are interested in determining genetic associations to surivival. To perform such analyses, phenotypic or covariate data must be available that denote some event and time (occurrences) of said events. The most common implementation of these analyses is the Cox proportional hazard model. 
+
+## Dosage format
+Genotype probabilities are converted into dosage format. Let $gp_{00}$, $gp_{01}$, and $gp_{11}$ denote the probability that a sample has 0 alleles coded 1, 1 allele coded 1, and 2 alleles coded 1 respectively. We can convert these three values into a single numeric value called dosage. 
+
+$$d = gp_{01} + 2gp_{11}$$
+SNP dosages are then added to the Cox model for survival analysis. 
+
+
+# IMPUTE2 data
+## File structure
+IMPUTE2 outputs 3 files required for analysis:   
+
+  - Genotype file (`.impute`)  
+  - Sample file (`.sample`)  
+  - Info file (`.info`)    
+  
+[More information can be read about these formats](http://www.stats.ox.ac.uk/~marchini/software/gwas/file_format.html)
+ 
+```{r, echo=F}
+# 1500 patients
+cols.geno <- c("snpid", "rsid", "position", "allele0", "allele1", paste0(paste0("sample",rep(1:1500, each=3)), "_", rep(c("gp00", "gp01", "gp11"), 600)))
+example.impute <- fread("~/Google Drive/OSU_PHD/gwasurvivr/data/example.impute")
+colnames(example.impute) <- cols.geno
+example.sample <- fread("~/Google Drive/OSU_PHD/gwasurvivr/data/example.sample")
+example.info <- fread("../data/example.info")
+```
+ 
+### Genotype file format
+ 
+```{r, echo=F}
+cols <- c("snpid",
+          "rsid",
+          "position",
+          "allele0",
+          "allele1",
+          "sample1_gp00",
+          "sample1_gp01",
+          "sample1_gp11",
+          "sample2_gp00",
+          "sample2_gp01",
+          "sample2_gp11",
+          "...",
+          "sampleN_gp00",
+          "sampleN_gp01",
+          "sampleN_gp11")
+descrip <- c("genotyped (refseq id of SNP) or imputed (- - -)",
+             "refseq id of SNP",
+             "physical genomic location (base pair)",
+             "typically major allele",
+             "typically minor allele",
+             "sample1 genotype probability of 2 copies of allele0",
+             "sample1 genotype probability of 1 copy allele0, 1 copy allele1",
+             "sample1 genotype probability of 2 copies of allele1",
+             "sample2 genotype probability of 2 copies of allele0",
+             "sample2 genotype probability of 1 copy allele0, 1 copy allele1",
+             "sample2 genotype probability of 2 copies of allele1",
+             "...",
+             "sampleN genotype probability of 2 copies of allele0",
+             "sampleN genotype probability of 1 copy allele0, 1 copy allele1",
+             "sampleN genotype probability of 2 copies of allele1")
+kable(data.frame(`Column Name`=cols, "Description"=descrip), caption="Genotype Format Column Description")
+```
+
+```{r}
+example.impute[1:5,1:11]
+```
+
+
+### Sample file format
+The sample file format has three parts:
+
+1. Header line:  
+  - This line has a minimum of three entries which are `ID_1`, `ID_2`, and `missing`. Any columns beyond the first 3 are additional columns. 
+
+
+```{r, echo=F}
+col.samps <- c("ID_1", "ID_2", "missing", "cov_1", "...", "cov_n", "pheno1", "bin1")
+descrip.samps <- c("first ID",
+                   "second ID",
+                   "missing data proportion for each sample (-9 indicates missing data)",
+                   "covariate 1",
+                   "...",
+                   "Nth covariate",
+                   "continuous phenotype",
+                   "binary phenotype")
+samp <- data.frame("Column Names"=col.samps, "Description"=descrip.samps)
+kable(samp, caption="Sample File Column Descriptions")
+```
+  
+2. Line detailing how the types of variables are stored
+  - The first three entries are set to `0`. Subsequent entries in this row describe the covariates and phenotypes. 
+
+```{r, echo=F}
+samp.l2 <- c("D", "C", "P", "B")
+samp.l2.desc <- c("Discrete covariate", "Continuous covariate", "Continuous Phenotype", "Binary Phenotypes (0=Controls, 1=Cases)")
+kable(data.frame("Variables"=samp.l2, "Description"=samp.l2.desc), caption="Second row descriptors in sample file")
+```
+
+3. Individual information
+ - The remainder of the `.sample` file consists of lines containing information for each of the columns headers. 
+
+**Note:** Missing values are set to `-9` by default. There is some history behind this value and thats why it keeps getting used.
+
+For our example, we will only have a discrete variable `sex` as our additional column.
+
+```{r}
+head(example.sample)
+```
+
+
+### Info file format  
+- The [info file from IMPUTE2 description](https://mathgen.stats.ox.ac.uk/impute/output_file_options.html) is as follows:  
+```{r, echo=F}
+info.cols <- c("snpid", "rsid", "position", "exp_freq_a1", "info", "certainty", "type")
+info.descrip <- c("ref seq identifier or imputed annotation (- - -)" ,
+                  "ref seq identifier",
+                  "base pair position",
+                  "expected frequency of allele coded 1",
+                  "measure of observed statistical information with the allele frequency estimate",
+                  "average certainty of best guess-genotypes",
+                  "internal type assigned to SNP")
+kable(data.frame("Column Name"=info.cols, "Description"=info.descrip), caption="Info file header description")
+```
+
+Each row corresponds to a typed or imputed SNP and describes some quality measures of that SNP.
+
+```{r}
+head(example.info)
+```
+
+## Convert IMPUTE2 data to GDS
+Due to the size of genotype data, which in a typical GWAS can be quite large (full chromosome ~20GB, chromosome chunks ~1.5GB), we first convert the genotype data into [genomic data structure (GDS) format](https://github.com/zhengxwen/gdsfmt) by re-implementing a function from the package `GWASTools` which we call `convertImputeGds`. This will compress the imputed data substantially, as well as convert the data into dosage format. 
+
+`convertImputeGds` has 
+To convert the IMPUTE2 data to GDS format, we need to invoke our function `convertImputeGds`. This function takes 4 arguments:  
+
+1. chunk.impute -- a character string with the specific name of `.impute` file
+2. chunk.sample -- a character string with the specific name of `.sample` file 
+3. chr -- a numeric vector with the chromosome being analyzed, this has to be input, regardless if there are multiple chromosomes in the imputed file.
+4. outfile.name -- a one element character string with the name of the output files after conversion (do not add extensions)  
+
+```{r, warning=F, cache=T}
+library(gwasurvivr)
+convertImputeGds("~/Google Drive/OSU_PHD/gwasurvivr/data/example.impute",
+                 "~/Google Drive/OSU_PHD/gwasurvivr/data/example.sample",
+                 2,
+                 "~/Google Drive/OSU_PHD/gwasurvivr/data/example")
+```
+This function creates 3 files that will be saved to your working directory (or an otherwise user specific path). The files are stored in your specified path or working directory and named `example.gds`, `example.snp.rdata`, and `example.scan.info`. 
+
+## Read in files as SummarizedExperiment
+Since users may be interested in seeing the data within an R/Bioconductor framework, we read in our GDS files as `SummarizedExperiment` objects to allow for access to 
+
+```{r}
+se <- readImputedGds(gdsfile = "~/Google Drive/OSU_PHD/gwasurvivr/data/example.gds",
+                     scanfile = "~/Google Drive/OSU_PHD/gwasurvivr/data/example.scan.rdata",
+                     snpfile = "~/Google Drive/OSU_PHD/gwasurvivr/data/example.snp.rdata",
+                     infofile = "~/Google Drive/OSU_PHD/gwasurvivr/data/example.info")
+se
+assay(se)[1:5,1:10]
+rowRanges(se)
+colData(se)
+```
+## Flip dosage
+Users can flip the dosage if needed.
+
+## Add covariates
+Covariates can be added to the `colData` slot of the `SummarizedExperiment` by using the `addCov` function. It is required that the first column is the sample ID. These sample ID must match the IDs that are in the `ID_2` column of `colData(se)`.
+
+```{r, echo=F}
+cov.cols <- c("ID_2", "event", "time", "age", "bmiOVWT", "sex")
+cov.ids <- paste0("sample", 1:7051)
+event <-  sample(seq(0,1), 7051, replace=T, prob=c(0.21,0.79))
+time <-  sample(seq(0,12,by=0.01), 7051, replace=T)
+age <- sample(seq(18,65,by=0.001), 7051, replace=T)
+bmiOVWT <- sample(seq(0,1), 7051, replace=T, prob=c(0.25, 0.75))
+sex <- sample(seq(0,1), 7051, replace=T, prob=c(0.35, 0.65))
+covfile <- data.frame(cbind(cov.ids, event, time, age, bmiOVWT,sex))
+colnames(covfile) <- cov.cols
+
+#write.table(covfile, file="~/Google Drive/OSU_PHD/gwasurvivr/data/example.covariate", sep="\t", row.names=F, quote=F)
+```
+
+```{r}
+covfile <- "~/Google Drive/OSU_PHD/gwasurvivr/data/example.covariate"
+se <- addCov(se, covfile)
+```
+
+To check and see if the covariate merger was successful:
+
+```{r}
+colData(se)
+```
+
+## Run survival
+Now we can run survival analysis using `coxSurv`. The time, event, and additional covariates must go into the function as a character string. 
+
+```{r}
+se <- coxSurv(se, "time", "event", c("age", "bmiOVWT", "sex"))
+```
+
+The survival results are located in `rowRanges` slot of `se`.
+
+```{r}
+rowRanges(se)
+```
+
+And the `colData` is cleaned up to include only the covariates included in the model.
+```{r}
+colData(se)
+```
+
+# Michigan Imputation Server Output
+[Michigan Imputation Server](https://imputationserver.sph.umich.edu/index.html) outputs gunzipped variant call format files (`.vcf.gz`). These files are typically stored in full chromosome chunks. Imputation is done using the Minimac3 imputation engine. Pre-phasing is done using either HAPI-UR, SHAPEIT, or EAGLE (default is EAGLE2). 
+
+Minimac is a low memory, computationally efficient implementation of the MaCH algorithm for genotype imputation. It is desgined to work on phased genotypes and can handle very lage reference panels with hundreds or thousands of haplotypes.
+
+## File structure
+
+### Compressed VCF format
+
+## Run survival
+
+# Sanger Imputation Server
+[Sanger Imputation Server](https://imputation.sanger.ac.uk/) pre-phases using either SHAPEIT or EAGLE and then imputes using PBWT algorithm
+
+# References
+1. Terry M. Therneau and Patricia M. Grambsch (2000). Modeling Survival Data: Extending the Cox Model. Springer, New York. ISBN 0-387-98784-3.  
+
+2. Martin Morgan, Valerie Obenchain, Jim Hester and Hervé Pagès (2017). SummarizedExperiment: SummarizedExperiment container. R package version 1.6.3.  
+
+3. Gogarten SM, Bhangale T, Conomos MP, Laurie CA, McHugh CP, Painter I, Zheng X, Crosslin DR, Levine D, Lumley T, Nelson SC, Rice K, Shen J, Swarnkar R, Weir BS and Laurie CC (2012). “GWASTools: an R/Bioconductor package for quality control and analysis of genome-wide association studies.” Bioinformatics, 28(24), pp. 3329-3331. doi: 10.1093/bioinformatics/bts610.  
+
+4. B. N. Howie, P. Donnelly and J. Marchini (2009) A flexible and accurate genotype imputation method for the next generation of genome-wide association studies. PLoS Genetics 5(6): e1000529  
+
+5. Das S, Forer L, Schönherr S, Sidore C, Locke AE, Kwong A, Vrieze S, Chew EY, Levy S, McGue M, Schlessinger D, Stambolian D, Loh PR, Iacono WG, Swaroop A, Scott LJ, Cucca F, Kronenberg F, Boehnke M, Abecasis GR, Fuchsberger C. **Next-generation genotype imputation service and methods.** Nature Genetics 48, 1284–1287 (2016). [27571263](https://www.ncbi.nlm.nih.gov/pubmed/27571263)  
+
+6. Efficient haplotype matching and storage using the Positional Burrows-Wheeler Transform (PBWT)", Richard Durbin Bioinformatics 30:1266-72 (2014).   
+
+# Session info
+Here is the output of `sessionInfo()` on the system that this document was compiled:
+```{r, echo=F}
+sessionInfo()
+```
+

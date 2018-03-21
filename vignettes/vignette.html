@@ -134,18 +134,19 @@ $(document).ready(function () {
 <li><a href="#sanger-imputation-server"><span class="toc-section-number">3</span> Sanger Imputation Server</a><ul>
 <li><a href="#r-session-example"><span class="toc-section-number">3.1</span> R Session Example</a></li>
 <li><a href="#peak-at-result"><span class="toc-section-number">3.2</span> Peak at result</a></li>
-<li><a href="#batch-example"><span class="toc-section-number">3.3</span> Batch Example</a></li>
 </ul></li>
 <li><a href="#impute2-imputation"><span class="toc-section-number">4</span> IMPUTE2 Imputation</a><ul>
 <li><a href="#file-structure"><span class="toc-section-number">4.1</span> File structure</a></li>
 <li><a href="#r-session-example-1"><span class="toc-section-number">4.2</span> R Session Example</a></li>
+<li><a href="#peak-at-results"><span class="toc-section-number">4.3</span> Peak at results</a></li>
 </ul></li>
-<li><a href="#peak-at-results"><span class="toc-section-number">5</span> Peak at results</a><ul>
-<li><a href="#batch-example-1"><span class="toc-section-number">5.1</span> Batch Example</a></li>
+<li><a href="#michigan-imputation-server"><span class="toc-section-number">5</span> Michigan Imputation Server</a><ul>
+<li><a href="#r-session-example-2"><span class="toc-section-number">5.1</span> R Session Example</a></li>
 </ul></li>
-<li><a href="#michigan-imputation-server"><span class="toc-section-number">6</span> Michigan Imputation Server</a><ul>
-<li><a href="#r-session-example-2"><span class="toc-section-number">6.1</span> R Session Example</a></li>
-<li><a href="#batch-example-2"><span class="toc-section-number">6.2</span> Batch Example</a></li>
+<li><a href="#batch-examples"><span class="toc-section-number">6</span> Batch Examples</a><ul>
+<li><a href="#batch-example-vcfcoxsurv"><span class="toc-section-number">6.1</span> Batch Example vcfCoxSurv</a></li>
+<li><a href="#batch-example-gdscoxsurv"><span class="toc-section-number">6.2</span> Batch Example gdsCoxSurv</a></li>
+<li><a href="#batch-example-michcoxsurv"><span class="toc-section-number">6.3</span> Batch Example michCoxSurv</a></li>
 </ul></li>
 <li><a href="#references"><span class="toc-section-number">7</span> References</a></li>
 <li><a href="#session-info"><span class="toc-section-number">8</span> Session info</a></li>
@@ -194,24 +195,9 @@ head(pheno.file)</code></pre>
 ## 5    5 SAMP5     0 12.00 43.58       0   male experimental
 ## 6    6 SAMP6     1  2.60 57.74       0   male      control</code></pre>
 <p>Categorical variables need to be converted into indicator (dummy) variables. In this example, we will select samples from the <code>experimental</code> group will test survival only on these genotypes. The first column in the <code>pheno.file</code> needs to be sample IDs that we want to match on.</p>
-<pre class="r"><code>library(tidyverse)</code></pre>
-<pre><code>## ── Attaching packages ──────────────────────────────── tidyverse 1.2.1 ──</code></pre>
-<pre><code>## ✔ ggplot2 2.2.1     ✔ purrr   0.2.4
-## ✔ tibble  1.4.2     ✔ dplyr   0.7.4
-## ✔ tidyr   0.8.0     ✔ stringr 1.2.0
-## ✔ readr   1.1.1     ✔ forcats 0.2.0</code></pre>
-<pre><code>## ── Conflicts ─────────────────────────────────── tidyverse_conflicts() ──
-## ✖ dplyr::filter() masks stats::filter()
-## ✖ dplyr::lag()    masks stats::lag()</code></pre>
-<pre class="r"><code>library(magrittr)</code></pre>
-<pre><code>## 
-## Attaching package: 'magrittr'</code></pre>
-<pre><code>## The following object is masked from 'package:purrr':
-## 
-##     set_names</code></pre>
-<pre><code>## The following object is masked from 'package:tidyr':
-## 
-##     extract</code></pre>
+<p>We leverage the <code>tidyverse</code> and <code>magrittr</code> packages in this example solely for data preparation/manipulation purposes.</p>
+<pre class="r"><code>library(tidyverse)
+library(magrittr)</code></pre>
 <pre class="r"><code># recode sex column and remove first column
 pheno.file &lt;- pheno.file %&gt;%
         mutate(SexFemale=case_when(sex==&quot;female&quot;~1,
@@ -234,7 +220,7 @@ sample.ids &lt;- pheno.file %&gt;%
            info.filter=0.3,
            maf.filter=0.005,
            verbose=TRUE)</code></pre>
-<pre><code>## Analysis started on 2018-03-21 at 18:17:11</code></pre>
+<pre><code>## Analysis started on 2018-03-21 at 18:49:17</code></pre>
 <pre><code>## Analysis running for 253 samples.</code></pre>
 <pre><code>## Covariates included in the models are: age, bmiOVWT, SexFemale</code></pre>
 <pre><code>## If your covariates of interest are not included in the model
@@ -248,7 +234,7 @@ sample.ids &lt;- pheno.file %&gt;%
 <pre><code>## Analyzing chunk 5000-6000</code></pre>
 <pre><code>## Analyzing chunk 6000-7000</code></pre>
 <pre><code>## Analyzing chunk 7000-8000</code></pre>
-<pre><code>## Analysis completed on 2018-03-21 at 18:17:31</code></pre>
+<pre><code>## Analysis completed on 2018-03-21 at 18:49:47</code></pre>
 <pre><code>## 171 SNPs were removed from the analysis for not meeting the threshold criteria.</code></pre>
 <pre><code>## List of removed SNPs can be found in example_run.MAF_INFO_removed</code></pre>
 </div>
@@ -296,56 +282,6 @@ sample.ids &lt;- pheno.file %&gt;%
 ##  9 rs80175559  F     0.000229   1.57   4.80
 ## 10 rs139331300 F     0.000675   2.49  12.1 
 ## # ... with 1,576 more rows</code></pre>
-</div>
-<div id="batch-example" class="section level2">
-<h2><span class="header-section-number">3.3</span> Batch Example</h2>
-<p>Batch jobs for multiple analyses and different subsets are easy to implement using <code>gwasurvivr</code>. This is facilitated by the package <code>batch</code>. First write an R script to pass in bash.</p>
-<pre class="r"><code>## mysurvivalscript.R
-library(batch)
-parseCommandArgs(evaluate=TRUE)
-
-# recode sex column and remove first column
-pheno.file &lt;- pheno.file %&gt;%
-        mutate(SexFemale=case_when(sex==&quot;female&quot;~1,
-                                   sex==&quot;male&quot;~0)) %&gt;%
-        dplyr::select(-ID_1)
-
-# select only experimental group
-sample.ids &lt;- pheno.file %&gt;%
-        filter(group==&quot;experimental&quot;) %$%
-        ID_2 
-
-## -- unlist the covariates 
-## (refer below to the shell script as to why we are doing this)
-covariates &lt;- unlist(strsplit(covariates, &quot;_&quot;))
-
-vcfCoxSurv(vcf.file,
-           info.filter,
-           maf.filter,
-           chunk.size,
-           pheno.file,
-           time.to.event,
-           event,
-           covariates,
-           sample.ids,
-           output.name,
-           verbose=TRUE)</code></pre>
-<p>Now we can run a shell script. This can be used well with manifest files to set up multiple comparisons with different outcomes and different subsets of samples. The covariates are separated by an underscore (<code>&quot;_&quot;</code>). This is so it can be passed properly, and also why we used <code>str_split</code> to split the covariates.</p>
-<pre class="bash"><code>#!/bin/bash
-PATH=/path/to/dir/impute_chr/
-
-R --script ${PATH}/mysurvivalscript.R -q --args \
-        vcf.file ${PATH}/chr14.vcf.gz \
-        pheno.file ${PATH}/phenotype_data/pheno.txt \ # provide path to phenotype file
-        time.to.event time \
-        event event \
-        covariates age_sex_bmi \
-        sample.ids sample.ids \
-        chunk.size 10000 \
-        info.filter 0.7 \
-        maf.filter 0.005 \
-        output.name ${PATH}/survival/results/output_sanger_example</code></pre>
-<p>The file paths above are completely arbitrary and were just used as an example of how file structure may be and where desirable output would be stored.</p>
 </div>
 </div>
 <div id="impute2-imputation" class="section level1">
@@ -419,21 +355,20 @@ head(covfile)</code></pre>
 <pre><code>## Writing annotation...</code></pre>
 <pre><code>## Compressing...</code></pre>
 <pre><code>## Clean up the fragments of GDS file:
-##     open the file '/private/var/folders/1w/bb5rrzjn4v9bvq_hlptzq4bc0000gn/T/Rtmp02Sa16/5b6f1921ccb1.gds' (13.9M)
+##     open the file '/private/var/folders/1w/bb5rrzjn4v9bvq_hlptzq4bc0000gn/T/RtmpldfT6L/5cc7a3c59e5.gds' (13.9M)
 ##     # of fragments: 30
-##     save to '/private/var/folders/1w/bb5rrzjn4v9bvq_hlptzq4bc0000gn/T/Rtmp02Sa16/5b6f1921ccb1.gds.tmp'
-##     rename '/private/var/folders/1w/bb5rrzjn4v9bvq_hlptzq4bc0000gn/T/Rtmp02Sa16/5b6f1921ccb1.gds.tmp' (230.5K, reduced: 13.6M)
+##     save to '/private/var/folders/1w/bb5rrzjn4v9bvq_hlptzq4bc0000gn/T/RtmpldfT6L/5cc7a3c59e5.gds.tmp'
+##     rename '/private/var/folders/1w/bb5rrzjn4v9bvq_hlptzq4bc0000gn/T/RtmpldfT6L/5cc7a3c59e5.gds.tmp' (230.5K, reduced: 13.6M)
 ##     # of fragments: 14</code></pre>
 <pre><code>## 0 SNPs were removed from the analysis for not meeting the given MAF &lt; 0.005</code></pre>
 <pre><code>## List of removed SNPs are saved to impute_example.snps_removed</code></pre>
 <pre><code>## Covariates included in the models are: age, SexFemale, bmiOVWT</code></pre>
 <pre><code>## 253 samples are included in the analysis</code></pre>
-<pre><code>## Analysis started on 2018-03-21 at 18:17:48</code></pre>
-<pre><code>## Analysis completed on 2018-03-21 at 18:17:55</code></pre>
+<pre><code>## Analysis started on 2018-03-21 at 18:50:06</code></pre>
+<pre><code>## Analysis completed on 2018-03-21 at 18:50:14</code></pre>
 </div>
-</div>
-<div id="peak-at-results" class="section level1">
-<h1><span class="header-section-number">5</span> Peak at results</h1>
+<div id="peak-at-results" class="section level2">
+<h2><span class="header-section-number">4.3</span> Peak at results</h2>
 <pre class="r"><code>impute2.res &lt;- read_tsv(&quot;impute_example.surv.results&quot;)</code></pre>
 <pre><code>## Parsed with column specification:
 ## cols(
@@ -473,20 +408,74 @@ head(covfile)</code></pre>
 ## 10 rs80175559      ---   0.000229   1.57                            4.80
 ## # ... with 7,245 more rows</code></pre>
 <p>The results look the same.</p>
-<div id="batch-example-1" class="section level2">
-<h2><span class="header-section-number">5.1</span> Batch Example</h2>
-<p>Exactly the same as for <code>vcfCoxSurv</code> but this time with the input arguments for <code>gdsCoxSurv</code>.</p>
 </div>
 </div>
 <div id="michigan-imputation-server" class="section level1">
-<h1><span class="header-section-number">6</span> Michigan Imputation Server</h1>
+<h1><span class="header-section-number">5</span> Michigan Imputation Server</h1>
 <p><a href="https://imputationserver.sph.umich.edu/index.html">Michigan Imputation Server</a> outputs gunzipped variant call format files (<code>.vcf.gz</code>). These files are typically stored in full chromosome chunks. Imputation is done using the Minimac3 imputation engine. Pre-phasing is done using either HAPI-UR, SHAPEIT, or EAGLE (default is EAGLE2).</p>
 <div id="r-session-example-2" class="section level2">
-<h2><span class="header-section-number">6.1</span> R Session Example</h2>
+<h2><span class="header-section-number">5.1</span> R Session Example</h2>
 <p>The michigan example will be added soon!</p>
 </div>
-<div id="batch-example-2" class="section level2">
-<h2><span class="header-section-number">6.2</span> Batch Example</h2>
+</div>
+<div id="batch-examples" class="section level1">
+<h1><span class="header-section-number">6</span> Batch Examples</h1>
+<div id="batch-example-vcfcoxsurv" class="section level2">
+<h2><span class="header-section-number">6.1</span> Batch Example vcfCoxSurv</h2>
+<p>Batch jobs for multiple analyses and different subsets are easy to implement using <code>gwasurvivr</code>. This is facilitated by the package <code>batch</code>. First write an R script to pass in bash.</p>
+<pre class="r"><code>## mysurvivalscript.R
+library(batch)
+parseCommandArgs(evaluate=TRUE)
+
+# recode sex column and remove first column
+pheno.file &lt;- pheno.file %&gt;%
+        mutate(SexFemale=case_when(sex==&quot;female&quot;~1,
+                                   sex==&quot;male&quot;~0)) %&gt;%
+        dplyr::select(-ID_1)
+
+# select only experimental group
+sample.ids &lt;- pheno.file %&gt;%
+        filter(group==&quot;experimental&quot;) %$%
+        ID_2 
+
+## -- unlist the covariates 
+## (refer below to the shell script as to why we are doing this)
+covariates &lt;- unlist(strsplit(covariates, &quot;_&quot;))
+
+vcfCoxSurv(vcf.file,
+           info.filter,
+           maf.filter,
+           chunk.size,
+           pheno.file,
+           time.to.event,
+           event,
+           covariates,
+           sample.ids,
+           output.name,
+           verbose=TRUE)</code></pre>
+<p>Now we can run a shell script. This can be used well with manifest files to set up multiple comparisons with different outcomes and different subsets of samples. The covariates are separated by an underscore (<code>&quot;_&quot;</code>). This is so it can be passed properly, and also why we used <code>str_split</code> to split the covariates.</p>
+<pre class="bash"><code>#!/bin/bash
+PATH=/path/to/dir/impute_chr/
+
+R --script ${PATH}/mysurvivalscript.R -q --args \
+        vcf.file ${PATH}/chr14.vcf.gz \
+        pheno.file ${PATH}/phenotype_data/pheno.txt \ # provide path to phenotype file
+        time.to.event time \
+        event event \
+        covariates age_sex_bmi \
+        sample.ids sample.ids \
+        chunk.size 10000 \
+        info.filter 0.7 \
+        maf.filter 0.005 \
+        output.name ${PATH}/survival/results/output_sanger_example</code></pre>
+<p>The file paths above are completely arbitrary and were just used as an example of how file structure may be and where desirable output would be stored.</p>
+</div>
+<div id="batch-example-gdscoxsurv" class="section level2">
+<h2><span class="header-section-number">6.2</span> Batch Example gdsCoxSurv</h2>
+<p>Exactly the same as for <code>vcfCoxSurv</code> but this time with the input arguments for <code>gdsCoxSurv</code>.</p>
+</div>
+<div id="batch-example-michcoxsurv" class="section level2">
+<h2><span class="header-section-number">6.3</span> Batch Example michCoxSurv</h2>
 <p>The michigan example will be added soon!</p>
 </div>
 </div>

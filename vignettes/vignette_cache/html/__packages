@@ -1,0 +1,15 @@
+base
+BiocStyle
+knitr
+gwasurvivr
+tidyverse
+ggplot2
+tibble
+tidyr
+readr
+purrr
+dplyr
+stringr
+forcats
+magrittr
+bindrcpp

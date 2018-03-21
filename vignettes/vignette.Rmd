@@ -22,7 +22,7 @@ editor_options:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, cache=FALSE)
+knitr::opts_chunk$set(echo = TRUE, cache=TRUE)
 library(knitr)
 ```
 
@@ -69,9 +69,14 @@ head(pheno.file)
 ```
 Categorical variables need to be converted into indicator (dummy) variables. In this example, we will select samples from the `experimental` group will test survival only on these genotypes. The first column in the `pheno.file` needs to be sample IDs that we want to match on. 
 
-```{r}
+We leverage the `tidyverse` and `magrittr` packages in this example solely for data preparation/manipulation purposes.
+
+```{r, message=FALSE}
 library(tidyverse)
 library(magrittr)
+```
+
+```{r}
 # recode sex column and remove first column
 pheno.file <- pheno.file %>%
         mutate(SexFemale=case_when(sex=="female"~1,
@@ -110,7 +115,70 @@ sanger_survRes %>%
         arrange(PVALUE) 
 ```
 
-## Batch Example
+
+# IMPUTE2 Imputation
+## File structure
+IMPUTE2 outputs 6 files, but only 2 of these files required for analysis using `gwasurvivr`:
+
+  - Genotype file (`.impute`)  
+  - Sample file (`.sample`)  
+  
+[More information can be read about these formats](http://www.stats.ox.ac.uk/~marchini/software/gwas/file_format.html)
+
+## R Session Example
+First the user needs to find correct paths of the files and load up the covariate file. The covariate file needs to be a `data.frame`
+```{r}
+impute.file <- system.file(package="gwasurvivr", "extdata", "impute_example.impute2")
+sample.file <- system.file(package="gwasurvivr", "extdata", "impute_example.impute2_sample")
+chromosome <- 14
+covfile <- system.file(package="gwasurvivr", "extdata", "simulated_pheno.txt")
+covfile <- read_delim(covfile, delim=" ")
+covfile <- covfile %>% 
+        mutate(SexFemale=case_when(sex=="female"~1,
+                                   sex=="male"~0)) %>%
+        dplyr::select(-ID_1)
+head(covfile)
+sample.ids <- covfile %>%
+        filter(group=="experimental") %$%
+        ID_2 
+```
+
+Now we can run survival
+```{r}
+gdsCoxSurv(impute.file=impute.file,
+           sample.file=sample.file,
+           chromosome=14,
+           covfile=covfile,
+           sample.ids=sample.ids,
+           time.to.event="time",
+           event="event",
+           covariates=c("age", "SexFemale", "bmiOVWT"),
+           outfile="impute_example", 
+           maf.filter=0.005,
+           flip.dosage=TRUE, 
+           verbose=TRUE)
+```
+
+## Peak at results
+```{r}
+impute2.res <- read_tsv("impute_example.surv.results")
+impute2.res %>%
+        select(rsid, snpid, p.value, coef, exp.coef) %>%
+        arrange(p.value)
+```
+
+The results look the same.
+
+
+# Michigan Imputation Server
+[Michigan Imputation Server](https://imputationserver.sph.umich.edu/index.html) outputs gunzipped variant call format files (`.vcf.gz`). These files are typically stored in full chromosome chunks. Imputation is done using the Minimac3 imputation engine. Pre-phasing is done using either HAPI-UR, SHAPEIT, or EAGLE (default is EAGLE2). 
+
+## R Session Example
+The michigan example will be added soon!
+
+# Batch Examples
+
+## Batch Example vcfCoxSurv
 Batch jobs for multiple analyses and different subsets are easy to implement using `gwasurvivr`. This is facilitated by the package `batch`. First write an R script to pass in bash.
 
 ```{r, eval=FALSE}
@@ -167,70 +235,10 @@ R --script ${PATH}/mysurvivalscript.R -q --args \
 
 The file paths above are completely arbitrary and were just used as an example of how file structure may be and where desirable output would be stored.
 
-# IMPUTE2 Imputation
-## File structure
-IMPUTE2 outputs 6 files, but only 2 of these files required for analysis using `gwasurvivr`:
-
-  - Genotype file (`.impute`)  
-  - Sample file (`.sample`)  
-  
-[More information can be read about these formats](http://www.stats.ox.ac.uk/~marchini/software/gwas/file_format.html)
-
-## R Session Example
-First the user needs to find correct paths of the files and load up the covariate file. The covariate file needs to be a `data.frame`
-```{r}
-impute.file <- system.file(package="gwasurvivr", "extdata", "impute_example.impute2")
-sample.file <- system.file(package="gwasurvivr", "extdata", "impute_example.impute2_sample")
-chromosome <- 14
-covfile <- system.file(package="gwasurvivr", "extdata", "simulated_pheno.txt")
-covfile <- read_delim(covfile, delim=" ")
-covfile <- covfile %>% 
-        mutate(SexFemale=case_when(sex=="female"~1,
-                                   sex=="male"~0)) %>%
-        dplyr::select(-ID_1)
-head(covfile)
-sample.ids <- covfile %>%
-        filter(group=="experimental") %$%
-        ID_2 
-```
-
-Now we can run survival
-```{r}
-gdsCoxSurv(impute.file=impute.file,
-           sample.file=sample.file,
-           chromosome=14,
-           covfile=covfile,
-           sample.ids=sample.ids,
-           time.to.event="time",
-           event="event",
-           covariates=c("age", "SexFemale", "bmiOVWT"),
-           outfile="impute_example", 
-           maf.filter=0.005,
-           flip.dosage=TRUE, 
-           verbose=TRUE)
-```
-
-# Peak at results
-```{r}
-impute2.res <- read_tsv("impute_example.surv.results")
-impute2.res %>%
-        select(rsid, snpid, p.value, coef, exp.coef) %>%
-        arrange(p.value)
-```
-
-The results look the same.
-
-## Batch Example
+## Batch Example gdsCoxSurv
 Exactly the same as for `vcfCoxSurv` but this time with the input arguments for `gdsCoxSurv`. 
 
-
-# Michigan Imputation Server
-[Michigan Imputation Server](https://imputationserver.sph.umich.edu/index.html) outputs gunzipped variant call format files (`.vcf.gz`). These files are typically stored in full chromosome chunks. Imputation is done using the Minimac3 imputation engine. Pre-phasing is done using either HAPI-UR, SHAPEIT, or EAGLE (default is EAGLE2). 
-
-## R Session Example
-The michigan example will be added soon!
-
-## Batch Example
+## Batch Example michCoxSurv
 
 The michigan example will be added soon!
 
