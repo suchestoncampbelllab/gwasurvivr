@@ -187,7 +187,7 @@ vcfCoxSurv <- function(vcf.file, # character, path to vcf file
         
         # apply survival function
         snp.out <- t(parApply(cl=cl, X=genotype, MARGIN=1, FUN=survFit, params))
-        colnames(snp.out) <- c("SE", "SE.COEF")
+        colnames(snp.out) <- c("COEF", "SE.COEF")
         
         
         # calculate statistics

@@ -43,7 +43,7 @@ gdsCoxSurv <- function(impute.file,
         gdsfile <- tempfile(pattern="", fileext = ".gds")
         snpfile <- tempfile(pattern="", fileext = ".snp.rdata")
         scanfile <- tempfile(pattern="", fileext = ".scan.rdata")
-        
+        on.exit(unlink(c(gdsfile, snpfile, scanfile), recursive = TRUE))
         GWASTools::imputedDosageFile(input.files=c(impute.file, sample.file),
                                      filename=gdsfile,
                                      chromosome=as.numeric(chromosome),
@@ -55,10 +55,11 @@ gdsCoxSurv <- function(impute.file,
         
         # read genotype
         ## need to add if statement about dimensions
-        gds <- GdsGenotypeReader(gdsfile)
+        # set default "snp,scan" -- in documentation say it needs to be in this orientation
+        gds <- GdsGenotypeReader(gdsfile, genotypeDim="scan,snp")
         
         # close gds file on exit of the function
-        on.exit(close(gds))
+        on.exit(close(gds), add=TRUE)
         # read in snp data
         snpAnnot <- getobj(snpfile)
         # read scan
@@ -157,7 +158,7 @@ gdsCoxSurv <- function(impute.file,
         ok.covs <- colnames(pheno.file)[colnames(pheno.file) %in% covariates]
         if (verbose) message("Covariates included in the models are: ", paste(ok.covs, collapse=", "))
         
-        if (!typeof(pheno.file) %in% c("numeric", "double", "integer") ) {
+        if (!is.numeric(pheno.file) ) {
             stop("Provided covariates must be numeric! e.g. categorical variables should be recoded as indicator or dummy variables.")
         }
         
@@ -173,7 +174,7 @@ gdsCoxSurv <- function(impute.file,
         
         # create cluster, also create option to input number of cores
         cl <- makeForkCluster(getOption("gwasurvivr.cores", detectCores()))
-        on.exit(stopCluster(cl))
+        on.exit(stopCluster(cl), add=TRUE)
     
         cox.out <- t(parApply(cl=cl, X=genotypes, MARGIN=1, FUN=survFit, params))
     
@@ -182,7 +183,7 @@ gdsCoxSurv <- function(impute.file,
         write.table(res, file=paste0(outfile, ".surv.results"), sep="\t", quote=FALSE, row.names=FALSE, col.names=TRUE)
         
         if (verbose) message("Analysis completed on ", format(Sys.time(), "%Y-%m-%d"), " at ", format(Sys.time(), "%H:%M:%S"))
-        # on.exit(unlink(tempdir(), recursive = TRUE))
+        
 }
 
 
