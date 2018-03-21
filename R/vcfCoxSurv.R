@@ -132,7 +132,7 @@ vcfCoxSurv <- function(vcf.file, # character, path to vcf file
         snp.ranges <- snp.ranges[,c("seqnames", "start", "REF", "ALT")]
         snp.meta <- data.frame(info(data))[,c("RefPanelAF", "TYPED", "INFO")]
         
-        rowRanges(data)$SAMP_MAF <- round(matrixStats::rowMeans2(genotype)*0.5, 4)
+        #rowRanges(data)$SAMP_MAF <- round(matrixStats::rowMeans2(genotype)*0.5, 4)
         
         
         
