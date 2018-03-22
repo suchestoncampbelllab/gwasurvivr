@@ -4,13 +4,11 @@
 \alias{vcfCoxSurv}
 \title{Fit cox survival to all variants in a VCF file}
 \usage{
-vcfCoxSurv(vcf.file, info.filter, maf.filter, chunk.size, pheno.file,
-  time.to.event, event, covariates, sample.ids, output.name, verbose = TRUE)
+vcfCoxSurv(vcf.file, pheno.file, time.to.event, event, covariates, sample.ids,
+  output.name, chunk.size, info.filter, maf.filter, verbose = TRUE)
 }
 \arguments{
 \item{vcf.file}{character(1) path to VCF file.}
-
-\item{chunk.size}{integer(1) number of variants to process per thread}
 
 \item{pheno.file}{matrix(1) comprising phenotype data.}
 
@@ -21,6 +19,8 @@ vcfCoxSurv(vcf.file, info.filter, maf.filter, chunk.size, pheno.file,
 \item{sample.ids}{character vector with sample ids to include in analysis}
 
 \item{output.name}{character(1) string with output name}
+
+\item{chunk.size}{integer(1) number of variants to process per thread}
 
 \item{vcf.file}{character(1) path to corresponding info file.}
 

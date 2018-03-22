@@ -4,34 +4,34 @@
 \alias{gdsCoxSurv}
 \title{Fit cox survival to all variants from a standard IMPUTE2 output after genotype imputation}
 \usage{
-gdsCoxSurv(impute.file, sample.file, chromosome, covfile, sample.ids,
-  time.to.event, event, covariates, outfile, maf.filter = NULL,
-  flip.dosage = TRUE, verbose = TRUE)
+gdsCoxSurv(impute.file, sample.file, chr, covariate.file, sample.ids,
+  time.to.event, event, covariates, out.file, maf.filter = NULL,
+  info.filter = NULL, flip.dosage = TRUE, verbose = TRUE)
 }
 \arguments{
 \item{impute.file}{character(1) of IMPUTE2 file}
 
 \item{sample.file}{character(1) of sample file affiliated with IMPUTE2 file}
 
-\item{chromosome}{numeric(1) denoting chromosome number}
-
-\item{covfile}{data.frame(1) or matrix(1) comprising phenotype information; first column is required to be sample IDs}
+\item{covariate.file}{data.frame(1) or matrix(1) comprising phenotype information; first column is required to be sample IDs}
 
 \item{sample.ids}{character(1) vector of sample IDs to keep in survival analysis}
 
-\item{time.to.event}{character(1) of column name in covfile that represents the time interval of interest in the analysis}
+\item{time.to.event}{character(1) of column name in covariate.file that represents the time interval of interest in the analysis}
 
-\item{event}{character(1) of column name in covfile that represents the event of interest to be included in the analysis}
+\item{event}{character(1) of column name in covariate.file that represents the event of interest to be included in the analysis}
 
-\item{covariates}{character(1) vector with exact names of columns in covfile to include in analysis}
-
-\item{outfile}{character(1) of output file name (do not include extension)}
+\item{covariates}{character(1) vector with exact names of columns in covariate.file to include in analysis}
 
 \item{maf.filter}{numeric(1) to filter minor allele frequency (MAF)}
 
 \item{flip.dosage}{logical(1) to flip which allele the dosage was calculated on, default=TRUE}
 
 \item{verbose}{logical(1) for messages that describe which part of the analysis is currently being run}
+
+\item{chromosome}{numeric(1) denoting chromosome number}
+
+\item{outfile}{character(1) of output file name (do not include extension)}
 }
 \value{
 Saves text file directly to disk that contains survival analysis results
