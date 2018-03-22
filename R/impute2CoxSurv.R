@@ -131,10 +131,11 @@ impute2CoxSurv <- function(impute.file,
                     }
         }
         if(!is.null(info.filter)){
-                genotypes <- genotypes[snp$info>info.filter,]
+                genotypes <- genotypes[complete.cases(snp),]
+                snp <- snp[complete.cases(snp),]
+                genotypes <- genotypes[snpw$info>info.filter,]
                 snp <- snp[snp$info>info.filter,]
                 rm.snps <- rbind(rm.snps, snp[!snp$info>info.filter, c("snpid", "rsid", "exp_freq_A1", "info")])
-                rm.snps <- rm.snps[complete.cases(rm.snps),]
         }
         write.table(rm.snps, 
                     paste0(out.file, ".snps_removed"),
