@@ -163,7 +163,7 @@ impute2CoxSurv <- function(impute.file,
         cox.out <- t(parApply(cl=cl, X=genotypes, MARGIN=1, FUN=survFit, params))
         res <- coxExtract(cox.out, snp, n.sample, n.event)
         colnames(res) <- c("CHR", "POS", "TYPED", "A0", "A1", "exp_freq_A1", "INFO", "COEF", "SE.COEF", "HR", "HR_lowerCI", "HR_upperCI", "Z", "PVALUE", "N", "NEVENT" )
-        res <- res[,c("RSID", "TYPED", "CHR", "POS", "REF", "ALT", "exp_freq_A1", "INFO", "COEF", "SE", "HR", "HR_lowerCI", "HR_upperCI", "Z", "PVALUE", "N", "NEVENT")]
+        res <- res[,c("RSID", "TYPED", "CHR", "POS", "REF", "ALT", "exp_freq_A1", "INFO", "COEF", "SE.COEF", "HR", "HR_lowerCI", "HR_upperCI", "Z", "PVALUE", "N", "NEVENT")]
         write.table(res, 
                     file=paste0(out.file, ".coxph"),
                     sep="\t",
