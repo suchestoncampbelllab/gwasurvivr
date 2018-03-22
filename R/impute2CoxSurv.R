@@ -112,7 +112,7 @@ impute2CoxSurv <- function(impute.file,
         # if MAF threshold is set, subset by the given value,
         # otherwise check for SD = 0 and remove
         if(!is.null(maf.filter)){
-                maf.idx <- snp$exp_freq_A1<maf.filter & snp$exp_freq_A1>(1-maf.filter)
+                maf.idx <- snp$exp_freq_A1<maf.filter | snp$exp_freq_A1>(1-maf.filter)
                 rm.snps <- snp[maf.idx, c("snpid", "rsid", "exp_freq_A1", "info")]
                 snp <- snp[!maf.idx,]
                 genotypes <- genotypes[!maf.idx,]
@@ -131,8 +131,8 @@ impute2CoxSurv <- function(impute.file,
                     }
         }
         if(!is.null(info.filter)){
-                genotypes <- genotypes[complete.cases(snp),]
-                snp <- snp[complete.cases(snp),]
+                # genotypes <- genotypes[complete.cases(snp),]
+                # snp <- snp[complete.cases(snp),]
                 genotypes <- genotypes[snp$info>info.filter,]
                 snp <- snp[snp$info>info.filter,]
                 rm.snps <- rbind(rm.snps, snp[!snp$info>info.filter, c("snpid", "rsid", "exp_freq_A1", "info")])
