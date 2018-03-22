@@ -134,7 +134,7 @@ impute2CoxSurv <- function(impute.file,
                 genotypes <- genotypes[snp$info>info.filter,]
                 snp <- snp[snp$info>info.filter,]
                 rm.snps <- rbind(rm.snps, snp[!snp$info>info.filter, c("snpid", "rsid", "exp_freq_A1", "info")])
-                rm.snps <- rm.snps %>% na.omit
+                rm.snps <- rm.snps[complete.cases(rm.snps),]
         }
         write.table(rm.snps, 
                     paste0(out.file, ".snps_removed"),
