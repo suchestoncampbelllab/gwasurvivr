@@ -22,12 +22,12 @@ editor_options:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, cache=TRUE)
+knitr::opts_chunk$set(echo = TRUE, cache=FALSE)
 library(knitr)
 ```
 
 # Introduction
-`gwasurvivr` can perform survival analysis on full chromomsomes for either Sanger or Michigan imputation results, and for chromosome chunks from IMPUTE2. This vignette is a tutorial on how to perform survival analysis (Cox proportional hazard models) on imputed GWAS data from either using the imputation software IMPUTE2 or an imputation server (Sanger/Michigan imputation servers). This package can be conveniently batched on a high performing computing cluster. 
+`gwasurvivr` can perform survival analysis on full chromosomes on imputed genotypes from Sanger/Michigan imputation servers or chromosome chunks imputed genotypes from IMPUTE2. This vignette is a tutorial on how to perform survival analysis (Cox proportional hazard models) on imputed GWAS data from either using the imputation software IMPUTE2 or an imputation server (Sanger/Michigan imputation servers). This package can be conveniently batched on a high performing computing cluster. 
 
 # Getting started
 Install `gwasurvivr` from the [Sucheston-Campbell Lab Github repository](http://github.com/suchestoncampbelllab/gwasurvivr) using `devtools`.
@@ -49,7 +49,7 @@ library(gwasurvivr)
 ```
 
 # Sanger Imputation Server
-[Sanger Imputation Server](https://imputation.sanger.ac.uk/) pre-phases using either SHAPEIT or EAGLE and then imputes genotypes using PBWT algorithm. The output from Sanger imputation are `.vcf.gz` files, which are needed as input for `gwasurvivr`. The output comes in full chromosomes, which can easily be run using `gwasurvivr`. `vcfCoxSurv` is the function needed to perform survival. `vcfCoxSurv` can filter info score (imputation quality metric) and on minor allele frequency. `vcfCoxSurv` grabs the reference panel allele frequency from the VCF file (`RefPanelAF`) and also computes a minor allele frequency (MAF) for the sample genotype. The `RefPanelAF` can be filtered as the input argument `maf.filter`.
+[Sanger Imputation Server](https://imputation.sanger.ac.uk/) pre-phases using either SHAPEIT or EAGLE and then imputes genotypes using PBWT algorithm. The output from Sanger imputation are `.vcf.gz` files, which are needed as input for `gwasurvivr`. The output comes in full chromosomes, which can easily be run using `gwasurvivr`. `sangerCoxSurv` is the function needed to perform survival. `sangerCoxSurv` can filter info score (imputation quality metric) and on minor allele frequency. `sangerCoxSurv` grabs the reference panel allele frequency from the VCF file (`RefPanelAF`) and also computes a minor allele frequency (MAF) for the sample genotype. The `RefPanelAF` can be filtered as the input argument `maf.filter`.
 
 Users can select which samples that they would like to include in the analysis by providing a vector of `sample.ids`. Since the output from Sanger imputation server returns the samples as `SAMP1, ..., SAMPN`, where `N` is the total number of samples, the user must create an alternate ID for the samples of interest that correspond to the order that the samples were in their input to the Sanger imputation server (this sample order can also be found in the `.fam` file from the genotyping chip). 
 
@@ -62,8 +62,12 @@ options("gwasurvivr.cores"=4)
 
 ## R Session Example
 ```{r}
-vcf.file <- system.file(package="gwasurvivr", "extdata", "sanger.pbwt_reference_impute.vcf.gz")
-pheno.fl <- system.file(package="gwasurvivr", "extdata", "simulated_pheno.txt")
+vcf.file <- system.file(package="gwasurvivr",
+                        "extdata", 
+                        "sanger.pbwt_reference_impute.vcf.gz")
+pheno.fl <- system.file(package="gwasurvivr",
+                        "extdata", 
+                        "simulated_pheno.txt")
 pheno.file <- read.table(pheno.fl, sep=" ", header=TRUE, stringsAsFactors = FALSE)
 head(pheno.file)
 ```
@@ -77,44 +81,49 @@ library(magrittr)
 ```
 
 ```{r}
-# recode sex column and remove first column
+# recode sex column and remove first column 
 pheno.file <- pheno.file %>%
-        mutate(SexFemale=case_when(sex=="female"~1,
-                                   sex=="male"~0)) %>%
+        mutate(SexFemale=case_when(sex=="female"~1L,
+                                   sex=="male"~0L)) %>%
         dplyr::select(-ID_1)
 
-# select only experimental group
+# select only experimental group sample.ids
 sample.ids <- pheno.file %>%
         filter(group=="experimental") %$%
         ID_2 
+head(sample.ids)
 ```
 
-Now run survival using `vcfCoxSurv`. 
+Now run survival using `sangerCoxSurv`. 
 
 ```{r}
-vcfCoxSurv(vcf.file=vcf.file,
-           pheno.file=pheno.file,
-           time.to.event="time",
-           event="event",
-           covariates=c("age", "SexFemale", "bmiOVWT"),
-           sample.ids=sample.ids,
-           output.name="example_run",
-           chunk.size=1000,
-           info.filter=0.3,
-           maf.filter=0.005,
-           verbose=TRUE)
+sangerCoxSurv(vcf.file=vcf.file,
+              pheno.file=pheno.file,
+              time.to.event="time",
+              event="event",
+              covariates=c("age", "SexFemale", "bmiOVWT"),
+              sample.ids=sample.ids,
+              output.name="sanger_example",
+              chunk.size=10000,
+              info.filter=0.7,
+              maf.filter=0.005,
+              verbose=TRUE)
 ```
 
-## Peak at result
-We can look at the result that just came out of that run by loading the data.
+## Peek at results
+We can look at the results that just came out of that run by loading the data.
+```{r, message=FALSE}
+sanger_res <- read_tsv("sanger_example.coxph")
+```
+
 ```{r}
-sanger_survRes <- read_tsv("example_run.coxph")
-dim(sanger_survRes)
-sanger_survRes %>% 
+dim(sanger_res)
+sanger_res %>% 
         select(RSID, TYPED, PVALUE, COEF, HR) %>%
-        arrange(PVALUE) 
+        arrange(PVALUE) %>% 
+        head() %>%
+        kable()
 ```
-
 
 # IMPUTE2 Imputation
 ## File structure
@@ -127,48 +136,60 @@ IMPUTE2 outputs 6 files, but only 2 of these files required for analysis using `
 
 ## R Session Example
 First the user needs to find correct paths of the files and load up the covariate file. The covariate file needs to be a `data.frame`
-```{r}
-impute.file <- system.file(package="gwasurvivr", "extdata", "impute_example.impute2")
-sample.file <- system.file(package="gwasurvivr", "extdata", "impute_example.impute2_sample")
-chromosome <- 14
-covfile <- system.file(package="gwasurvivr", "extdata", "simulated_pheno.txt")
-covfile <- read_delim(covfile, delim=" ")
-covfile <- covfile %>% 
-        mutate(SexFemale=case_when(sex=="female"~1,
-                                   sex=="male"~0)) %>%
+```{r, message=FALSE}
+impute.file <- system.file(package="gwasurvivr",
+                           "extdata",
+                           "impute_example.impute2")
+sample.file <- system.file(package="gwasurvivr",
+                           "extdata", 
+                           "impute_example.impute2_sample")
+chr <- 14
+covariate.file <- system.file(package="gwasurvivr", 
+                       "extdata",
+                       "simulated_pheno.txt")
+covariate.file <- read_delim(covariate.file, delim=" ")
+covariate.file <- covariate.file %>% 
+        mutate(SexFemale=case_when(sex=="female"~1L,
+                                   sex=="male"~0L)) %>%
         dplyr::select(-ID_1)
-head(covfile)
-sample.ids <- covfile %>%
+head(covariate.file)
+sample.ids <- covariate.file %>%
         filter(group=="experimental") %$%
         ID_2 
 ```
 
 Now we can run survival
 ```{r}
-gdsCoxSurv(impute.file=impute.file,
-           sample.file=sample.file,
-           chromosome=14,
-           covfile=covfile,
-           sample.ids=sample.ids,
-           time.to.event="time",
-           event="event",
-           covariates=c("age", "SexFemale", "bmiOVWT"),
-           outfile="impute_example", 
-           maf.filter=0.005,
-           flip.dosage=TRUE, 
-           verbose=TRUE)
+impute2CoxSurv(impute.file=impute.file,
+               sample.file=sample.file,
+               chr=14,
+               covariate.file=covariate.file,
+               sample.ids=sample.ids,
+               time.to.event="time",
+               event="event",
+               covariates=c("age", "SexFemale", "bmiOVWT"),
+               out.file="impute_example",
+               maf.filter=0.005,
+               info.filter=0.7,
+               flip.dosage=TRUE,
+               verbose=TRUE)
 ```
 
-## Peak at results
+## Peek at results
+```{r, message=FALSE}
+impute2_res <- read_tsv("impute_example.coxph")
+dim(impute2_res)
+```
+
 ```{r}
-impute2.res <- read_tsv("impute_example.surv.results")
-impute2.res %>%
-        select(rsid, snpid, p.value, coef, exp.coef) %>%
-        arrange(p.value)
+impute2_res %>%
+        select(RSID, TYPED, PVALUE, COEF, HR) %>%
+        arrange(PVALUE) %>%
+        head() %>%
+        kable() 
 ```
 
 The results look the same.
-
 
 # Michigan Imputation Server
 [Michigan Imputation Server](https://imputationserver.sph.umich.edu/index.html) outputs gunzipped variant call format files (`.vcf.gz`). These files are typically stored in full chromosome chunks. Imputation is done using the Minimac3 imputation engine. Pre-phasing is done using either HAPI-UR, SHAPEIT, or EAGLE (default is EAGLE2). 
@@ -178,18 +199,20 @@ The michigan example will be added soon!
 
 # Batch Examples
 
-## Batch Example vcfCoxSurv
+## Batch Example sangerCoxSurv
 Batch jobs for multiple analyses and different subsets are easy to implement using `gwasurvivr`. This is facilitated by the package `batch`. First write an R script to pass in bash.
 
 ```{r, eval=FALSE}
 ## mysurvivalscript.R
+library(gwasurvivr)
 library(batch)
 parseCommandArgs(evaluate=TRUE)
 
+options("gwasurvivr.cores"=4)
 # recode sex column and remove first column
 pheno.file <- pheno.file %>%
-        mutate(SexFemale=case_when(sex=="female"~1,
-                                   sex=="male"~0)) %>%
+        mutate(SexFemale=case_when(sex=="female"~1L,
+                                   sex=="male"~0L)) %>%
         dplyr::select(-ID_1)
 
 # select only experimental group
@@ -201,17 +224,17 @@ sample.ids <- pheno.file %>%
 ## (refer below to the shell script as to why we are doing this)
 covariates <- unlist(strsplit(covariates, "_"))
 
-vcfCoxSurv(vcf.file,
-           info.filter,
-           maf.filter,
-           chunk.size,
-           pheno.file,
-           time.to.event,
-           event,
-           covariates,
-           sample.ids,
-           output.name,
-           verbose=TRUE)
+sangerCoxSurv(vcf.file,
+              pheno.file,,
+              time.to.event,
+              event,
+              covariates,
+              sample.ids,
+              chunk.size,
+              info.filter,
+              maf.filter,
+              output.name,
+              verbose=TRUE)
 ```
 
 Now we can run a shell script. This can be used well with manifest files to set up multiple comparisons with different outcomes and different subsets of samples. The covariates are separated by an underscore (`"_"`). This is so it can be passed properly, and also why we used `str_split` to split the covariates. 
@@ -222,10 +245,10 @@ PATH=/path/to/dir/impute_chr/
 
 R --script ${PATH}/mysurvivalscript.R -q --args \
         vcf.file ${PATH}/chr14.vcf.gz \
-        pheno.file ${PATH}/phenotype_data/pheno.txt \ # provide path to phenotype file
+        pheno.file ${PATH}/phenotype_data/pheno.txt \ 
         time.to.event time \
         event event \
-        covariates age_sex_bmi \
+        covariates age_SexFemale_bmiOVWT \
         sample.ids sample.ids \
         chunk.size 10000 \
         info.filter 0.7 \
@@ -235,13 +258,18 @@ R --script ${PATH}/mysurvivalscript.R -q --args \
 
 The file paths above are completely arbitrary and were just used as an example of how file structure may be and where desirable output would be stored.
 
-## Batch Example gdsCoxSurv
-Exactly the same as for `vcfCoxSurv` but this time with the input arguments for `gdsCoxSurv`. 
+## Batch Example impute2CoxSurv
+Exactly the same as for `sangerCoxSurv` but this time with the input arguments for `impute2CoxSurv`. 
 
-## Batch Example michCoxSurv
+## Batch Example michiganCoxSurv
 
 The michigan example will be added soon!
 
+# Session info
+Here is the output of `sessionInfo()` on the system that this document was compiled:
+```{r, echo=FALSE}
+sessionInfo()
+```
 
 # References
 1. Terry M. Therneau and Patricia M. Grambsch (2000). Modeling Survival Data: Extending the Cox Model. Springer, New York. ISBN 0-387-98784-3.  
@@ -256,9 +284,4 @@ The michigan example will be added soon!
 
 6. Efficient haplotype matching and storage using the Positional Burrows-Wheeler Transform (PBWT)", Richard Durbin Bioinformatics 30:1266-72 (2014).   
 
-# Session info
-Here is the output of `sessionInfo()` on the system that this document was compiled:
-```{r, echo=FALSE}
-sessionInfo()
-```
 

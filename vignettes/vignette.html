@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2018-03-21" />
+<meta name="date" content="2018-03-22" />
 
 <title>gwasurvivr Vignette</title>
 
@@ -117,7 +117,7 @@ $(document).ready(function () {
 <h1 class="title toc-ignore">gwasurvivr Vignette</h1>
 <p class="author-name">Abbas Rizvi<span class="affil-mark">1</span>, Ezgi Karaesmen<span class="affil-mark">1</span>, Martin Morgan<span class="affil-mark">2</span> and Lara Sucheston-Campbell<span class="affil-mark">1</span></p>
 <p class="author-affiliation"><span class="affil-mark">1</span>The Ohio State University, Columbus, OH<br><span class="affil-mark">2</span>Roswell Park Cancer Institute, Buffalo, NY</p>
-<h4 class="date"><em>March 21, 2018</em></h4>
+<h4 class="date"><em>March 22, 2018</em></h4>
 <h4 class="package">Package</h4>
 <p>gwasurvivr 1.0.0</p>
 
@@ -133,29 +133,29 @@ $(document).ready(function () {
 </ul></li>
 <li><a href="#sanger-imputation-server"><span class="toc-section-number">3</span> Sanger Imputation Server</a><ul>
 <li><a href="#r-session-example"><span class="toc-section-number">3.1</span> R Session Example</a></li>
-<li><a href="#peak-at-result"><span class="toc-section-number">3.2</span> Peak at result</a></li>
+<li><a href="#peek-at-results"><span class="toc-section-number">3.2</span> Peek at results</a></li>
 </ul></li>
 <li><a href="#impute2-imputation"><span class="toc-section-number">4</span> IMPUTE2 Imputation</a><ul>
 <li><a href="#file-structure"><span class="toc-section-number">4.1</span> File structure</a></li>
 <li><a href="#r-session-example-1"><span class="toc-section-number">4.2</span> R Session Example</a></li>
-<li><a href="#peak-at-results"><span class="toc-section-number">4.3</span> Peak at results</a></li>
+<li><a href="#peek-at-results-1"><span class="toc-section-number">4.3</span> Peek at results</a></li>
 </ul></li>
 <li><a href="#michigan-imputation-server"><span class="toc-section-number">5</span> Michigan Imputation Server</a><ul>
 <li><a href="#r-session-example-2"><span class="toc-section-number">5.1</span> R Session Example</a></li>
 </ul></li>
 <li><a href="#batch-examples"><span class="toc-section-number">6</span> Batch Examples</a><ul>
-<li><a href="#batch-example-vcfcoxsurv"><span class="toc-section-number">6.1</span> Batch Example vcfCoxSurv</a></li>
-<li><a href="#batch-example-gdscoxsurv"><span class="toc-section-number">6.2</span> Batch Example gdsCoxSurv</a></li>
-<li><a href="#batch-example-michcoxsurv"><span class="toc-section-number">6.3</span> Batch Example michCoxSurv</a></li>
+<li><a href="#batch-example-sangercoxsurv"><span class="toc-section-number">6.1</span> Batch Example sangerCoxSurv</a></li>
+<li><a href="#batch-example-impute2coxsurv"><span class="toc-section-number">6.2</span> Batch Example impute2CoxSurv</a></li>
+<li><a href="#batch-example-michigancoxsurv"><span class="toc-section-number">6.3</span> Batch Example michiganCoxSurv</a></li>
 </ul></li>
-<li><a href="#references"><span class="toc-section-number">7</span> References</a></li>
-<li><a href="#session-info"><span class="toc-section-number">8</span> Session info</a></li>
+<li><a href="#session-info"><span class="toc-section-number">7</span> Session info</a></li>
+<li><a href="#references"><span class="toc-section-number">8</span> References</a></li>
 </ul>
 </div>
 
 <div id="introduction" class="section level1">
 <h1><span class="header-section-number">1</span> Introduction</h1>
-<p><code>gwasurvivr</code> can perform survival analysis on full chromomsomes for either Sanger or Michigan imputation results, and for chromosome chunks from IMPUTE2. This vignette is a tutorial on how to perform survival analysis (Cox proportional hazard models) on imputed GWAS data from either using the imputation software IMPUTE2 or an imputation server (Sanger/Michigan imputation servers). This package can be conveniently batched on a high performing computing cluster.</p>
+<p><code>gwasurvivr</code> can perform survival analysis on full chromosomes on imputed genotypes from Sanger/Michigan imputation servers or chromosome chunks imputed genotypes from IMPUTE2. This vignette is a tutorial on how to perform survival analysis (Cox proportional hazard models) on imputed GWAS data from either using the imputation software IMPUTE2 or an imputation server (Sanger/Michigan imputation servers). This package can be conveniently batched on a high performing computing cluster.</p>
 </div>
 <div id="getting-started" class="section level1">
 <h1><span class="header-section-number">2</span> Getting started</h1>
@@ -174,7 +174,7 @@ BiocInstaller::biocLite(&quot;GWASTools&quot;)</code></pre>
 </div>
 <div id="sanger-imputation-server" class="section level1">
 <h1><span class="header-section-number">3</span> Sanger Imputation Server</h1>
-<p><a href="https://imputation.sanger.ac.uk/">Sanger Imputation Server</a> pre-phases using either SHAPEIT or EAGLE and then imputes genotypes using PBWT algorithm. The output from Sanger imputation are <code>.vcf.gz</code> files, which are needed as input for <code>gwasurvivr</code>. The output comes in full chromosomes, which can easily be run using <code>gwasurvivr</code>. <code>vcfCoxSurv</code> is the function needed to perform survival. <code>vcfCoxSurv</code> can filter info score (imputation quality metric) and on minor allele frequency. <code>vcfCoxSurv</code> grabs the reference panel allele frequency from the VCF file (<code>RefPanelAF</code>) and also computes a minor allele frequency (MAF) for the sample genotype. The <code>RefPanelAF</code> can be filtered as the input argument <code>maf.filter</code>.</p>
+<p><a href="https://imputation.sanger.ac.uk/">Sanger Imputation Server</a> pre-phases using either SHAPEIT or EAGLE and then imputes genotypes using PBWT algorithm. The output from Sanger imputation are <code>.vcf.gz</code> files, which are needed as input for <code>gwasurvivr</code>. The output comes in full chromosomes, which can easily be run using <code>gwasurvivr</code>. <code>sangerCoxSurv</code> is the function needed to perform survival. <code>sangerCoxSurv</code> can filter info score (imputation quality metric) and on minor allele frequency. <code>sangerCoxSurv</code> grabs the reference panel allele frequency from the VCF file (<code>RefPanelAF</code>) and also computes a minor allele frequency (MAF) for the sample genotype. The <code>RefPanelAF</code> can be filtered as the input argument <code>maf.filter</code>.</p>
 <p>Users can select which samples that they would like to include in the analysis by providing a vector of <code>sample.ids</code>. Since the output from Sanger imputation server returns the samples as <code>SAMP1, ..., SAMPN</code>, where <code>N</code> is the total number of samples, the user must create an alternate ID for the samples of interest that correspond to the order that the samples were in their input to the Sanger imputation server (this sample order can also be found in the <code>.fam</code> file from the genotyping chip).</p>
 <p>To run a prespecified number of cores to use in parallel while fitting the Cox model can be set:</p>
 <pre class="r"><code>options(&quot;gwasurvivr.cores&quot;=4)</code></pre>
@@ -183,8 +183,12 @@ BiocInstaller::biocLite(&quot;GWASTools&quot;)</code></pre>
 </ul>
 <div id="r-session-example" class="section level2">
 <h2><span class="header-section-number">3.1</span> R Session Example</h2>
-<pre class="r"><code>vcf.file &lt;- system.file(package=&quot;gwasurvivr&quot;, &quot;extdata&quot;, &quot;sanger.pbwt_reference_impute.vcf.gz&quot;)
-pheno.fl &lt;- system.file(package=&quot;gwasurvivr&quot;, &quot;extdata&quot;, &quot;simulated_pheno.txt&quot;)
+<pre class="r"><code>vcf.file &lt;- system.file(package=&quot;gwasurvivr&quot;,
+                        &quot;extdata&quot;, 
+                        &quot;sanger.pbwt_reference_impute.vcf.gz&quot;)
+pheno.fl &lt;- system.file(package=&quot;gwasurvivr&quot;,
+                        &quot;extdata&quot;, 
+                        &quot;simulated_pheno.txt&quot;)
 pheno.file &lt;- read.table(pheno.fl, sep=&quot; &quot;, header=TRUE, stringsAsFactors = FALSE)
 head(pheno.file)</code></pre>
 <pre><code>##   ID_1  ID_2 event  time   age bmiOVWT    sex        group
@@ -198,90 +202,107 @@ head(pheno.file)</code></pre>
 <p>We leverage the <code>tidyverse</code> and <code>magrittr</code> packages in this example solely for data preparation/manipulation purposes.</p>
 <pre class="r"><code>library(tidyverse)
 library(magrittr)</code></pre>
-<pre class="r"><code># recode sex column and remove first column
+<pre class="r"><code># recode sex column and remove first column 
 pheno.file &lt;- pheno.file %&gt;%
-        mutate(SexFemale=case_when(sex==&quot;female&quot;~1,
-                                   sex==&quot;male&quot;~0)) %&gt;%
+        mutate(SexFemale=case_when(sex==&quot;female&quot;~1L,
+                                   sex==&quot;male&quot;~0L)) %&gt;%
         dplyr::select(-ID_1)
 
-# select only experimental group
+# select only experimental group sample.ids
 sample.ids &lt;- pheno.file %&gt;%
         filter(group==&quot;experimental&quot;) %$%
-        ID_2 </code></pre>
-<p>Now run survival using <code>vcfCoxSurv</code>.</p>
-<pre class="r"><code>vcfCoxSurv(vcf.file=vcf.file,
-           pheno.file=pheno.file,
-           time.to.event=&quot;time&quot;,
-           event=&quot;event&quot;,
-           covariates=c(&quot;age&quot;, &quot;SexFemale&quot;, &quot;bmiOVWT&quot;),
-           sample.ids=sample.ids,
-           output.name=&quot;example_run&quot;,
-           chunk.size=1000,
-           info.filter=0.3,
-           maf.filter=0.005,
-           verbose=TRUE)</code></pre>
-<pre><code>## Analysis started on 2018-03-21 at 18:49:17</code></pre>
+        ID_2 
+head(sample.ids)</code></pre>
+<pre><code>## [1] &quot;SAMP2&quot;  &quot;SAMP5&quot;  &quot;SAMP7&quot;  &quot;SAMP9&quot;  &quot;SAMP11&quot; &quot;SAMP12&quot;</code></pre>
+<p>Now run survival using <code>sangerCoxSurv</code>.</p>
+<pre class="r"><code>sangerCoxSurv(vcf.file=vcf.file,
+              pheno.file=pheno.file,
+              time.to.event=&quot;time&quot;,
+              event=&quot;event&quot;,
+              covariates=c(&quot;age&quot;, &quot;SexFemale&quot;, &quot;bmiOVWT&quot;),
+              sample.ids=sample.ids,
+              output.name=&quot;sanger_example&quot;,
+              chunk.size=10000,
+              info.filter=0.7,
+              maf.filter=0.005,
+              verbose=TRUE)</code></pre>
+<pre><code>## Analysis started on 2018-03-22 at 10:52:14</code></pre>
 <pre><code>## Analysis running for 253 samples.</code></pre>
 <pre><code>## Covariates included in the models are: age, bmiOVWT, SexFemale</code></pre>
 <pre><code>## If your covariates of interest are not included in the model
 ## please stop the analysis and make sure user defined covariates
 ## match the column names in the pheno.file</code></pre>
-<pre><code>## Analyzing chunk 0-1000</code></pre>
-<pre><code>## Analyzing chunk 1000-2000</code></pre>
-<pre><code>## Analyzing chunk 2000-3000</code></pre>
-<pre><code>## Analyzing chunk 3000-4000</code></pre>
-<pre><code>## Analyzing chunk 4000-5000</code></pre>
-<pre><code>## Analyzing chunk 5000-6000</code></pre>
-<pre><code>## Analyzing chunk 6000-7000</code></pre>
-<pre><code>## Analyzing chunk 7000-8000</code></pre>
-<pre><code>## Analysis completed on 2018-03-21 at 18:49:47</code></pre>
-<pre><code>## 171 SNPs were removed from the analysis for not meeting the threshold criteria.</code></pre>
-<pre><code>## List of removed SNPs can be found in example_run.MAF_INFO_removed</code></pre>
+<pre><code>## Analyzing chunk 0-10000</code></pre>
+<pre><code>## Analysis completed on 2018-03-22 at 10:52:35</code></pre>
+<pre><code>## 6406 SNPs were removed from the analysis for not meeting the threshold criteria.</code></pre>
+<pre><code>## List of removed SNPs can be found in sanger_example.MAF_INFO_removed</code></pre>
 </div>
-<div id="peak-at-result" class="section level2">
-<h2><span class="header-section-number">3.2</span> Peak at result</h2>
-<p>We can look at the result that just came out of that run by loading the data.</p>
-<pre class="r"><code>sanger_survRes &lt;- read_tsv(&quot;example_run.coxph&quot;)</code></pre>
-<pre><code>## Parsed with column specification:
-## cols(
-##   RSID = col_character(),
-##   TYPED = col_logical(),
-##   CHR = col_integer(),
-##   POS = col_integer(),
-##   REF = col_character(),
-##   ALT = col_character(),
-##   RefPanelAF = col_double(),
-##   SAMP_MAF = col_double(),
-##   INFO = col_double(),
-##   COEF = col_double(),
-##   SE.COEF = col_double(),
-##   HR = col_double(),
-##   HR_lowerCI = col_double(),
-##   HR_upperCI = col_double(),
-##   Z = col_double(),
-##   PVALUE = col_double(),
-##   N = col_integer(),
-##   NEVENT = col_integer()
-## )</code></pre>
-<pre class="r"><code>dim(sanger_survRes)</code></pre>
-<pre><code>## [1] 1586   18</code></pre>
-<pre class="r"><code>sanger_survRes %&gt;% 
+<div id="peek-at-results" class="section level2">
+<h2><span class="header-section-number">3.2</span> Peek at results</h2>
+<p>We can look at the results that just came out of that run by loading the data.</p>
+<pre class="r"><code>sanger_res &lt;- read_tsv(&quot;sanger_example.coxph&quot;)</code></pre>
+<pre class="r"><code>dim(sanger_res)</code></pre>
+<pre><code>## [1] 849  18</code></pre>
+<pre class="r"><code>sanger_res %&gt;% 
         select(RSID, TYPED, PVALUE, COEF, HR) %&gt;%
-        arrange(PVALUE) </code></pre>
-<pre><code>## # A tibble: 1,586 x 5
-##    RSID        TYPED    PVALUE  COEF     HR
-##    &lt;chr&gt;       &lt;lgl&gt;     &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;
-##  1 rs59588402  F     0.0000734  4.86 129   
-##  2 rs61354270  F     0.0000734  4.86 129   
-##  3 rs55641530  F     0.000144   4.74 114   
-##  4 rs7142866   F     0.000144   4.74 114   
-##  5 rs76344769  F     0.000169   4.65 105   
-##  6 rs56178399  F     0.000177   1.65   5.19
-##  7 rs149482959 F     0.000203   4.74 114   
-##  8 rs7143053   F     0.000209   4.67 107   
-##  9 rs80175559  F     0.000229   1.57   4.80
-## 10 rs139331300 F     0.000675   2.49  12.1 
-## # ... with 1,576 more rows</code></pre>
+        arrange(PVALUE) %&gt;% 
+        head() %&gt;%
+        kable()</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">RSID</th>
+<th align="left">TYPED</th>
+<th align="right">PVALUE</th>
+<th align="right">COEF</th>
+<th align="right">HR</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">rs56178399</td>
+<td align="left">FALSE</td>
+<td align="right">0.0001774</td>
+<td align="right">1.646147</td>
+<td align="right">5.186956</td>
+</tr>
+<tr class="even">
+<td align="left">rs80175559</td>
+<td align="left">FALSE</td>
+<td align="right">0.0002293</td>
+<td align="right">1.569031</td>
+<td align="right">4.801994</td>
+</tr>
+<tr class="odd">
+<td align="left">rs74833732</td>
+<td align="left">FALSE</td>
+<td align="right">0.0008713</td>
+<td align="right">1.368206</td>
+<td align="right">3.928297</td>
+</tr>
+<tr class="even">
+<td align="left">rs12586922</td>
+<td align="left">TRUE</td>
+<td align="right">0.0009214</td>
+<td align="right">1.098080</td>
+<td align="right">2.998402</td>
+</tr>
+<tr class="odd">
+<td align="left">rs34610474</td>
+<td align="left">FALSE</td>
+<td align="right">0.0009248</td>
+<td align="right">1.189763</td>
+<td align="right">3.286301</td>
+</tr>
+<tr class="even">
+<td align="left">rs4643237</td>
+<td align="left">FALSE</td>
+<td align="right">0.0010024</td>
+<td align="right">1.130329</td>
+<td align="right">3.096675</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 <div id="impute2-imputation" class="section level1">
@@ -299,52 +320,48 @@ sample.ids &lt;- pheno.file %&gt;%
 <div id="r-session-example-1" class="section level2">
 <h2><span class="header-section-number">4.2</span> R Session Example</h2>
 <p>First the user needs to find correct paths of the files and load up the covariate file. The covariate file needs to be a <code>data.frame</code></p>
-<pre class="r"><code>impute.file &lt;- system.file(package=&quot;gwasurvivr&quot;, &quot;extdata&quot;, &quot;impute_example.impute2&quot;)
-sample.file &lt;- system.file(package=&quot;gwasurvivr&quot;, &quot;extdata&quot;, &quot;impute_example.impute2_sample&quot;)
-chromosome &lt;- 14
-covfile &lt;- system.file(package=&quot;gwasurvivr&quot;, &quot;extdata&quot;, &quot;simulated_pheno.txt&quot;)
-covfile &lt;- read_delim(covfile, delim=&quot; &quot;)</code></pre>
-<pre><code>## Parsed with column specification:
-## cols(
-##   ID_1 = col_integer(),
-##   ID_2 = col_character(),
-##   event = col_integer(),
-##   time = col_double(),
-##   age = col_double(),
-##   bmiOVWT = col_integer(),
-##   sex = col_character(),
-##   group = col_character()
-## )</code></pre>
-<pre class="r"><code>covfile &lt;- covfile %&gt;% 
-        mutate(SexFemale=case_when(sex==&quot;female&quot;~1,
-                                   sex==&quot;male&quot;~0)) %&gt;%
+<pre class="r"><code>impute.file &lt;- system.file(package=&quot;gwasurvivr&quot;,
+                           &quot;extdata&quot;,
+                           &quot;impute_example.impute2&quot;)
+sample.file &lt;- system.file(package=&quot;gwasurvivr&quot;,
+                           &quot;extdata&quot;, 
+                           &quot;impute_example.impute2_sample&quot;)
+chr &lt;- 14
+covariate.file &lt;- system.file(package=&quot;gwasurvivr&quot;, 
+                       &quot;extdata&quot;,
+                       &quot;simulated_pheno.txt&quot;)
+covariate.file &lt;- read_delim(covariate.file, delim=&quot; &quot;)
+covariate.file &lt;- covariate.file %&gt;% 
+        mutate(SexFemale=case_when(sex==&quot;female&quot;~1L,
+                                   sex==&quot;male&quot;~0L)) %&gt;%
         dplyr::select(-ID_1)
-head(covfile)</code></pre>
+head(covariate.file)</code></pre>
 <pre><code>## # A tibble: 6 x 8
 ##   ID_2  event  time   age bmiOVWT sex    group        SexFemale
-##   &lt;chr&gt; &lt;int&gt; &lt;dbl&gt; &lt;dbl&gt;   &lt;int&gt; &lt;chr&gt;  &lt;chr&gt;            &lt;dbl&gt;
-## 1 SAMP1     0 12.0   33.9       0 male   control           0   
-## 2 SAMP2     1  7.61  58.7       1 male   experimental      0   
-## 3 SAMP3     0 12.0   39.4       0 female control           1.00
-## 4 SAMP4     0  4.30  38.8       0 male   control           0   
-## 5 SAMP5     0 12.0   43.6       0 male   experimental      0   
-## 6 SAMP6     1  2.60  57.7       0 male   control           0</code></pre>
-<pre class="r"><code>sample.ids &lt;- covfile %&gt;%
+##   &lt;chr&gt; &lt;int&gt; &lt;dbl&gt; &lt;dbl&gt;   &lt;int&gt; &lt;chr&gt;  &lt;chr&gt;            &lt;int&gt;
+## 1 SAMP1     0 12.0   33.9       0 male   control              0
+## 2 SAMP2     1  7.61  58.7       1 male   experimental         0
+## 3 SAMP3     0 12.0   39.4       0 female control              1
+## 4 SAMP4     0  4.30  38.8       0 male   control              0
+## 5 SAMP5     0 12.0   43.6       0 male   experimental         0
+## 6 SAMP6     1  2.60  57.7       0 male   control              0</code></pre>
+<pre class="r"><code>sample.ids &lt;- covariate.file %&gt;%
         filter(group==&quot;experimental&quot;) %$%
         ID_2 </code></pre>
 <p>Now we can run survival</p>
-<pre class="r"><code>gdsCoxSurv(impute.file=impute.file,
-           sample.file=sample.file,
-           chromosome=14,
-           covfile=covfile,
-           sample.ids=sample.ids,
-           time.to.event=&quot;time&quot;,
-           event=&quot;event&quot;,
-           covariates=c(&quot;age&quot;, &quot;SexFemale&quot;, &quot;bmiOVWT&quot;),
-           outfile=&quot;impute_example&quot;, 
-           maf.filter=0.005,
-           flip.dosage=TRUE, 
-           verbose=TRUE)</code></pre>
+<pre class="r"><code>impute2CoxSurv(impute.file=impute.file,
+               sample.file=sample.file,
+               chr=14,
+               covariate.file=covariate.file,
+               sample.ids=sample.ids,
+               time.to.event=&quot;time&quot;,
+               event=&quot;event&quot;,
+               covariates=c(&quot;age&quot;, &quot;SexFemale&quot;, &quot;bmiOVWT&quot;),
+               out.file=&quot;impute_example&quot;,
+               maf.filter=0.005,
+               info.filter=0.7,
+               flip.dosage=TRUE,
+               verbose=TRUE)</code></pre>
 <pre><code>## Determining number of SNPs and samples...</code></pre>
 <pre><code>## Including all SNPs.</code></pre>
 <pre><code>## scan.df not given. Assigning scanIDs automatically.</code></pre>
@@ -355,58 +372,83 @@ head(covfile)</code></pre>
 <pre><code>## Writing annotation...</code></pre>
 <pre><code>## Compressing...</code></pre>
 <pre><code>## Clean up the fragments of GDS file:
-##     open the file '/private/var/folders/1w/bb5rrzjn4v9bvq_hlptzq4bc0000gn/T/RtmpldfT6L/5cc7a3c59e5.gds' (13.9M)
+##     open the file '/private/var/folders/1w/bb5rrzjn4v9bvq_hlptzq4bc0000gn/T/RtmpIqq2H6/8287a7ad6c9.gds' (13.9M)
 ##     # of fragments: 30
-##     save to '/private/var/folders/1w/bb5rrzjn4v9bvq_hlptzq4bc0000gn/T/RtmpldfT6L/5cc7a3c59e5.gds.tmp'
-##     rename '/private/var/folders/1w/bb5rrzjn4v9bvq_hlptzq4bc0000gn/T/RtmpldfT6L/5cc7a3c59e5.gds.tmp' (230.5K, reduced: 13.6M)
+##     save to '/private/var/folders/1w/bb5rrzjn4v9bvq_hlptzq4bc0000gn/T/RtmpIqq2H6/8287a7ad6c9.gds.tmp'
+##     rename '/private/var/folders/1w/bb5rrzjn4v9bvq_hlptzq4bc0000gn/T/RtmpIqq2H6/8287a7ad6c9.gds.tmp' (230.5K, reduced: 13.6M)
 ##     # of fragments: 14</code></pre>
-<pre><code>## 0 SNPs were removed from the analysis for not meeting the given MAF &lt; 0.005</code></pre>
+<pre><code>## 5581 SNPs were removed from the analysis for not meeting the given MAF &lt; 0.005</code></pre>
 <pre><code>## List of removed SNPs are saved to impute_example.snps_removed</code></pre>
 <pre><code>## Covariates included in the models are: age, SexFemale, bmiOVWT</code></pre>
 <pre><code>## 253 samples are included in the analysis</code></pre>
-<pre><code>## Analysis started on 2018-03-21 at 18:50:06</code></pre>
-<pre><code>## Analysis completed on 2018-03-21 at 18:50:14</code></pre>
+<pre><code>## Analysis started on 2018-03-22 at 10:52:53</code></pre>
+<pre><code>## Analysis completed on 2018-03-22 at 10:52:55</code></pre>
 </div>
-<div id="peak-at-results" class="section level2">
-<h2><span class="header-section-number">4.3</span> Peak at results</h2>
-<pre class="r"><code>impute2.res &lt;- read_tsv(&quot;impute_example.surv.results&quot;)</code></pre>
-<pre><code>## Parsed with column specification:
-## cols(
-##   chr = col_integer(),
-##   position = col_integer(),
-##   snpid = col_character(),
-##   rsid = col_character(),
-##   A0 = col_character(),
-##   A1 = col_character(),
-##   exp_freq_A1 = col_double(),
-##   info = col_double(),
-##   coef = col_double(),
-##   se.coef = col_double(),
-##   exp.coef = col_double(),
-##   lb = col_double(),
-##   ub = col_double(),
-##   z = col_double(),
-##   p.value = col_double(),
-##   n = col_integer(),
-##   nevents = col_integer()
-## )</code></pre>
-<pre class="r"><code>impute2.res %&gt;%
-        select(rsid, snpid, p.value, coef, exp.coef) %&gt;%
-        arrange(p.value)</code></pre>
-<pre><code>## # A tibble: 7,255 x 5
-##    rsid            snpid   p.value  coef                        exp.coef
-##    &lt;chr&gt;           &lt;chr&gt;     &lt;dbl&gt; &lt;dbl&gt;                           &lt;dbl&gt;
-##  1 rs59588402      ---   0.0000734  4.86                          129   
-##  2 rs61354270      ---   0.0000734  4.86                          129   
-##  3 14:19888303_G/C ---   0.000101  63.8  5122832785874080515045195776   
-##  4 rs55641530      ---   0.000144   4.74                          114   
-##  5 rs7142866       ---   0.000144   4.74                          114   
-##  6 rs76344769      ---   0.000169   4.65                          105   
-##  7 rs56178399      ---   0.000177   1.65                            5.19
-##  8 rs149482959     ---   0.000203   4.74                          114   
-##  9 rs7143053       ---   0.000209   4.67                          107   
-## 10 rs80175559      ---   0.000229   1.57                            4.80
-## # ... with 7,245 more rows</code></pre>
+<div id="peek-at-results-1" class="section level2">
+<h2><span class="header-section-number">4.3</span> Peek at results</h2>
+<pre class="r"><code>impute2_res &lt;- read_tsv(&quot;impute_example.coxph&quot;)
+dim(impute2_res)</code></pre>
+<pre><code>## [1] 939  17</code></pre>
+<pre class="r"><code>impute2_res %&gt;%
+        select(RSID, TYPED, PVALUE, COEF, HR) %&gt;%
+        arrange(PVALUE) %&gt;%
+        head() %&gt;%
+        kable() </code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">RSID</th>
+<th align="left">TYPED</th>
+<th align="right">PVALUE</th>
+<th align="right">COEF</th>
+<th align="right">HR</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">rs56178399</td>
+<td align="left">—</td>
+<td align="right">0.0001774</td>
+<td align="right">1.646147</td>
+<td align="right">5.186955</td>
+</tr>
+<tr class="even">
+<td align="left">rs80175559</td>
+<td align="left">—</td>
+<td align="right">0.0002293</td>
+<td align="right">1.569031</td>
+<td align="right">4.801994</td>
+</tr>
+<tr class="odd">
+<td align="left">rs139331300</td>
+<td align="left">—</td>
+<td align="right">0.0006754</td>
+<td align="right">2.492941</td>
+<td align="right">12.096797</td>
+</tr>
+<tr class="even">
+<td align="left">rs74833732</td>
+<td align="left">—</td>
+<td align="right">0.0008713</td>
+<td align="right">1.368206</td>
+<td align="right">3.928297</td>
+</tr>
+<tr class="odd">
+<td align="left">rs12586922</td>
+<td align="left">rs12586922</td>
+<td align="right">0.0009214</td>
+<td align="right">1.098080</td>
+<td align="right">2.998402</td>
+</tr>
+<tr class="even">
+<td align="left">rs34610474</td>
+<td align="left">—</td>
+<td align="right">0.0009248</td>
+<td align="right">1.189763</td>
+<td align="right">3.286301</td>
+</tr>
+</tbody>
+</table>
 <p>The results look the same.</p>
 </div>
 </div>
@@ -420,17 +462,19 @@ head(covfile)</code></pre>
 </div>
 <div id="batch-examples" class="section level1">
 <h1><span class="header-section-number">6</span> Batch Examples</h1>
-<div id="batch-example-vcfcoxsurv" class="section level2">
-<h2><span class="header-section-number">6.1</span> Batch Example vcfCoxSurv</h2>
+<div id="batch-example-sangercoxsurv" class="section level2">
+<h2><span class="header-section-number">6.1</span> Batch Example sangerCoxSurv</h2>
 <p>Batch jobs for multiple analyses and different subsets are easy to implement using <code>gwasurvivr</code>. This is facilitated by the package <code>batch</code>. First write an R script to pass in bash.</p>
 <pre class="r"><code>## mysurvivalscript.R
+library(gwasurvivr)
 library(batch)
 parseCommandArgs(evaluate=TRUE)
 
+options(&quot;gwasurvivr.cores&quot;=4)
 # recode sex column and remove first column
 pheno.file &lt;- pheno.file %&gt;%
-        mutate(SexFemale=case_when(sex==&quot;female&quot;~1,
-                                   sex==&quot;male&quot;~0)) %&gt;%
+        mutate(SexFemale=case_when(sex==&quot;female&quot;~1L,
+                                   sex==&quot;male&quot;~0L)) %&gt;%
         dplyr::select(-ID_1)
 
 # select only experimental group
@@ -442,27 +486,27 @@ sample.ids &lt;- pheno.file %&gt;%
 ## (refer below to the shell script as to why we are doing this)
 covariates &lt;- unlist(strsplit(covariates, &quot;_&quot;))
 
-vcfCoxSurv(vcf.file,
-           info.filter,
-           maf.filter,
-           chunk.size,
-           pheno.file,
-           time.to.event,
-           event,
-           covariates,
-           sample.ids,
-           output.name,
-           verbose=TRUE)</code></pre>
+sangerCoxSurv(vcf.file,
+              pheno.file,,
+              time.to.event,
+              event,
+              covariates,
+              sample.ids,
+              chunk.size,
+              info.filter,
+              maf.filter,
+              output.name,
+              verbose=TRUE)</code></pre>
 <p>Now we can run a shell script. This can be used well with manifest files to set up multiple comparisons with different outcomes and different subsets of samples. The covariates are separated by an underscore (<code>&quot;_&quot;</code>). This is so it can be passed properly, and also why we used <code>str_split</code> to split the covariates.</p>
 <pre class="bash"><code>#!/bin/bash
 PATH=/path/to/dir/impute_chr/
 
 R --script ${PATH}/mysurvivalscript.R -q --args \
         vcf.file ${PATH}/chr14.vcf.gz \
-        pheno.file ${PATH}/phenotype_data/pheno.txt \ # provide path to phenotype file
+        pheno.file ${PATH}/phenotype_data/pheno.txt \ 
         time.to.event time \
         event event \
-        covariates age_sex_bmi \
+        covariates age_SexFemale_bmiOVWT \
         sample.ids sample.ids \
         chunk.size 10000 \
         info.filter 0.7 \
@@ -470,28 +514,17 @@ R --script ${PATH}/mysurvivalscript.R -q --args \
         output.name ${PATH}/survival/results/output_sanger_example</code></pre>
 <p>The file paths above are completely arbitrary and were just used as an example of how file structure may be and where desirable output would be stored.</p>
 </div>
-<div id="batch-example-gdscoxsurv" class="section level2">
-<h2><span class="header-section-number">6.2</span> Batch Example gdsCoxSurv</h2>
-<p>Exactly the same as for <code>vcfCoxSurv</code> but this time with the input arguments for <code>gdsCoxSurv</code>.</p>
+<div id="batch-example-impute2coxsurv" class="section level2">
+<h2><span class="header-section-number">6.2</span> Batch Example impute2CoxSurv</h2>
+<p>Exactly the same as for <code>sangerCoxSurv</code> but this time with the input arguments for <code>impute2CoxSurv</code>.</p>
 </div>
-<div id="batch-example-michcoxsurv" class="section level2">
-<h2><span class="header-section-number">6.3</span> Batch Example michCoxSurv</h2>
+<div id="batch-example-michigancoxsurv" class="section level2">
+<h2><span class="header-section-number">6.3</span> Batch Example michiganCoxSurv</h2>
 <p>The michigan example will be added soon!</p>
 </div>
 </div>
-<div id="references" class="section level1">
-<h1><span class="header-section-number">7</span> References</h1>
-<ol style="list-style-type: decimal">
-<li><p>Terry M. Therneau and Patricia M. Grambsch (2000). Modeling Survival Data: Extending the Cox Model. Springer, New York. ISBN 0-387-98784-3.</p></li>
-<li><p>Martin Morgan, Valerie Obenchain, Jim Hester and Hervé Pagès (2017). SummarizedExperiment: SummarizedExperiment container. R package version 1.6.3.</p></li>
-<li><p>Gogarten SM, Bhangale T, Conomos MP, Laurie CA, McHugh CP, Painter I, Zheng X, Crosslin DR, Levine D, Lumley T, Nelson SC, Rice K, Shen J, Swarnkar R, Weir BS and Laurie CC (2012). “GWASTools: an R/Bioconductor package for quality control and analysis of genome-wide association studies.” Bioinformatics, 28(24), pp. 3329-3331. doi: 10.1093/bioinformatics/bts610.</p></li>
-<li><p>B. N. Howie, P. Donnelly and J. Marchini (2009) A flexible and accurate genotype imputation method for the next generation of genome-wide association studies. PLoS Genetics 5(6): e1000529</p></li>
-<li><p>Das S, Forer L, Schönherr S, Sidore C, Locke AE, Kwong A, Vrieze S, Chew EY, Levy S, McGue M, Schlessinger D, Stambolian D, Loh PR, Iacono WG, Swaroop A, Scott LJ, Cucca F, Kronenberg F, Boehnke M, Abecasis GR, Fuchsberger C. <strong>Next-generation genotype imputation service and methods.</strong> Nature Genetics 48, 1284–1287 (2016). <a href="https://www.ncbi.nlm.nih.gov/pubmed/27571263">27571263</a></p></li>
-<li><p>Efficient haplotype matching and storage using the Positional Burrows-Wheeler Transform (PBWT)“, Richard Durbin Bioinformatics 30:1266-72 (2014).</p></li>
-</ol>
-</div>
 <div id="session-info" class="section level1">
-<h1><span class="header-section-number">8</span> Session info</h1>
+<h1><span class="header-section-number">7</span> Session info</h1>
 <p>Here is the output of <code>sessionInfo()</code> on the system that this document was compiled:</p>
 <pre><code>## R version 3.4.3 (2017-11-30)
 ## Platform: x86_64-apple-darwin15.6.0 (64-bit)
@@ -514,57 +547,68 @@ R --script ${PATH}/mysurvivalscript.R -q --args \
 ## [13] knitr_1.19       BiocStyle_2.4.1 
 ## 
 ## loaded via a namespace (and not attached):
-##   [1] nlme_3.1-131               bitops_1.0-6              
-##   [3] matrixStats_0.53.1         lubridate_1.7.1           
-##   [5] bit64_0.9-7                httr_1.3.1                
-##   [7] rprojroot_1.2              GenomeInfoDb_1.12.2       
-##   [9] tools_3.4.3                backports_1.1.0           
-##  [11] utf8_1.1.3                 R6_2.2.2                  
-##  [13] rpart_4.1-11               lazyeval_0.2.0            
-##  [15] colorspace_1.3-2           DBI_0.7                   
-##  [17] BiocGenerics_0.22.0        mgcv_1.8-22               
-##  [19] nnet_7.3-12                DNAcopy_1.50.1            
-##  [21] mnormt_1.5-5               bit_1.1-12                
-##  [23] compiler_3.4.3             cli_1.0.0                 
-##  [25] rvest_0.3.2                quantreg_5.33             
-##  [27] Biobase_2.36.2             mice_2.30                 
-##  [29] SparseM_1.77               xml2_1.1.1                
-##  [31] DelayedArray_0.2.7         sandwich_2.4-0            
-##  [33] rtracklayer_1.36.4         bookdown_0.5              
-##  [35] scales_0.5.0               lmtest_0.9-35             
-##  [37] psych_1.7.8                quantsmooth_1.42.0        
-##  [39] digest_0.6.13              Rsamtools_1.28.0          
-##  [41] foreign_0.8-69             GWASExactHW_1.01          
-##  [43] rmarkdown_1.8              XVector_0.16.0            
-##  [45] pkgconfig_2.0.1            htmltools_0.3.6           
-##  [47] BSgenome_1.44.0            readxl_1.0.0              
-##  [49] rlang_0.1.6                rstudioapi_0.7            
-##  [51] RSQLite_2.0                bindr_0.1                 
-##  [53] jsonlite_1.5               zoo_1.8-1                 
-##  [55] BiocParallel_1.10.1        VariantAnnotation_1.22.3  
-##  [57] RCurl_1.95-4.8             GenomeInfoDbData_0.99.0   
-##  [59] Matrix_1.2-12              munsell_0.4.3             
-##  [61] Rcpp_0.12.15               S4Vectors_0.14.3          
-##  [63] stringi_1.1.6              yaml_2.1.16               
-##  [65] GWASTools_1.22.0           MASS_7.3-47               
-##  [67] SummarizedExperiment_1.6.3 zlibbioc_1.22.0           
-##  [69] plyr_1.8.4                 grid_3.4.3                
-##  [71] blob_1.1.0                 parallel_3.4.3            
-##  [73] crayon_1.3.4               lattice_0.20-35           
-##  [75] haven_1.1.0                Biostrings_2.44.2         
-##  [77] splines_3.4.3              GenomicFeatures_1.28.4    
-##  [79] hms_0.3                    pillar_1.1.0              
-##  [81] GenomicRanges_1.28.4       logistf_1.22              
-##  [83] reshape2_1.4.3             gdsfmt_1.12.0             
-##  [85] biomaRt_2.32.1             stats4_3.4.3              
-##  [87] XML_3.98-1.9               glue_1.2.0                
-##  [89] evaluate_0.10.1            modelr_0.1.1              
-##  [91] cellranger_1.1.0           MatrixModels_0.4-1        
-##  [93] gtable_0.2.0               assertthat_0.2.0          
-##  [95] broom_0.4.3                ncdf4_1.16                
-##  [97] survival_2.41-3            GenomicAlignments_1.12.1  
-##  [99] AnnotationDbi_1.38.2       memoise_1.1.0             
-## [101] IRanges_2.10.2</code></pre>
+##   [1] colorspace_1.3-2           rprojroot_1.2             
+##   [3] DNAcopy_1.50.1             XVector_0.16.0            
+##   [5] GenomicRanges_1.28.4       GWASTools_1.22.0          
+##   [7] rstudioapi_0.7             mice_2.30                 
+##   [9] MatrixModels_0.4-1         bit64_0.9-7               
+##  [11] AnnotationDbi_1.38.2       lubridate_1.7.1           
+##  [13] xml2_1.1.1                 splines_3.4.3             
+##  [15] ncdf4_1.16                 mnormt_1.5-5              
+##  [17] jsonlite_1.5               logistf_1.22              
+##  [19] Rsamtools_1.28.0           broom_0.4.3               
+##  [21] compiler_3.4.3             httr_1.3.1                
+##  [23] backports_1.1.0            assertthat_0.2.0          
+##  [25] Matrix_1.2-12              lazyeval_0.2.0            
+##  [27] cli_1.0.0                  htmltools_0.3.6           
+##  [29] quantreg_5.33              tools_3.4.3               
+##  [31] gtable_0.2.0               glue_1.2.0                
+##  [33] GenomeInfoDbData_0.99.0    reshape2_1.4.3            
+##  [35] Rcpp_0.12.15               Biobase_2.36.2            
+##  [37] cellranger_1.1.0           Biostrings_2.44.2         
+##  [39] nlme_3.1-131               rtracklayer_1.36.4        
+##  [41] psych_1.7.8                lmtest_0.9-35             
+##  [43] rvest_0.3.2                XML_3.98-1.9              
+##  [45] zlibbioc_1.22.0            MASS_7.3-47               
+##  [47] zoo_1.8-1                  scales_0.5.0              
+##  [49] BSgenome_1.44.0            VariantAnnotation_1.22.3  
+##  [51] hms_0.3                    gdsfmt_1.12.0             
+##  [53] parallel_3.4.3             SummarizedExperiment_1.6.3
+##  [55] sandwich_2.4-0             SparseM_1.77              
+##  [57] yaml_2.1.16                memoise_1.1.0             
+##  [59] biomaRt_2.32.1             rpart_4.1-11              
+##  [61] stringi_1.1.6              RSQLite_2.0               
+##  [63] highr_0.6                  S4Vectors_0.14.3          
+##  [65] GenomicFeatures_1.28.4     BiocGenerics_0.22.0       
+##  [67] BiocParallel_1.10.1        GenomeInfoDb_1.12.2       
+##  [69] rlang_0.1.6                pkgconfig_2.0.1           
+##  [71] matrixStats_0.53.1         bitops_1.0-6              
+##  [73] evaluate_0.10.1            lattice_0.20-35           
+##  [75] bindr_0.1                  GenomicAlignments_1.12.1  
+##  [77] bit_1.1-12                 plyr_1.8.4                
+##  [79] bookdown_0.5               R6_2.2.2                  
+##  [81] IRanges_2.10.2             DelayedArray_0.2.7        
+##  [83] DBI_0.7                    pillar_1.1.0              
+##  [85] haven_1.1.0                foreign_0.8-69            
+##  [87] mgcv_1.8-22                GWASExactHW_1.01          
+##  [89] survival_2.41-3            RCurl_1.95-4.8            
+##  [91] nnet_7.3-12                modelr_0.1.1              
+##  [93] crayon_1.3.4               utf8_1.1.3                
+##  [95] rmarkdown_1.8              grid_3.4.3                
+##  [97] readxl_1.0.0               quantsmooth_1.42.0        
+##  [99] blob_1.1.0                 digest_0.6.13             
+## [101] stats4_3.4.3               munsell_0.4.3</code></pre>
+</div>
+<div id="references" class="section level1">
+<h1><span class="header-section-number">8</span> References</h1>
+<ol style="list-style-type: decimal">
+<li><p>Terry M. Therneau and Patricia M. Grambsch (2000). Modeling Survival Data: Extending the Cox Model. Springer, New York. ISBN 0-387-98784-3.</p></li>
+<li><p>Martin Morgan, Valerie Obenchain, Jim Hester and Hervé Pagès (2017). SummarizedExperiment: SummarizedExperiment container. R package version 1.6.3.</p></li>
+<li><p>Gogarten SM, Bhangale T, Conomos MP, Laurie CA, McHugh CP, Painter I, Zheng X, Crosslin DR, Levine D, Lumley T, Nelson SC, Rice K, Shen J, Swarnkar R, Weir BS and Laurie CC (2012). “GWASTools: an R/Bioconductor package for quality control and analysis of genome-wide association studies.” Bioinformatics, 28(24), pp. 3329-3331. doi: 10.1093/bioinformatics/bts610.</p></li>
+<li><p>B. N. Howie, P. Donnelly and J. Marchini (2009) A flexible and accurate genotype imputation method for the next generation of genome-wide association studies. PLoS Genetics 5(6): e1000529</p></li>
+<li><p>Das S, Forer L, Schönherr S, Sidore C, Locke AE, Kwong A, Vrieze S, Chew EY, Levy S, McGue M, Schlessinger D, Stambolian D, Loh PR, Iacono WG, Swaroop A, Scott LJ, Cucca F, Kronenberg F, Boehnke M, Abecasis GR, Fuchsberger C. <strong>Next-generation genotype imputation service and methods.</strong> Nature Genetics 48, 1284–1287 (2016). <a href="https://www.ncbi.nlm.nih.gov/pubmed/27571263">27571263</a></p></li>
+<li><p>Efficient haplotype matching and storage using the Positional Burrows-Wheeler Transform (PBWT)“, Richard Durbin Bioinformatics 30:1266-72 (2014).</p></li>
+</ol>
 </div>
 
 
