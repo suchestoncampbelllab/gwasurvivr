@@ -10,7 +10,7 @@
 #' @param time.to.event character(1) of column name in covariate.file that represents the time interval of interest in the analysis
 #' @param event character(1) of column name in covariate.file that represents the event of interest to be included in the analysis
 #' @param covariates character(1) vector with exact names of columns in covariate.file to include in analysis
-#' @param outfile character(1) of output file name (do not include extension) 
+#' @param out.file character(1) of output file name (do not include extension) 
 #' @param maf.filter numeric(1) to filter minor allele frequency (MAF)
 #' @param info.filter numeric(1) to filter imputation INFO score (i.e. choosing 0.7 means filtering info>0.7)
 #' @param flip.dosage logical(1) to flip which allele the dosage was calculated on, default=TRUE
@@ -135,11 +135,11 @@ impute2CoxSurv <- function(impute.file,
                 rm.snps <- rbind(rm.snps, snp[-snp$info>info.filter, c("snpid", "rsid", "exp_freq_A1", "info")])
         }
         write.table(rm.snps, 
-                    paste0(outfile, ".snps_removed"),
+                    paste0(out.file, ".snps_removed"),
                     row.names = FALSE,
                     sep="\t",
                     quote = FALSE)
-        if(verbose) message("List of removed SNPs are saved to ", paste0(outfile, ".snps_removed"))
+        if(verbose) message("List of removed SNPs are saved to ", paste0(out.file, ".snps_removed"))
         ## STARTING ANALYSIS PORTION
         pheno.file <- as.matrix(covariate.file[,c(time.to.event, event, covariates)])
         # covariates are defined in pheno.file
