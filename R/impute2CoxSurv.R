@@ -164,7 +164,7 @@ impute2CoxSurv <- function(impute.file,
         colnames(res) <- c("CHR", "POS", "TYPED", "A0", "A1", "exp_freq_A1", "INFO", "COEF", "SE.COEF", "HR", "HR_lowerCI", "HR_upperCI", "Z", "PVALUE", "N", "NEVENT" )
         res <- res[,c("RSID", "TYPED", "CHR", "POS", "REF", "ALT", "exp_freq_A1", "INFO", "COEF", "SE", "HR", "HR_lowerCI", "HR_upperCI", "Z", "PVALUE", "N", "NEVENT")]
         write.table(res, 
-                    file=paste0(outfile, ".coxph"),
+                    file=paste0(out.file, ".coxph"),
                     sep="\t",
                     quote=FALSE, 
                     row.names=FALSE,
