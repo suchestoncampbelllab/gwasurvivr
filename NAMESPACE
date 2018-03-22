@@ -2,6 +2,7 @@
 
 export(gdsCoxSurv)
 export(impute2CoxSurv)
+export(michiganCoxSurv)
 export(sangerCoxSurv)
 export(vcfCoxSurv)
 import(GWASTools)
