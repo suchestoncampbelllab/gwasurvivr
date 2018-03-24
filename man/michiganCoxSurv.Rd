@@ -2,7 +2,7 @@
 % Please edit documentation in R/michiganCoxSurv.R
 \name{michiganCoxSurv}
 \alias{michiganCoxSurv}
-\title{Fit cox survival to all variants in a .vcf.gz file from Sanger imputation server}
+\title{Fit cox survival to all variants in a .vcf.gz file from Michigan imputation server}
 \usage{
 michiganCoxSurv(vcf.file, pheno.file, time.to.event, event, covariates,
   sample.ids, output.name, chunk.size, info.filter, maf.filter,
