@@ -22,7 +22,7 @@ editor_options:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, cache=FALSE)
+knitr::opts_chunk$set(echo = TRUE, cache=TRUE)
 library(knitr)
 ```
 
@@ -37,11 +37,29 @@ devtools::install_github("suchestoncampbelllab/gwasurvivr")
 ```
 
 ## Dependencies
-**Note:** This package depends on `GWASTools` which uses netcdf framework on linux. Therefore, for linux users, please install `libnetcdf-dev` and `netcdf-bin` before installing `gwasurvivr`. Also install the R package `netcdf4`.
+**Note**:  This package depends on `GWASTools` which uses netcdf framework on linux. Therefore, for linux users, please install `libnetcdf-dev` and `netcdf-bin` before installing `gwasurvivr`. 
+
+CRAN packages:  
+1. `ncdf4`  
+2. `matrixStats`  
+3. `parallel`    
+4. `survival` 
+
 ```{r, eval=FALSE}
-install.packages("ncdf4")
-BiocInstaller::biocLite("GWASTools")
+install.packages(c("ncdf4", "matrixStats", "parallel", "survival"))
 ```
+
+Bioconductor packages:  
+1. `GWASTools`  
+2. `VariantAnnotation` 
+
+```{r, eval=FALSE}
+source("https://bioconductor.org/biocLite.R")
+biocLite("GWASTools")
+biocLite("ncdf4")
+```
+
+
 
 ## Load package
 ```{r}
@@ -152,7 +170,7 @@ covariate.file <- covariate.file %>%
         mutate(SexFemale=case_when(sex=="female"~1L,
                                    sex=="male"~0L)) %>%
         dplyr::select(-ID_1)
-head(covariate.file)
+covariate.file %>% head
 sample.ids <- covariate.file %>%
         filter(group=="experimental") %$%
         ID_2 
@@ -222,7 +240,9 @@ sample.ids <- pheno.file %>%
 
 ## -- unlist the covariates 
 ## (refer below to the shell script as to why we are doing this)
-covariates <- unlist(strsplit(covariates, "_"))
+covariates <- covariates %>%
+        str_split("_") %>%
+        unlist()
 
 sangerCoxSurv(vcf.file,
               pheno.file,,
@@ -237,15 +257,15 @@ sangerCoxSurv(vcf.file,
               verbose=TRUE)
 ```
 
-Now we can run a shell script. This can be used well with manifest files to set up multiple comparisons with different outcomes and different subsets of samples. The covariates are separated by an underscore (`"_"`). This is so it can be passed properly, and also why we used `str_split` to split the covariates. 
+Now we can run a shell script. This can be used well with manifest files to set up multiple runs with different outcomes and different subsets of samples. The covariates are separated by an underscore (`"_"`). This is so it can be passed properly, and also why we used `str_split` to split the covariates. 
 
 ```{bash, eval=FALSE}
 #!/bin/bash
-PATH=/path/to/dir/impute_chr/
+PATH=/path/to/dir/impute_chr
 
-R --script ${PATH}/mysurvivalscript.R -q --args \
+R --script ${PATH}/survival/code/mysurvivalscript.R -q --args \
         vcf.file ${PATH}/chr14.vcf.gz \
-        pheno.file ${PATH}/phenotype_data/pheno.txt \ 
+        pheno.file ${PATH}/phenotype_data/pheno.txt \
         time.to.event time \
         event event \
         covariates age_SexFemale_bmiOVWT \
@@ -253,7 +273,7 @@ R --script ${PATH}/mysurvivalscript.R -q --args \
         chunk.size 10000 \
         info.filter 0.7 \
         maf.filter 0.005 \
-        output.name ${PATH}/survival/results/output_sanger_example
+        output.name ${PATH}/survival/results/sanger_example_output
 ```
 
 The file paths above are completely arbitrary and were just used as an example of how file structure may be and where desirable output would be stored.

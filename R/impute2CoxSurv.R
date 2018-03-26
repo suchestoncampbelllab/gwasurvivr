@@ -41,7 +41,7 @@ impute2CoxSurv <- function(impute.file,
                        verbose=TRUE
                        ){
         
-        
+        if (verbose) message("Analysis started on ", format(Sys.time(), "%Y-%m-%d"), " at ", format(Sys.time(), "%H:%M:%S"))
         gdsfile <- tempfile(pattern="", fileext = ".gds")
         snpfile <- tempfile(pattern="", fileext = ".snp.rdata")
         scanfile <- tempfile(pattern="", fileext = ".scan.rdata")
@@ -158,7 +158,6 @@ impute2CoxSurv <- function(impute.file,
         if (verbose) message(n.sample, " samples are included in the analysis")
         # build coxph.fit parameters
         params <- coxParam(pheno.file, time.to.event, event, covariates, sample.ids)
-        if (verbose) message("Analysis started on ", format(Sys.time(), "%Y-%m-%d"), " at ", format(Sys.time(), "%H:%M:%S"))
         # create cluster, also create option to input number of cores
         cl <- makeForkCluster(getOption("gwasurvivr.cores", detectCores()))
         on.exit(stopCluster(cl), add=TRUE)
