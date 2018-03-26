@@ -135,9 +135,10 @@ sangerCoxSurv <- function(vcf.file,
         # info > 0.7
         # maf > 0.005 & maf < 0.995
 
-        snp.maf.filt <- snp.info[snp.info$INFO > info.filter,]
-        idx <- snp.maf.filt$RefPanelAF > maf.filter & snp.maf.filt$RefPanelAF < (1-maf.filter)
-        snp.maf.filt <- snp.maf.filt[idx,]
+        idx <- snp.info$INFO > info.filter &
+                                 snp.info$RefPanelAF > maf.filter &
+                                 snp.info$RefPanelAF < (1-maf.filter)
+        snp.maf.filt <- snp.info[idx,]
         
         ## record removed SNPs by filtering
         snp_maf_removed <- rownames(genotype)[-idx]
