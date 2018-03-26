@@ -1,7 +1,7 @@
 Package: gwasurvivr
 Type: Package
 Title: GWAS survival analysis
-Version: 1.0.0
+Version: 0.99.0
 Authors@R: c(person("Abbas", "Rizvi", email="aarizv@gmail.com", role="cre"),
 	person("Ezgi", "Karaesmen", email="ezgi.karaesmen@gmail.com", role="ctb"),
 	person("Martin", "Morgan", role="ctb"),

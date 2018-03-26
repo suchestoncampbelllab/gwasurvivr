@@ -6,7 +6,7 @@ author:
 - name: Ezgi Karaesmen
   affiliation: The Ohio State University, Columbus, OH
 - name: Martin Morgan
-  affiliation: Roswell Park Cancer Institute, Buffalo, NY    
+  affiliation: Roswell Park Comprehensive Cancer Center, Buffalo, NY    
 - name: Lara Sucheston-Campbell  
   affiliation: The Ohio State University, Columbus, OH
 package: gwasurvivr
@@ -22,7 +22,7 @@ editor_options:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, cache=TRUE)
+knitr::opts_chunk$set(echo = TRUE, cache=FALSE)
 library(knitr)
 ```
 
@@ -56,10 +56,8 @@ Bioconductor packages:
 ```{r, eval=FALSE}
 source("https://bioconductor.org/biocLite.R")
 biocLite("GWASTools")
-biocLite("ncdf4")
+biocLite("VariantAnnotation")
 ```
-
-
 
 ## Load package
 ```{r}
@@ -124,7 +122,7 @@ sangerCoxSurv(vcf.file=vcf.file,
               output.name="sanger_example",
               chunk.size=10000,
               info.filter=0.7,
-              maf.filter=0.005,
+              maf.filter=0.01,
               verbose=TRUE)
 ```
 
@@ -187,7 +185,7 @@ impute2CoxSurv(impute.file=impute.file,
                event="event",
                covariates=c("age", "SexFemale", "bmiOVWT"),
                out.file="impute_example",
-               maf.filter=0.005,
+               maf.filter=0.01,
                info.filter=0.7,
                flip.dosage=TRUE,
                verbose=TRUE)
@@ -218,7 +216,7 @@ The michigan example will be added soon!
 # Batch Examples
 
 ## Batch Example sangerCoxSurv
-Batch jobs for multiple analyses and different subsets are easy to implement using `gwasurvivr`. This is facilitated by the package `batch`. First write an R script to pass in bash.
+Batch jobs for multiple analyses and different subsets are easy to implement using `gwasurvivr`. This is facilitated by the package `batch`, which can internalize R variables from bash. First write an R script (e.g. `mysurvivalscript.R`) to pass in bash.
 
 ```{r, eval=FALSE}
 ## mysurvivalscript.R
@@ -272,7 +270,7 @@ R --script ${PATH}/survival/code/mysurvivalscript.R -q --args \
         sample.ids sample.ids \
         chunk.size 10000 \
         info.filter 0.7 \
-        maf.filter 0.005 \
+        maf.filter 0.01 \
         output.name ${PATH}/survival/results/sanger_example_output
 ```
 
