@@ -2,17 +2,27 @@ Package: gwasurvivr
 Type: Package
 Title: GWAS survival analysis
 Version: 0.99.0
-Authors@R: c(person("Abbas", "Rizvi", email="aarizv@gmail.com", role="cre"),
-	person("Ezgi", "Karaesmen", email="ezgi.karaesmen@gmail.com", role="ctb"),
-	person("Martin", "Morgan", role="ctb"),
-	person("Lara", "Sucheston-Campbell", email="sucheston-campbell.1@osu.edu", role="ctb"))
+Author: Abbas Rizvi, Ezgi Karaesmen, Martin Morgan, Lara Sucheston-Campbell
 Maintainer: Abbas Rizvi <aarizv@gmail.com>
 Description: Conduct survival analysis of imputed GWAS data using R
-VignetteBuilder: knitr
+VignetteBuilder:
+    knitr,
+    rmarkdown
 Imports:
-	GWASTools,
-	survival,
-	VariantAnnotation,
-	parallel
+    GWASTools,
+    survival,
+    VariantAnnotation,
+	parallel,
+	matrixStats,
+	SummarizedExperiment,
+	stats,
+	utils
+Suggests:
+	knitr,
+	rmarkdown,
+	tidyverse,
+	magrittr
 License: Artistic-2.0
+URL: https://github.com/suchestoncampbelllab/gwasurvivr
+biocViews: GenomeWideAssociation, Survival, Genetics
 RoxygenNote: 6.0.1

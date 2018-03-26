@@ -119,7 +119,7 @@ $(document).ready(function () {
 <p class="author-affiliation"><span class="affil-mark">1</span>The Ohio State University, Columbus, OH<br><span class="affil-mark">2</span>Roswell Park Comprehensive Cancer Center, Buffalo, NY</p>
 <h4 class="date"><em>March 26, 2018</em></h4>
 <h4 class="package">Package</h4>
-<p>gwasurvivr 1.0.0</p>
+<p>gwasurvivr 0.99.0</p>
 
 </div>
 
@@ -236,14 +236,14 @@ head(sample.ids)</code></pre>
               info.filter=0.7,
               maf.filter=0.01,
               verbose=TRUE)</code></pre>
-<pre><code>## Analysis started on 2018-03-26 at 11:15:27</code></pre>
+<pre><code>## Analysis started on 2018-03-26 at 18:16:52</code></pre>
 <pre><code>## Analysis running for 253 samples.</code></pre>
 <pre><code>## Covariates included in the models are: age, bmiOVWT, SexFemale</code></pre>
 <pre><code>## If your covariates of interest are not included in the model
 ## please stop the analysis and make sure user defined covariates
 ## match the column names in the pheno.file</code></pre>
 <pre><code>## Analyzing chunk 0-10000</code></pre>
-<pre><code>## Analysis completed on 2018-03-26 at 11:15:59</code></pre>
+<pre><code>## Analysis completed on 2018-03-26 at 18:17:22</code></pre>
 <pre><code>## 7254 SNPs were removed from the analysis for not meeting the threshold criteria.</code></pre>
 <pre><code>## List of removed SNPs can be found in sanger_example.MAF_INFO_removed</code></pre>
 </div>
@@ -372,7 +372,7 @@ covariate.file %&gt;% head</code></pre>
                info.filter=0.7,
                flip.dosage=TRUE,
                verbose=TRUE)</code></pre>
-<pre><code>## Analysis started on 2018-03-26 at 11:16:00</code></pre>
+<pre><code>## Analysis started on 2018-03-26 at 18:17:23</code></pre>
 <pre><code>## Determining number of SNPs and samples...</code></pre>
 <pre><code>## Including all SNPs.</code></pre>
 <pre><code>## scan.df not given. Assigning scanIDs automatically.</code></pre>
@@ -383,16 +383,16 @@ covariate.file %&gt;% head</code></pre>
 <pre><code>## Writing annotation...</code></pre>
 <pre><code>## Compressing...</code></pre>
 <pre><code>## Clean up the fragments of GDS file:
-##     open the file '/private/var/folders/1w/bb5rrzjn4v9bvq_hlptzq4bc0000gn/T/RtmpsCyCej/a3e17d10bee6.gds' (13.9M)
+##     open the file '/private/var/folders/1w/bb5rrzjn4v9bvq_hlptzq4bc0000gn/T/RtmpeBM7Pt/ccae66ad2bb8.gds' (13.9M)
 ##     # of fragments: 30
-##     save to '/private/var/folders/1w/bb5rrzjn4v9bvq_hlptzq4bc0000gn/T/RtmpsCyCej/a3e17d10bee6.gds.tmp'
-##     rename '/private/var/folders/1w/bb5rrzjn4v9bvq_hlptzq4bc0000gn/T/RtmpsCyCej/a3e17d10bee6.gds.tmp' (230.5K, reduced: 13.6M)
+##     save to '/private/var/folders/1w/bb5rrzjn4v9bvq_hlptzq4bc0000gn/T/RtmpeBM7Pt/ccae66ad2bb8.gds.tmp'
+##     rename '/private/var/folders/1w/bb5rrzjn4v9bvq_hlptzq4bc0000gn/T/RtmpeBM7Pt/ccae66ad2bb8.gds.tmp' (230.5K, reduced: 13.6M)
 ##     # of fragments: 14</code></pre>
 <pre><code>## 5888 SNPs were removed from the analysis for not meeting the given MAF &lt; 0.01</code></pre>
 <pre><code>## List of removed SNPs are saved to impute_example.snps_removed</code></pre>
 <pre><code>## Covariates included in the models are: age, SexFemale, bmiOVWT</code></pre>
 <pre><code>## 253 samples are included in the analysis</code></pre>
-<pre><code>## Analysis completed on 2018-03-26 at 11:16:20</code></pre>
+<pre><code>## Analysis completed on 2018-03-26 at 18:17:40</code></pre>
 </div>
 <div id="peek-at-results-1" class="section level2">
 <h2><span class="header-section-number">4.3</span> Peek at results</h2>
@@ -553,10 +553,10 @@ R --script ${PATH}/survival/code/mysurvivalscript.R -q --args \
 ## [1] stats     graphics  grDevices utils     datasets  methods   base     
 ## 
 ## other attached packages:
-##  [1] bindrcpp_0.2     magrittr_1.5     forcats_0.2.0    stringr_1.2.0   
-##  [5] dplyr_0.7.4      purrr_0.2.4      readr_1.1.1      tidyr_0.8.0     
-##  [9] tibble_1.4.2     ggplot2_2.2.1    tidyverse_1.2.1  gwasurvivr_1.0.0
-## [13] knitr_1.19       BiocStyle_2.4.1 
+##  [1] bindrcpp_0.2      magrittr_1.5      forcats_0.2.0     stringr_1.2.0    
+##  [5] dplyr_0.7.4       purrr_0.2.4       readr_1.1.1       tidyr_0.8.0      
+##  [9] tibble_1.4.2      ggplot2_2.2.1     tidyverse_1.2.1   gwasurvivr_0.99.0
+## [13] knitr_1.19        BiocStyle_2.4.1  
 ## 
 ## loaded via a namespace (and not attached):
 ##   [1] colorspace_1.3-2           rprojroot_1.2             

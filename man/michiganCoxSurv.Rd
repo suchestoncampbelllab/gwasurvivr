@@ -9,9 +9,11 @@ michiganCoxSurv(vcf.file, pheno.file, time.to.event, event, covariates,
   verbose = TRUE)
 }
 \arguments{
-\item{vcf.file}{character(1) path to VCF file.}
+\item{vcf.file}{character(1) path to corresponding info file.}
 
 \item{pheno.file}{matrix(1) comprising phenotype data.}
+
+\item{time.to.event}{character(1) string that matches time column name in pheno.file}
 
 \item{event}{character(1) string that matches event column name in pheno.file}
 
@@ -27,9 +29,7 @@ michiganCoxSurv(vcf.file, pheno.file, time.to.event, event, covariates,
 
 \item{maf.filter}{integer(1) filter out minor allele frequency below threshold (i.e. 0.005 will filter MAF > 0.005)}
 
-\item{vcf.file}{character(1) path to corresponding info file.}
-
-\item{time}{character(1) string that matches time column name in pheno.file}
+\item{verbose}{logical(1) for messages that describe which part of the analysis is currently being run}
 }
 \value{
 Saves text file directly to disk that contains survival analysis results
@@ -43,7 +43,12 @@ pheno.fl <- system.file(package="gwasurvivr", "extdata", "simulated_pheno.txt")
 pheno.file <- read.table(pheno.fl, sep=" ", header=TRUE, stringsAsFactors = FALSE)
 library(tidyverse)
 library(magrittr)
-pheno.file <- pheno.file \%>\% mutate(SexFemale=case_when(sex=="female"~1L, sex=="male"~0L)) \%>\% dplyr::select(-ID_1)
-sample.ids <- pheno.file \%>\% filter(group=="experimental") \%$\% ID_2 
-michiganCoxSurv(vcf.file=vcf.file, pheno.file=pheno.file, time.to.event="time", event="event", covariates=c("age", "SexFemale", "bmiOVWT"), sample.ids=sample.ids, output.name="sanger_example", chunk.size=10000, info.filter=0.7, maf.filter=0.005, verbose=TRUE)
+pheno.file <- pheno.file \%>\% 
+                   mutate(SexFemale=case_when(sex=="female"~1L,
+                          sex=="male"~0L)) \%>\% 
+                   select(-ID_1)
+sample.ids <- pheno.file \%>\%
+                   filter(group=="experimental") \%$\%
+                   ID_2 
+
 }

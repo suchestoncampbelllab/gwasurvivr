@@ -41,3 +41,38 @@ Saves text file directly to disk that contains survival analysis results
 \description{
 Performs survival analysis using Cox proportional hazard models on imputed genetic data from IMPUTE2 output
 }
+\examples{
+library(tidyverse)
+library(magrittr)
+impute.file <- system.file(package="gwasurvivr","extdata","impute_example.impute2")
+sample.file <- system.file(package="gwasurvivr",
+                           "extdata", 
+                          "impute_example.impute2_sample")
+chr <- 14
+covariate.file <- system.file(package="gwasurvivr", 
+                              "extdata",
+                             "simulated_pheno.txt")
+covariate.file <- read_delim(covariate.file, delim=" ")
+covariate.file <- covariate.file \%>\% 
+   mutate(SexFemale=case_when(sex=="female"~1L,
+                              sex=="male"~0L)) \%>\%
+   select(-ID_1)
+covariate.file \%>\% head
+sample.ids <- covariate.file \%>\%
+   filter(group=="experimental") \%$\%
+   ID_2 
+impute2CoxSurv(impute.file=impute.file,
+              sample.file=sample.file,
+              chr=14,
+              covariate.file=covariate.file,
+              sample.ids=sample.ids,
+              time.to.event="time",
+              event="event",
+              covariates=c("age", "SexFemale", "bmiOVWT"),
+              out.file="impute_example",
+              maf.filter=0.01,
+              info.filter=0.7,
+              flip.dosage=TRUE,
+              verbose=TRUE)  
+ 
+}
