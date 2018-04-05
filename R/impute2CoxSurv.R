@@ -174,46 +174,14 @@ impute2CoxSurv <- function(impute.file,
     
     
     # rearrange columns for snp info
-    colnames(snp) <- c("snpID",
-                       "snpid",
-                       "rsid",
-                       "position",
-                       "A0",
-                       "A1",
-                       "chr",
-                       "exp_freq_A1",
-                       "MAF",
-                       "info")
-    colnames(snp.drop) <- c("snpID",
-                            "snpid",
-                            "rsid",
-                            "position",
-                            "A0",
-                            "A1",
-                            "chr",
-                            "exp_freq_A1",
-                            "MAF",
-                            "info")
-    
-    snp <- snp[, c("chr",
-                   "position",
-                   "snpid",
-                   "rsid",
-                   "A0",
-                   "A1",
-                   "exp_freq_A1",
-                   "MAF",
-                   "info")]
-    
-    snp.drop <- snp.drop[, c("chr",
-                             "position",
-                             "snpid",
-                             "rsid",
-                             "A0",
-                             "A1",
-                             "exp_freq_A1",
-                             "MAF",
-                             "info")]
+    snp.cols <- c("snpID","snpid","rsid","position","A0","A1","chr",
+                  "exp_freq_A1", "MAF","info")
+    colnames(snp) <- snp.cols
+    colnames(snp.drop) <- snp.cols
+    snp.ord <- c("chr","position","snpid","rsid","A0","A1", "exp_freq_A1",
+                 "MAF","info")
+    snp <- snp[, snp.ord]
+    snp.drop <- snp.drop[, snp.ord]
 
 
     write.table(snp.drop, 
