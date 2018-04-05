@@ -66,7 +66,8 @@
 impute2CoxSurv <- function(impute.file,
                        sample.file,
                        chr,
-                       covariate.file, 
+                       covariate.file,
+                       id.column,
                        sample.ids, 
                        time.to.event, 
                        event,
@@ -118,14 +119,20 @@ impute2CoxSurv <- function(impute.file,
                                 scanAnn$ID_2)
     # flip dosage
     if(flip.dosage) genotypes <- 2 - genotypes
-    # user needs to input covariate.file 
-    colnames(covariate.file)[1] <- "ID_2" 
-    # only keep samples given with sample.ids argument
-    covariate.file <- covariate.file[covariate.file$ID_2 %in% sample.ids,]
-    # subset genotype data for patients of interest
-    genotypes <- genotypes[,covariate.file[[1]]]
+    
+    # user can provide null for sample.ids if not wishing to subset samples
+    if(is.null(sample.ids)){
+        genotypes <- genotypes[,covariate.file[[id.column]]]
+    } else {
+        # only keep samples given with sample.ids argument
+        covariate.file <- covariate.file[covariate.file[[id.column]] %in% sample.ids,]
+        # subset genotype data for patients of interest
+        genotypes <- genotypes[,covariate.file[[1]]]  
+    }
+    
     # calculate MAF
     snp$exp_freq_A1 <- round(1-rowMeans2(genotypes)*0.5,3)
+    snp$MAF <- ifelse(snp$exp_freq_A1 > 0.5, 1-snp$exp_freq_A1, snp$exp_freq_A1)
     # calculate info score
     obs.mean <- rowMeans2(genotypes)
     obs.var <- rowVars(genotypes)
@@ -134,52 +141,89 @@ impute2CoxSurv <- function(impute.file,
     info.score <- round(obs.var/p_all,3)
     info.score[info.score>1] <- 1
     snp$info <- info.score
-    # rearrange columns
-    colnames(snp) <- c("snpID", "snpid", "rsid", "position", 
-                       "A0", "A1", "chr", "exp_freq_A1", "info")
-    snp <- snp[,c("chr",
-                  "position",
-                  "snpid",
-                  "rsid",
-                  "A0",
-                  "A1", 
-                  "exp_freq_A1", 
-                  "info")]
+    
+    # remove snps with SD less than 1e-4
+    # to put this in perspective:
+    # a sample size of 100 000 000 with only 1 person being 1 and rest 0,
+    # has an SD = 1e-4
+    # x <- c(rep(0, 1e8),1)
+    # sd(x)
+    snp.keep <- rowSds(genotypes) > 1e-4
+    genotypes <- genotypes[snp.keep,]
+    snp.drop <- snp[!snp.keep,]
+    snp <- snp[snp.keep,]
+    
     ### Check snps for MAF = 0  ###
     # if MAF threshold is set, subset by the given value,
     # otherwise check for SD = 0 and remove
     if(!is.null(maf.filter)){
         maf.idx <- snp$exp_freq_A1<maf.filter | snp$exp_freq_A1>(1-maf.filter)
-        rm.snps <- snp[maf.idx, c("snpid", "rsid", "exp_freq_A1", "info")]
+        snp.drop <- base::rbind(snp.drop,snp[maf.idx,])
         snp <- snp[!maf.idx,]
         genotypes <- genotypes[!maf.idx,]
-        if(verbose) message(sum(maf.idx), " SNPs were removed from the analysis for not meeting the given MAF < ", maf.filter)
-    } else {
-        indx <- sort(unique(c(which(rowSds(genotypes) == 0))))
-    ### which() may produce integer(0), have a check
-    if(length(indx) != 0){
-        ## Remove MAF=0 snps
-        genotypes <- genotypes[-indx,]
-        # remove from snp list too that we will merge back later
-        snp <- snp[-indx,]
-        # save list of snps that were removed
-        rm.snps <- snp[-indx, c("snpid", "rsid", "exp_freq_A1", "info")]
-    if(verbose) message(length(indx), " SNPs were removed from the analysis for having sd = 0")
-        }
     }
+    
     if(!is.null(info.filter)){
-        # genotypes <- genotypes[complete.cases(snp),]
-        # snp <- snp[complete.cases(snp),]
-        genotypes <- genotypes[snp$info>info.filter,]
-        snp <- snp[snp$info>info.filter,]
-        rm.snps <- rbind(rm.snps, snp[!snp$info>info.filter, c("snpid", "rsid", "exp_freq_A1", "info")])
+        info.idx <- snp$info < info.filter
+        snp.drop <- base::rbind(snp.drop,snp[info.idx,])
+        snp <- snp[!info.idx,]
+        genotypes <- genotypes[!info.idx,]
     }
-    write.table(rm.snps, 
+
+    if(verbose) message(nrow(snp.drop), " SNPs were removed from the analysis for not meeting the given threshold criteria or for having MAF = 0")
+    
+    
+    # rearrange columns for snp info
+    colnames(snp) <- c("snpID",
+                       "snpid",
+                       "rsid",
+                       "position",
+                       "A0",
+                       "A1",
+                       "chr",
+                       "exp_freq_A1",
+                       "MAF",
+                       "info")
+    colnames(snp.drop) <- c("snpID",
+                            "snpid",
+                            "rsid",
+                            "position",
+                            "A0",
+                            "A1",
+                            "chr",
+                            "exp_freq_A1",
+                            "MAF",
+                            "info")
+    
+    snp <- snp[, c("chr",
+                   "position",
+                   "snpid",
+                   "rsid",
+                   "A0",
+                   "A1",
+                   "exp_freq_A1",
+                   "MAF",
+                   "info")]
+    
+    snp.drop <- snp.drop[, c("chr",
+                             "position",
+                             "snpid",
+                             "rsid",
+                             "A0",
+                             "A1",
+                             "exp_freq_A1",
+                             "MAF",
+                             "info")]
+
+
+    write.table(snp.drop, 
                 paste0(out.file, ".snps_removed"),
                 row.names = FALSE,
                 sep="\t",
                 quote = FALSE)
     if(verbose) message("List of removed SNPs are saved to ", paste0(out.file, ".snps_removed"))
+    
+    
     ## STARTING ANALYSIS PORTION
     pheno.file <- as.matrix(covariate.file[,c(time.to.event, event, covariates)])
     # covariates are defined in pheno.file
@@ -189,6 +233,7 @@ impute2CoxSurv <- function(impute.file,
     if (!is.numeric(pheno.file) ) {
         stop("Provided covariates must be numeric! e.g. categorical variables should be recoded as indicator or dummy variables.")
     }
+    
     # define Ns
     n.sample <- nrow(pheno.file)
     n.event <- sum(as.numeric(pheno.file[,event]))
@@ -241,7 +286,7 @@ impute2CoxSurv <- function(impute.file,
                 row.names=FALSE,
                 col.names=TRUE)
     if (verbose) message("Analysis completed on ", format(Sys.time(), "%Y-%m-%d"), " at ", format(Sys.time(), "%H:%M:%S"))
-
+    
 }
 
 
