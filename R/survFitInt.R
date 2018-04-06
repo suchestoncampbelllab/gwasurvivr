@@ -1,12 +1,12 @@
 survFitInt <-
-    function(snp,
+    function(SNP,
              params,
              cov.interaction,
              print.covs = "only"
              ) {
         
     ## creating model matrix
-    X <- cbind(inter.term=params$pheno.file[,cov.interaction]*snp, snp, params$pheno.file)
+    X <- cbind(INTER.TERM=params$pheno.file[,cov.interaction]*SNP, SNP, params$pheno.file)
     
     ## run fit with pre-defined parameters including INIT
     fit <- coxph.fit(X,
@@ -34,8 +34,8 @@ survFitInt <-
         res <- res[!rownames(res) %in% drop,]
         res.names <- dimnames(res)
         res <- c(res)
-        names(res) <- c(paste(res.names[[2]][1], res.names[[1]], sep="_"),
-                         paste(res.names[[2]][2], res.names[[1]], sep="_"))
+        names(res) <- c(paste(toupper(res.names[[2]][1]), res.names[[1]], sep="_"),
+                        paste(toupper(res.names[[2]][2]), res.names[[1]], sep="_"))
         return(res)
         
     } else if(print.covs=="all"){
@@ -44,8 +44,8 @@ survFitInt <-
         res <- cbind(coef, serr)
         res.names <- dimnames(res)
         res <- c(res)
-        names(res) <- c(paste(res.names[[2]][1], res.names[[1]], sep="_"),
-                       paste(res.names[[2]][2], res.names[[1]], sep="_"))
+        names(res) <- c(paste(toupper(res.names[[2]][1]), res.names[[1]], sep="_"),
+                        paste(toupper(res.names[[2]][2]), res.names[[1]], sep="_"))
         return(res)
 
     }
