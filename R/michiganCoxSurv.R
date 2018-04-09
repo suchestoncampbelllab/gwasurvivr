@@ -77,6 +77,8 @@ michiganCoxSurv <- function(vcf.file,
     # InputName rsid Chr Pos EA NonEA CoefValue HR SE LowerCI UpperCI 
     # Waldpv LRTpv ModLRTpv EAF MAF Infoscore
     
+    
+    
     write.table(t(c("RSID",
                     "TYPED",
                     "CHR",
@@ -86,7 +88,7 @@ michiganCoxSurv <- function(vcf.file,
                     "RefPanelAF",
                     "SAMP_MAF",
                     "INFO",
-                    "SE",
+                    "COEF",
                     "SE.COEF",
                     "HR",
                     "HR_lowerCI",
