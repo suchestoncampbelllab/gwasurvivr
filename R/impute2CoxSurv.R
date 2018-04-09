@@ -175,7 +175,7 @@ impute2CoxSurv <- function(impute.file,
     
     ##### SNP info and filtering #####
     # calculate MAF
-    snp$exp_freq_A1 <- round(1-rowMeans2(genotypes)*0.5,3)
+    snp$exp_freq_A1 <- round(rowMeans2(genotypes)*0.5,4)
     snp$MAF <- ifelse(snp$exp_freq_A1 > 0.5, 1-snp$exp_freq_A1, snp$exp_freq_A1)
     # calculate info score
     obs.mean <- rowMeans2(genotypes)
@@ -219,10 +219,10 @@ impute2CoxSurv <- function(impute.file,
     
     # rearrange columns for snp info
     snp.cols <- c("snpID","TYPED","RSID","POS","A0","A1","CHR",
-                  "exp_freq_A1", "MAF","INFO")
+                  "exp_freq_A1", "SAMP_MAF","INFO")
     colnames(snp) <- snp.cols
     colnames(snp.drop) <- snp.cols
-    snp.ord <- c("RSID", "TYPED", "CHR", "POS", "A0","A1", "exp_freq_A1", "MAF","INFO")
+    snp.ord <- c("RSID", "TYPED", "CHR", "POS", "A0","A1", "exp_freq_A1", "SAMP_MAF","INFO")
     snp <- snp[, snp.ord]
     snp.drop <- snp.drop[, snp.ord]
 
