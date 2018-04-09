@@ -83,10 +83,12 @@ michiganCoxSurv <- function(vcf.file,
                     "POS",
                     "REF",
                     "ALT",
-                    "RefPanelAF",
+                    "AF",
+                    "MAF",
                     "SAMP_MAF",
                     "INFO",
-                    "SE",
+                    "ER2",
+                    "COEF",
                     "SE.COEF",
                     "HR",
                     "HR_lowerCI",
@@ -182,9 +184,8 @@ michiganCoxSurv <- function(vcf.file,
             if(verbose) message("Analyzing chunk ", chunk.start, "-", chunk.start+chunk.size)
             
             # apply survival function
-            snp.out <- t(parApply(cl=cl, X=genotype, MARGIN=1, FUN=survFit, params))
+            snp.out <- t(parApply(cl=cl, X=genotype, MARGIN=1, FUN=survFit, params, print.covs="only"))
             colnames(snp.out) <- c("COEF", "SE.COEF")
-            
             
             # calculate statistics
             Z <- snp.out[,1]/snp.out[,2]

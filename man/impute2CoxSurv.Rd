@@ -4,9 +4,11 @@
 \alias{impute2CoxSurv}
 \title{Fit cox survival to all variants from a standard IMPUTE2 output after genotype imputation}
 \usage{
-impute2CoxSurv(impute.file, sample.file, chr, covariate.file, sample.ids,
-  time.to.event, event, covariates, out.file, maf.filter = NULL,
-  info.filter = NULL, flip.dosage = TRUE, verbose = TRUE)
+impute2CoxSurv(impute.file, sample.file, chr, covariate.file,
+  id.column = NULL, sample.ids = NULL, time.to.event, event, covariates,
+  interaction = NULL, print.covs = "only", out.file, maf.filter = NULL,
+  info.filter = NULL, flip.dosage = TRUE, verbose = TRUE,
+  clusterObj = NULL)
 }
 \arguments{
 \item{impute.file}{character(1) of IMPUTE2 file}
