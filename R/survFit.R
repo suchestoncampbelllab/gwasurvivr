@@ -1,18 +1,22 @@
-survFit <- function(SNP, params, print.covs="only"){
+survFit <- function(SNP, cox.params, print.covs="only"){
         
+    if(is.null(cox.params$pheno.file)){
+        X <- matrix(SNP, ncol = 1)
+    }else{
         ## creating model matrix
-        X <- cbind(SNP, params$pheno.file)
+        X <- cbind(SNP, cox.params$pheno.file)
+    }
         
         ## run fit with pre-defined parameters including INIT
         fit <- coxph.fit(X,
-                         params$Y,
-                         params$STRATA,
-                         params$OFFSET,
-                         params$INIT, 
-                         params$CONTROL,
-                         params$WEIGHTS,
-                         params$METHOD, 
-                         params$ROWNAMES)
+                         cox.params$Y,
+                         cox.params$STRATA,
+                         cox.params$OFFSET,
+                         cox.params$INIT, 
+                         cox.params$CONTROL,
+                         cox.params$WEIGHTS,
+                         cox.params$METHOD, 
+                         cox.params$ROWNAMES)
         
         
         ## extract statistics

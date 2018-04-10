@@ -1,23 +1,23 @@
 survFitInt <-
     function(SNP,
-             params,
+             cox.params,
              cov.interaction,
              print.covs = "only"
              ) {
         
     ## creating model matrix
-    X <- cbind(INTER.TERM=params$pheno.file[,cov.interaction]*SNP, SNP, params$pheno.file)
+    X <- cbind(INTER.TERM=cox.params$pheno.file[,cov.interaction]*SNP, SNP, cox.params$pheno.file)
     
     ## run fit with pre-defined parameters including INIT
     fit <- coxph.fit(X,
-                     params$Y,
-                     params$STRATA,
-                     params$OFFSET,
-                     c(0,params$INIT), 
-                     params$CONTROL,
-                     params$WEIGHTS,
-                     params$METHOD, 
-                     params$ROWNAMES)
+                     cox.params$Y,
+                     cox.params$STRATA,
+                     cox.params$OFFSET,
+                     c(0,cox.params$INIT), 
+                     cox.params$CONTROL,
+                     cox.params$WEIGHTS,
+                     cox.params$METHOD, 
+                     cox.params$ROWNAMES)
     
     ## extract statistics
     if(print.covs=="only") {
@@ -30,7 +30,7 @@ survFitInt <-
         coef <- fit$coefficients
         serr <- sqrt(diag(fit$var))
         res <- cbind(coef, serr)
-        drop <- colnames(params$pheno.file)[!colnames(params$pheno.file) %in% cov.interaction]
+        drop <- colnames(cox.params$pheno.file)[!colnames(cox.params$pheno.file) %in% cov.interaction]
         res <- res[!rownames(res) %in% drop,]
         res.names <- dimnames(res)
         res <- c(res)
