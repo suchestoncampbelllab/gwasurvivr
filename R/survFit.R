@@ -1,4 +1,4 @@
-survFit <- function(SNP, params, print.covs){
+survFit <- function(SNP, params, print.covs="only"){
         
         ## creating model matrix
         X <- cbind(SNP, params$pheno.file)
