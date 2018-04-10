@@ -12,6 +12,7 @@
 #' @param info.filter integer(1) of imputation quality score filter (i.e. 0.7 will filter info > 0.7)
 #' @param maf.filter integer(1) filter out minor allele frequency below threshold (i.e. 0.005 will filter MAF > 0.005)
 #' @param output.name character(1) string with output name
+#' @param print.covs character(1) "only" -- for only the SNP, "all" for all covariates, or "some" for both SNP and interaction term
 #' @param verbose logical(1) for messages that describe which part of the analysis is currently being run
 #' 
 #' @return 
@@ -64,6 +65,7 @@ sangerCoxSurv <- function(vcf.file,
                           chunk.size,
                           info.filter,
                           maf.filter,
+                          print.covs="only",
                           verbose=TRUE
                        
 ){
@@ -78,14 +80,6 @@ sangerCoxSurv <- function(vcf.file,
     ok.covs <- colnames(pheno.file)[colnames(pheno.file) %in% covariates]
     if(verbose) message("Covariates included in the models are: ", paste(ok.covs, collapse=", "))
     if(verbose) message("If your covariates of interest are not included in the model\nplease stop the analysis and make sure user defined covariates\nmatch the column names in the pheno.file")
-    
-    
-
-    vcf <- VcfFile(vcf.file, yieldSize=chunk.size)
-    open(vcf)
-    
-    chunk.start <- 0
-    snps_removed <- 0
     
     ## Save header for the cox.surv output
     write.table(t(c("RSID",
@@ -127,6 +121,14 @@ sangerCoxSurv <- function(vcf.file,
     N <- nrow(pheno.file)
     NEVENTS <- sum(pheno.file[,event]==1)
     
+    
+    # open vcf file
+    vcf <- VcfFile(vcf.file, yieldSize=chunk.size)
+    open(vcf)
+    
+    chunk.start <- 0
+    snps_removed <- 0
+    
     repeat{ 
         # read in just dosage data from Vcf file
         data <- readVcf(vcf, param=ScanVcfParam(geno="DS", info=c("RefPanelAF", "TYPED", "INFO")))
@@ -158,8 +160,8 @@ sangerCoxSurv <- function(vcf.file,
         # maf > 0.005 & maf < 0.995
 
         idx <- snp.info$INFO > info.filter &
-                                 snp.info$RefPanelAF > maf.filter &
-                                 snp.info$RefPanelAF < (1-maf.filter)
+            snp.info$RefPanelAF > maf.filter &
+            snp.info$RefPanelAF < (1-maf.filter)
         snp.maf.filt <- snp.info[idx,]
         
         ## record removed SNPs by filtering
@@ -188,7 +190,7 @@ sangerCoxSurv <- function(vcf.file,
         if(verbose) message("Analyzing chunk ", chunk.start, "-", chunk.start+chunk.size)
         
         # apply survival function
-        snp.out <- t(parApply(cl=cl, X=genotype, MARGIN=1, FUN=survFit, params))
+        snp.out <- t(parApply(cl=cl, X=genotype, MARGIN=1, FUN=survFit, params, print.covs=print.covs))
         colnames(snp.out) <- c("COEF", "SE.COEF")
         
         
