@@ -109,13 +109,12 @@ impute2CoxSurv <- function(impute.file,
                        clusterObj=NULL
                        ){
     
-    #####################################
-    # #### Phenotype data wrangling #####
+    ###################################
+    #### Phenotype data wrangling #####
     cox.params <- coxPheno(covariate.file, covariates, id.column,inter.term, time.to.event, event, verbose)
-    ##############################################
+    ###################################
     
-    
-    
+    ###################################
     ##### Genotype data wrangling ######
     if (verbose) message("Analysis started on ", format(Sys.time(), "%Y-%m-%d"), " at ", format(Sys.time(), "%H:%M:%S"))
     gdsfile <- tempfile(pattern="", fileext = ".gds")
@@ -160,7 +159,9 @@ impute2CoxSurv <- function(impute.file,
     genotypes <- genotypes[,cox.params$ids]
     # flip dosage
     if(flip.dosage) genotypes <- 2 - genotypes
+    ###################################
     
+    ###################################
     ##### SNP info and filtering #####
     # calculate MAF
     snp$exp_freq_A1 <- round(rowMeans2(genotypes)*0.5,4)
@@ -227,11 +228,13 @@ impute2CoxSurv <- function(impute.file,
                 sep="\t",
                 quote = FALSE)
     if(verbose) message("List of removed SNPs are saved to ", paste0(out.file, ".snps_removed"))
+    ###################################
     
-    
-    ##### Fit Models ######
+    ###################################
+    ##### Generate cluster obj ########
     # create cluster object depending on user pref or OS type,
     # also create option to input number of cores
+    
     if(!is.null(clusterObj)){
         cl <- clusterObj
     }else if(.Platform$OS.type == "unix") {
@@ -240,6 +243,11 @@ impute2CoxSurv <- function(impute.file,
         cl <- makeCluster(getOption("gwasurvivr.cores", detectCores()))
     }
     on.exit(stopCluster(cl), add=TRUE)
+    
+    ###################################
+    
+    ###################################
+    ##### Fit Models #################
     
     # fit models in parallel
     if(is.null(inter.term)){
@@ -251,7 +259,6 @@ impute2CoxSurv <- function(impute.file,
                               cov.interaction=inter.term,
                               print.covs=print.covs))
     }
-    
     
     res <- coxExtract(cox.out, snp, cox.params$n.sample, cox.params$n.event, print.covs)
     
