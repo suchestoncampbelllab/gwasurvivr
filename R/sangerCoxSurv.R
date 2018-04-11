@@ -19,12 +19,12 @@
 #' 
 #' @details 
 #' 
-#' **Testing for SNP-covariate interactions:**
+#' Testing for SNP-covariate interactions:          
 #' User can define the column name of the covariate that will be included in the interaction term. 
 #' For example, for given covariates `a` and `b`, where `c` is defined as the `inter.term` the model will be:
 #' `~ a + b + c + SNP + c*SNP`.
 #' 
-#' **Printing results of other covariates**
+#' Printing results of other covariates:       
 #' `print.covs` argument controls the number of covariates will be printed as output. The function is set to `only`
 #' by default and will only print the SNP or if an interaction term is given, the results of the interaction 
 #' term (e.g. `SNP*covariate`). Whereas,  `all` will print results (coef, se.coef, p.value etc) of all covariates 
