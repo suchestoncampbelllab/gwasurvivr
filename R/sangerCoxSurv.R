@@ -11,8 +11,7 @@
 #' @param chunk.size integer(1) number of variants to process per thread
 #' @param info.filter integer(1) of imputation quality score filter (i.e. 0.7 will filter info > 0.7)
 #' @param maf.filter integer(1) filter out minor allele frequency below threshold (i.e. 0.005 will filter MAF > 0.005)
-#' @param output.name character(1) string with output name
-#' @param print.covs character(1) "only" -- for only the SNP, "all" for all covariates, or "some" for both SNP and interaction term
+#' @param out.file character(1) string with output name
 #' @param verbose logical(1) for messages that describe which part of the analysis is currently being run
 #' 
 #' @return 
@@ -39,7 +38,7 @@
 #'               event="event",
 #'               covariates=c("age", "SexFemale", "bmiOVWT"),
 #'               sample.ids=sample.ids,
-#'               output.name="sanger_example",
+#'               out.file="sanger_example",
 #'               chunk.size=10000,
 #'               info.filter=0.7,
 #'               maf.filter=0.005,
@@ -56,177 +55,117 @@
 #' @export
 
 sangerCoxSurv <- function(vcf.file,
-                          pheno.file,
+                          covariate.file,
+                          id.column,
+                          sample.ids=NULL, 
                           time.to.event, 
                           event,
                           covariates,
-                          sample.ids,
-                          output.name,
-                          chunk.size,
-                          info.filter,
-                          maf.filter,
+                          inter.term=NULL,
                           print.covs="only",
-                          verbose=TRUE
-                       
+                          out.file,
+                          maf.filter=0.05,
+                          info.filter=NULL,
+                          chunk.size=5000,
+                          verbose=TRUE,
+                          clusterObj=NULL
 ){
+    ################################################
+    # #### Phenotype data wrangling ################
+ 
+    cox.params <- coxPheno(covariate.file, covariates, id.column,inter.term, time.to.event, event, verbose)
+    ################################################
     
-    if(verbose) message("Analysis started on ", format(Sys.time(), "%Y-%m-%d"), " at ", format(Sys.time(), "%H:%M:%S"))
-   
-    # subset phenotype file for sample ids
-    pheno.file <- pheno.file[match(sample.ids, pheno.file[[1]]), ]
-    if(verbose) message("Analysis running for ", nrow(pheno.file), " samples.")
-    
-    # covariates are defined in pheno.file
-    ok.covs <- colnames(pheno.file)[colnames(pheno.file) %in% covariates]
-    if(verbose) message("Covariates included in the models are: ", paste(ok.covs, collapse=", "))
-    if(verbose) message("If your covariates of interest are not included in the model\nplease stop the analysis and make sure user defined covariates\nmatch the column names in the pheno.file")
-    
-    ## Save header for the cox.surv output
-    write.table(t(c("RSID",
-                    "TYPED",
-                    "CHR",
-                    "POS",
-                    "REF",
-                    "ALT",
-                    "RefPanelAF",
-                    "SAMP_MAF",
-                    "INFO",
-                    "COEF",
-                    "SE.COEF",
-                    "HR",
-                    "HR_lowerCI",
-                    "HR_upperCI",
-                    "Z",
-                    "PVALUE",
-                    "N",
-                    "NEVENT"
-                    )), 
-    paste0(output.name, ".coxph"),
-    append = FALSE, 
-    row.names = FALSE,
-    col.names = FALSE,
-    quote = FALSE,
-    sep="\t")
-    
-    # for a single machine
-    cl <- makeForkCluster(getOption("gwasurvivr.cores", detectCores()))
+    ####################################################
+    ########## Cluster object ########################
+    # create cluster object depending on user pref or OS type,
+    # also create option to input number of cores
+    if(!is.null(clusterObj)){
+        cl <- clusterObj
+    }else if(.Platform$OS.type == "unix") {
+        cl <- makeForkCluster(getOption("gwasurvivr.cores", detectCores()))
+    } else {
+        cl <- makeCluster(getOption("gwasurvivr.cores", detectCores()))
+    }
     on.exit(stopCluster(cl), add=TRUE)
+    #################################################################
     
-    # get genotype probabilities by chunks
-    # apply the survival function and save output
-    pheno.file <- pheno.file[,-1]
-    pheno.file <- as.matrix(pheno.file[,c(time.to.event, event, covariates)])
-    params <- coxParam(pheno.file, time.to.event, event, covariates, sample.ids)
-    
-    N <- nrow(pheno.file)
-    NEVENTS <- sum(pheno.file[,event]==1)
-    
-    
-    # open vcf file
+    #### open VCF file connection ######
     vcf <- VcfFile(vcf.file, yieldSize=chunk.size)
     open(vcf)
     
+    ##################################################
+    ####### read first chunk #########################
     chunk.start <- 0
-    snps_removed <- 0
+    if(verbose) message("Analyzing chunk ", chunk.start, "-", chunk.start+chunk.size)    
+    
+    data <- readVcf(vcf, param=ScanVcfParam(geno="DS", info=c("RefPanelAF", "TYPED", "INFO")))
+    out.list <- coxVcfSanger(data, cox.params, cl, inter.term, print.covs)
+    write.table(
+        out.list$res,
+        paste0(out.file, ".coxph"),
+        append = FALSE,
+        row.names = FALSE,
+        col.names = FALSE,
+        quote = FALSE,
+        sep = "\t"
+    )
+    write.table(
+        out.list$dropped.snps,
+        paste0(out.file, ".snps_removed"),
+        append = FALSE,
+        row.names = FALSE,
+        col.names = FALSE,
+        quote = FALSE,
+        sep = "\t"
+    )
+    
+    
+    chunk.start <- chunk.size
+    snps_removed <- nrow(out.list$dropped.snps)
+    
+    ##### Start repeat loop #####
+    # # get genotype probabilities by chunks
+    # # apply the survival function and save output
     
     repeat{ 
         # read in just dosage data from Vcf file
+        if(verbose) message("Analyzing chunk ", chunk.start, "-", chunk.start+chunk.size)    
+        
         data <- readVcf(vcf, param=ScanVcfParam(geno="DS", info=c("RefPanelAF", "TYPED", "INFO")))
         
         if(nrow(data)==0){
             break
         }
         
-        # read dosage data from collapsed vcf, subset for defined ids
-        genotype <- geno(data)$DS[, match(sample.ids, colnames(data)) , drop=FALSE]
+        out.list <- coxVcfSanger(data, cox.params, cl, inter.term, print.covs)
+        write.table(
+            out.list$res,
+            paste0(out.file, ".coxph"),
+            append = TRUE,
+            row.names = FALSE,
+            col.names = FALSE,
+            quote = FALSE,
+            sep = "\t"
+        )
+        write.table(
+            out.list$dropped.snps,
+            paste0(out.file, ".snps_removed"),
+            append = TRUE,
+            row.names = FALSE,
+            col.names = FALSE,
+            quote = FALSE,
+            sep = "\t"
+        )
         
-        
-        # grab info, REFPAN_AF, TYPED/IMPUTED, INFO
-        # calculates sample MAF
-        snp.ids <- rownames(data)
-        snp.ranges <- data.frame(rowRanges(data))
-        snp.ranges <- snp.ranges[,c("seqnames", "start", "REF", "ALT")]
-        snp.meta <- data.frame(info(data))[,c("RefPanelAF", "TYPED", "INFO")]
-        #rowRanges(data)$SAMP_MAF <- round(matrixStats::rowMeans2(genotype)*0.5, 4)
-        samp.maf <- round(rowMeans2(genotype)*0.5, 4)
-
-        snp.info <- cbind(RSID=snp.ids,
-                           snp.ranges,
-                           snp.meta,
-                           SAMP_MAF=samp.maf)
-        
-        #### filtering by MAF and INFO Score #####
-        # info > 0.7
-        # maf > 0.005 & maf < 0.995
-
-        idx <- snp.info$INFO > info.filter &
-            snp.info$RefPanelAF > maf.filter &
-            snp.info$RefPanelAF < (1-maf.filter)
-        snp.maf.filt <- snp.info[idx,]
-        
-        ## record removed SNPs by filtering
-        snp_maf_removed <- rownames(genotype)[-idx]
-        snps_removed <- snps_removed + length(snp_maf_removed)
-        
-        write.table(snp_maf_removed, 
-                    file= paste0(output.name, ".MAF_INFO_removed"),
-                    append = TRUE, 
-                    row.names = FALSE,
-                    col.names = FALSE,
-                    quote = FALSE,
-                    sep="\t")
-        
-        # clean data
-
-        snp.maf.filt$ALT <- sapply(snp.maf.filt$ALT, as.character)
-        snp.maf.filt$RefPanelAF <- sapply(snp.maf.filt$RefPanelAF, as.numeric)
-        colnames(snp.maf.filt) <- c("RSID", "CHR", "POS", "REF", "ALT", "RefPanelAF", "TYPED", "INFO", "SAMP_MAF")
-        snp.maf.filt <- snp.maf.filt[,c("RSID", "TYPED", "CHR", "POS", "REF", "ALT", "RefPanelAF", "SAMP_MAF", "INFO")]
-        
-        # now we need to filter the genotype file
-        genotype <- genotype[idx,]
-        
-        # message user
-        if(verbose) message("Analyzing chunk ", chunk.start, "-", chunk.start+chunk.size)
-        
-        # apply survival function
-        snp.out <- t(parApply(cl=cl, X=genotype, MARGIN=1, FUN=survFit, params, print.covs=print.covs))
-        colnames(snp.out) <- c("COEF", "SE.COEF")
-        
-        
-        # calculate statistics
-        Z <- snp.out[,1]/snp.out[,2]
-        PVALUE <- 2*pnorm(abs(Z), lower.tail=F)
-        HR <- exp(snp.out[,1])
-        HR_lowerCI <- exp(snp.out[,1] - 1.96*snp.out[,2])
-        HR_upperCI <- exp(snp.out[,1] + 1.96*snp.out[,2])
-        cox.out <- cbind(snp.maf.filt,
-                         snp.out,
-                         HR, 
-                         HR_lowerCI,
-                         HR_upperCI,
-                         Z,
-                         PVALUE,
-                         N,
-                         NEVENTS)
-        
-        write.table(cox.out,
-                    paste0(output.name, ".coxph"),
-                    append = TRUE, 
-                    row.names = FALSE,
-                    col.names = FALSE,
-                    quote = FALSE,
-                    sep="\t")
         
         chunk.start <- chunk.start+chunk.size
+        snps_removed <- snps_removed+nrow(out.list$dropped.snps)
+        
         
     }
     close(vcf)
     if(verbose) message("Analysis completed on ", format(Sys.time(), "%Y-%m-%d"), " at ", format(Sys.time(), "%H:%M:%S"))
-    if(verbose) message(length(snp_maf_removed), " SNPs were removed from the analysis for not meeting the threshold criteria.")
-    if(verbose) message("List of removed SNPs can be found in ", paste0(output.name, ".MAF_INFO_removed"))
+    if(verbose) message(snps_removed, " SNPs were removed from the analysis for not meeting the threshold criteria.")
+    if(verbose) message("List of removed SNPs can be found in ", paste0(out.file, ".snps_removed"))
 }
-
-
-
-

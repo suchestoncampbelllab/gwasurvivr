@@ -78,7 +78,7 @@ impute2CoxSurv <- function(impute.file,
                        time.to.event, 
                        event,
                        covariates,
-                       interaction=NULL,
+                       inter.term=NULL,
                        print.covs="only",
                        out.file,
                        maf.filter=0.05,
@@ -88,45 +88,12 @@ impute2CoxSurv <- function(impute.file,
                        clusterObj=NULL
                        ){
     
+    #####################################
+    # #### Phenotype data wrangling #####
+    cox.params <- coxPheno(covariate.file, covariates, id.column,inter.term, time.to.event, event, verbose)
+    ##############################################
     
-    #### Phenotype data wrangling #####
-    ## id column shold be provided!
-    if (missing(id.column) ) {
-        stop("Name of the ID column is not provided")
-    }
     
-    ### SUBSET BY SAMPLE IDS IF GIVEN
-    # user can provide null for sample.ids if not wishing to subset samples
-    if(!is.null(sample.ids)){
-        # only keep samples given with sample.ids argument
-        covariate.file <- covariate.file[covariate.file[[id.column]] %in% sample.ids,]
-    }
-    
-    ids <- covariate.file[[id.column]]
-    
-    # covariates are defined in pheno.file
-    if(!is.null(interaction)) {
-        if(!interaction %in% colnames(covariate.file)) stop("Interaction term is missing.")
-        covariates <- base::unique(covariates, interaction)
-    } 
-    if(!is.null(interaction)) covariates <- base::unique(covariates, interaction)
-    ok.covs <- colnames(covariate.file)[colnames(covariate.file) %in% covariates]
-    if (verbose) message("Covariates included in the models are: ", paste(ok.covs, collapse=", "))
-    if(!is.null(interaction) & verbose) message("Models will include interaction term: SNP*",interaction)
-    
-    ## covariates should be numeric!
-    pheno.file <- as.matrix(covariate.file[,c(time.to.event, event, ok.covs)])
-    if (!is.numeric(pheno.file) ) {
-        stop("Provided covariates must be numeric!\ne.g. categorical variables should be recoded as indicator or dummy variables.")
-    }
-    
-    # define Ns
-    n.sample <- nrow(pheno.file)
-    n.event <- sum(as.numeric(pheno.file[,event]))
-    if (verbose) message(n.sample, " samples are included in the analysis")
-    
-    # build coxph.fit parameters
-    params <- coxParam(pheno.file, time.to.event, event, covariates, sample.ids)
     
     ##### Genotype data wrangling ######
     if (verbose) message("Analysis started on ", format(Sys.time(), "%Y-%m-%d"), " at ", format(Sys.time(), "%H:%M:%S"))
@@ -169,7 +136,7 @@ impute2CoxSurv <- function(impute.file,
     dimnames(genotypes) <- list(paste(snp$snp, snp$rsID, sep=";"), 
                                 scanAnn$ID_2)
     # Subset genotypes by given samples
-    genotypes <- genotypes[,ids]
+    genotypes <- genotypes[,cox.params$ids]
     # flip dosage
     if(flip.dosage) genotypes <- 2 - genotypes
     
@@ -186,6 +153,8 @@ impute2CoxSurv <- function(impute.file,
     info.score[info.score>1] <- 1
     snp$info <- info.score
     
+
+    ### Check snps for MAF = 0  ###
     # remove snps with SD less than 1e-4
     # to put this in perspective:
     # a sample size of 100 000 000 with only 1 person being 1 and rest 0,
@@ -193,26 +162,31 @@ impute2CoxSurv <- function(impute.file,
     # x <- c(rep(0, 1e8),1)
     # sd(x)
     snp.keep <- rowSds(genotypes) > 1e-4
-    genotypes <- genotypes[snp.keep,]
-    snp.drop <- snp[!snp.keep,]
-    snp <- snp[snp.keep,]
+    if(!all(snp.keep)){
+        genotypes <- genotypes[snp.keep,]
+        snp.drop <- snp[!snp.keep,]
+        snp <- snp[snp.keep,]
+    }else{
+        snp.drop <- data.frame()
+    }
     
-    ### Check snps for MAF = 0  ###
-    # if MAF threshold is set, subset by the given value,
-    # otherwise check for SD = 0 and remove
+    # Further filter by user defined thresholds
     if(!is.null(maf.filter)){
-        maf.idx <- snp$exp_freq_A1<maf.filter | snp$exp_freq_A1>(1-maf.filter)
-        snp.drop <- base::rbind(snp.drop,snp[maf.idx,])
-        snp <- snp[!maf.idx,]
-        genotypes <- genotypes[!maf.idx,]
+        ok.maf <- snp$exp_freq_A1>maf.filter & snp$exp_freq_A1<(1-maf.filter)
+        if(all(!ok.maf)) stop("None of the SNPs pass the MAF threshold")
+        snp.drop <- base::rbind(snp.drop,snp[!ok.maf,])
+        snp <- snp[ok.maf,]
+        genotypes <- genotypes[ok.maf,]
     }
     
     if(!is.null(info.filter)){
-        info.idx <- snp$info < info.filter
-        snp.drop <- base::rbind(snp.drop,snp[info.idx,])
-        snp <- snp[!info.idx,]
-        genotypes <- genotypes[!info.idx,]
+        ok.info <- snp$info >= info.filter
+        if(all(!ok.info)) stop("None of the SNPs pass the info threshold")
+        snp.drop <- base::rbind(snp.drop,snp[!ok.info,])
+        snp <- snp[ok.info,]
+        genotypes <- genotypes[ok.info,]
     }
+    
 
     if(verbose) message(nrow(snp.drop)," SNPs were removed from the analysis for not meeting\nthe given threshold criteria or for having MAF = 0")
     
@@ -247,18 +221,18 @@ impute2CoxSurv <- function(impute.file,
     on.exit(stopCluster(cl), add=TRUE)
     
     # fit models in parallel
-    if(is.null(interaction)){
+    if(is.null(inter.term)){
         cox.out <- t(parApply(cl=cl, X=genotypes, MARGIN=1, FUN=survFit, 
-                              params=params, print.covs=print.covs))
-    }else if(interaction %in% covariates){
+                              cox.params=cox.params, print.covs=print.covs))
+    }else if(inter.term %in% covariates){
         cox.out <- t(parApply(cl=cl, X=genotypes, MARGIN=1, FUN=survFitInt, 
-                              params=params, 
-                              cov.interaction=interaction,
+                              cox.params=cox.params, 
+                              cov.interaction=inter.term,
                               print.covs=print.covs))
     }
     
     
-    res <- coxExtract(cox.out, snp, n.sample, n.event, print.covs)
+    res <- coxExtract(cox.out, snp, cox.params$n.sample, cox.params$n.event, print.covs)
     
     write.table(res, 
                 file=paste0(out.file, ".coxph"),

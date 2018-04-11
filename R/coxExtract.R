@@ -1,4 +1,4 @@
-coxExtract <- function(cox.out, snp, n.sample, n.event, print.covs=print.covs){
+coxExtract <- function(cox.out, snp, n.sample, n.event, print.covs="only"){
     
     
     if(print.covs == "only"){
