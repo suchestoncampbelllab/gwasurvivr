@@ -90,44 +90,6 @@ impute2CoxSurv <- function(impute.file,
     
     #####################################
     # #### Phenotype data wrangling #####
-    # ## id column shold be provided!
-    # if (missing(id.column) ) {
-    #     stop("Name of the ID column is not provided")
-    # }
-    # 
-    # ### SUBSET BY SAMPLE IDS IF GIVEN
-    # # user can provide null for sample.ids if not wishing to subset samples
-    # if(!is.null(sample.ids)){
-    #     # only keep samples given with sample.ids argument
-    #     covariate.file <- covariate.file[covariate.file[[id.column]] %in% sample.ids,]
-    # }
-    # 
-    # ids <- covariate.file[[id.column]]
-    # 
-    # # covariates are defined in pheno.file
-    # if(!is.null(inter.term)) {
-    #     if(!inter.term %in% colnames(covariate.file)) stop("inter.term term is missing.")
-    #     covariates <- base::unique(covariates, inter.term)
-    # } 
-    # if(!is.null(inter.term)) covariates <- base::unique(covariates, inter.term)
-    # ok.covs <- colnames(covariate.file)[colnames(covariate.file) %in% covariates]
-    # if (verbose) message("Covariates included in the models are: ", paste(ok.covs, collapse=", "))
-    # if(!is.null(inter.term) & verbose) message("Models will include inter.term term: SNP*",inter.term)
-    # 
-    # ## covariates should be numeric!
-    # pheno.file <- as.matrix(covariate.file[,c(time.to.event, event, ok.covs)])
-    # if (!is.numeric(pheno.file) ) {
-    #     stop("Provided covariates must be numeric!\ne.g. categorical variables should be recoded as indicator or dummy variables.")
-    # }
-    # 
-    # # define Ns
-    # n.sample <- nrow(pheno.file)
-    # n.event <- sum(as.numeric(pheno.file[,event]))
-    # if (verbose) message(n.sample, " samples are included in the analysis")
-    # 
-    # # build coxph.fit parameters
-    # params <- coxParam(pheno.file, time.to.event, event, covariates, sample.ids)
-    
     cox.params <- coxPheno(covariate.file, covariates, id.column,inter.term, time.to.event, event, verbose)
     ##############################################
     
@@ -191,6 +153,7 @@ impute2CoxSurv <- function(impute.file,
     info.score[info.score>1] <- 1
     snp$info <- info.score
     
+
     ### Check snps for MAF = 0  ###
     # remove snps with SD less than 1e-4
     # to put this in perspective:
@@ -209,18 +172,21 @@ impute2CoxSurv <- function(impute.file,
     
     # Further filter by user defined thresholds
     if(!is.null(maf.filter)){
-        maf.idx <- snp$exp_freq_A1<maf.filter | snp$exp_freq_A1>(1-maf.filter)
-        snp.drop <- base::rbind(snp.drop,snp[maf.idx,])
-        snp <- snp[!maf.idx,]
-        genotypes <- genotypes[!maf.idx,]
+        ok.maf <- snp$exp_freq_A1>maf.filter & snp$exp_freq_A1<(1-maf.filter)
+        if(all(!ok.maf)) stop("None of the SNPs pass the MAF threshold")
+        snp.drop <- base::rbind(snp.drop,snp[!ok.maf,])
+        snp <- snp[ok.maf,]
+        genotypes <- genotypes[ok.maf,]
     }
     
     if(!is.null(info.filter)){
-        info.idx <- snp$info < info.filter
-        snp.drop <- base::rbind(snp.drop,snp[info.idx,])
-        snp <- snp[!info.idx,]
-        genotypes <- genotypes[!info.idx,]
+        ok.info <- snp$info >= info.filter
+        if(all(!ok.info)) stop("None of the SNPs pass the info threshold")
+        snp.drop <- base::rbind(snp.drop,snp[!ok.info,])
+        snp <- snp[ok.info,]
+        genotypes <- genotypes[ok.info,]
     }
+    
 
     if(verbose) message(nrow(snp.drop)," SNPs were removed from the analysis for not meeting\nthe given threshold criteria or for having MAF = 0")
     
