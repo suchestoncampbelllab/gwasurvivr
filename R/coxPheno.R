@@ -39,6 +39,6 @@ coxPheno <- function(pheno.file, covariates, id.column,inter.term, time.to.event
     
     
     # build coxph.fit parameters
-    cox.params <- coxParam(pheno.file, time.to.event, event, covariates, ids)
+    cox.params <- coxParam(pheno.file, time.to.event, event, covariates, ids, verbose)
     return(cox.params)
 }
