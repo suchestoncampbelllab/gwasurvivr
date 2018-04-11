@@ -1,4 +1,4 @@
-survFit <- function(SNP, cox.params, print.covs="only"){
+survFit <- function(SNP, cox.params, print.covs){
         
     if(is.null(cox.params$pheno.file)){
         X <- matrix(SNP, ncol = 1)

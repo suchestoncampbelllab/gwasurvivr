@@ -2,7 +2,7 @@ survFitInt <-
     function(SNP,
              cox.params,
              cov.interaction,
-             print.covs = "only"
+             print.covs
              ) {
         
     ## creating model matrix
