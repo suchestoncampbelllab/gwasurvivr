@@ -95,12 +95,12 @@ sangerCoxSurv <- function(vcf.file,
                           clusterObj=NULL
 ){
     ################################################
-    # #### Phenotype data wrangling ################
+    #### Phenotype data wrangling ################
  
     cox.params <- coxPheno(covariate.file, covariates, id.column,inter.term, time.to.event, event, verbose)
     ################################################
     
-    ####################################################
+    ################################################
     ########## Cluster object ########################
     # create cluster object depending on user pref or OS type,
     # also create option to input number of cores
@@ -112,14 +112,14 @@ sangerCoxSurv <- function(vcf.file,
         cl <- makeCluster(getOption("gwasurvivr.cores", detectCores()))
     }
     on.exit(stopCluster(cl), add=TRUE)
-    #################################################################
+    ################################################
     
-    #### open VCF file connection ######
+    #### open VCF file connection ##################
     vcf <- VcfFile(vcf.file, yieldSize=chunk.size)
     open(vcf)
     
-    ##################################################
-    ####### read first chunk #########################
+    ################################################
+    ####### read first chunk #######################
     chunk.start <- 0
     if(verbose) message("Analyzing chunk ", chunk.start, "-", chunk.start+chunk.size)    
     
@@ -148,9 +148,14 @@ sangerCoxSurv <- function(vcf.file,
     chunk.start <- chunk.size
     snps_removed <- nrow(out.list$dropped.snps)
     
-    ##### Start repeat loop #####
-    # # get genotype probabilities by chunks
-    # # apply the survival function and save output
+    
+    
+    ################################################
+
+    ################################################
+    ##### Start repeat loop ########################
+    # get genotype probabilities by chunks
+    # apply the survival function and save output
     
     repeat{ 
         # read in just dosage data from Vcf file
@@ -188,6 +193,8 @@ sangerCoxSurv <- function(vcf.file,
         
         
     }
+    ################################################
+    
     close(vcf)
     if(verbose) message("Analysis completed on ", format(Sys.time(), "%Y-%m-%d"), " at ", format(Sys.time(), "%H:%M:%S"))
     if(verbose) message(snps_removed, " SNPs were removed from the analysis for not meeting the threshold criteria.")
