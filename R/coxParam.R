@@ -3,7 +3,8 @@ coxParam <-
              time.to.event,
              event,
              covariates,
-             sample.ids) {
+             sample.ids,
+             verbose) {
         
         #########################################
         ##### get the Ns ####
