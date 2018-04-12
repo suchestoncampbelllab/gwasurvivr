@@ -130,7 +130,7 @@ sangerCoxSurv <- function(vcf.file,
         paste0(out.file, ".coxph"),
         append = FALSE,
         row.names = FALSE,
-        col.names = FALSE,
+        col.names = TRUE,
         quote = FALSE,
         sep = "\t"
     )
