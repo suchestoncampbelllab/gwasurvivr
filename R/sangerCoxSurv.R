@@ -97,7 +97,7 @@ sangerCoxSurv <- function(vcf.file,
     ################################################
     #### Phenotype data wrangling ################
     
-    cox.params <- coxPheno(covariate.file, covariates, id.column,inter.term, time.to.event, event, verbose)
+    cox.params <- coxPheno(covariate.file, covariates, id.column, inter.term, time.to.event, event, verbose)
     ################################################
     
     ################################################

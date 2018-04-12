@@ -1,4 +1,4 @@
-coxPheno <- function(pheno.file, covariates, id.column,inter.term, time.to.event, event, verbose){
+coxPheno <- function(pheno.file, covariates, id.column, inter.term, time.to.event, event, sample.ids, verbose){
     #### Phenotype data wrangling #####
     ## id column shold be provided!
     if (missing(id.column) ) {
