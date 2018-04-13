@@ -124,7 +124,7 @@ sangerCoxSurv <- function(vcf.file,
     if(verbose) message("Analyzing chunk ", chunk.start, "-", chunk.start+chunk.size)    
     
     data <- readVcf(vcf, param=ScanVcfParam(geno="DS", info=c("RefPanelAF", "TYPED", "INFO")))
-    out.list <- coxVcfSanger(data, cox.params, cl, inter.term, print.covs)
+    out.list <- coxVcfSanger(data, maf.filter, info.filter, cox.params, cl, inter.term, print.covs)
     write.table(
         out.list$res,
         paste0(out.file, ".coxph"),
