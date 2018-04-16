@@ -14,6 +14,7 @@
 #' @param inter.term character(1) string giving the column name of the covariate that will be added to the interaction term with SNP (e.g. \code{term*SNP}). See details.
 #' @param print.covs character(1) string of either \code{"only"}, \code{"all"} or \code{"some"}, defining which covariate statistics should be printed to the output. See details.
 #' @param out.file character(1) of output file name (do not include extension) 
+#' @param chunk.size integer(1) number of variants to process per thread
 #' @param maf.filter numeric(1) to filter minor allele frequency (i.e. choosing 0.05 means filtering MAF>0.05). User can set this to `NULL`` if no filtering is preffered. Default is 0.05.
 #' @param info.filter numeric(1) to filter imputation INFO score (i.e. choosing 0.7 means filtering info>0.7). Default is `NULL`, no filtering is set.
 #' @param flip.dosage logical(1) to flip which allele the dosage was calculated on, default=TRUE
@@ -47,6 +48,7 @@
 #' Saves text file directly to disk that contains survival analysis results.
 #'  
 #' @examples
+#' library(gwasurvivr)
 #' library(tidyverse)
 #' library(magrittr)
 #' impute.file <- system.file(package="gwasurvivr","extdata","impute_example.impute2")
@@ -70,15 +72,20 @@
 #'               sample.file=sample.file,
 #'               chr=14,
 #'               covariate.file=covariate.file,
+#'               id.column="ID_2",
 #'               sample.ids=sample.ids,
 #'               time.to.event="time",
 #'               event="event",
 #'               covariates=c("age", "SexFemale", "bmiOVWT"),
+#'               inter.term=NULL,
+#'               print.covs="only",
 #'               out.file="impute_example",
+#'               chunk.size=10000,
 #'               maf.filter=0.01,
 #'               info.filter=0.7,
 #'               flip.dosage=TRUE,
-#'               verbose=TRUE)  
+#'               verbose=TRUE,
+#'               clusterObj=NULL)  
 #'  
 #' @importFrom survival Surv coxph.fit
 #' @importFrom matrixStats rowMeans2 rowVars rowSds
@@ -91,24 +98,24 @@
 #' @export
 
 impute2CoxSurv <- function(impute.file,
-                       sample.file,
-                       chr,
-                       covariate.file,
-                       id.column,
-                       sample.ids=NULL, 
-                       time.to.event, 
-                       event,
-                       covariates,
-                       inter.term=NULL,
-                       print.covs="only",
-                       out.file,
-                       chunk.size=10000,
-                       maf.filter=0.05,
-                       info.filter=NULL,
-                       flip.dosage=TRUE,
-                       verbose=TRUE,
-                       clusterObj=NULL
-                       ){
+                           sample.file,
+                           chr,
+                           covariate.file,
+                           id.column,
+                           sample.ids=NULL, 
+                           time.to.event, 
+                           event,
+                           covariates,
+                           inter.term=NULL,
+                           print.covs="only",
+                           out.file,
+                           chunk.size=10000,
+                           maf.filter=0.05,
+                           flip.dosage=TRUE,
+                           verbose=TRUE,
+                           clusterObj=NULL
+                           )
+{
     
     ###################################
     #### Phenotype data wrangling #####
@@ -184,9 +191,16 @@ impute2CoxSurv <- function(impute.file,
                  quote = FALSE,
                  append = FALSE)
     
-    res.cols <- c("RSID", "TYPED", "CHR", "POS", "A0", "A1", "exp_freq_A1", "SAMP_MAF",
-                  "INFO", "PVALUE", "HR", "HR_lowerCI", "HR_upperCI", "COEF", "SE.COEF",
-                  "Z", "N", "NEVENT")
+    snp.df <- data.frame(t(rep(NA, 9)))
+    colnames(snp.df) <- cols
+    rownames(snp.df) <- NULL
+    
+    snp.spike <- rbind(rnorm(nrow(cox.params$pheno.file)),
+                       rnorm(nrow(cox.params$pheno.file)))
+    
+    cox.out <- t(apply(snp.spike, 1, survFitInt, cox.params=cox.params, cov.interaction=inter.term, print.covs=print.covs))
+    res.cols <- colnames(coxExtract(cox.out, snp.df, cox.params$n.sample, cox.params$n.event, print.covs=print.covs))
+    
     write.table( t(res.cols),
                  paste0(out.file, ".coxph"),
                  row.names = FALSE,
@@ -195,7 +209,9 @@ impute2CoxSurv <- function(impute.file,
                  quote = FALSE,
                  append = FALSE)
     
+    
     snp.tot <- list()
+    
     
     
     for(i in seq_len(nchunks)){
@@ -299,20 +315,19 @@ impute2CoxSurv <- function(impute.file,
                             quote = FALSE,
                             append=TRUE)
                 
-                
                 # fit models in parallel
-                
-                
                 if(is.null(inter.term)){
                     if(is.matrix(genotypes)){
-                        cox.out <- t(parApply(cl=cl, X=genotypes, MARGIN=1, FUN=survFit, 
-                                              cox.params=cox.params, print.covs=print.covs))
+                        cox.out <- t(parApply(cl=cl,
+                                              X=genotypes, 
+                                              MARGIN=1, 
+                                              FUN=survFit, 
+                                              cox.params=cox.params,
+                                              print.covs=print.covs))
                     } else {
                         cox.out <- survFit(genotypes, cox.params=cox.params, print.covs=print.covs)
                     }
-                    
-                    
-                }else if(inter.term %in% covariates){
+                } else if(inter.term %in% covariates){
                     if(is.matrix(genotypes)){
                         cox.out <- t(parApply(cl=cl,
                                               X=genotypes,
@@ -326,12 +341,8 @@ impute2CoxSurv <- function(impute.file,
                                               cox.params=cox.params,
                                               cov.interaction=inter.term, 
                                               print.covs=print.covs)
-                        
                     }
-                    
-                    
                 }   
-                
                 
                 res <- coxExtract(cox.out,
                                   snp,
