@@ -167,7 +167,7 @@ sangerCoxSurv <- function(vcf.file,
             break
         }
         
-        out.list <- coxVcfSanger(data, cox.params, cl, inter.term, print.covs)
+        out.list <- coxVcfSanger(data, maf.filter, info.filter, cox.params, cl, inter.term, print.covs)
         write.table(
             out.list$res,
             paste0(out.file, ".coxph"),
