@@ -3,16 +3,17 @@
 #' Performs survival analysis using Cox proportional hazard models on imputed genetic data stored in compressed VCF files 
 #' 
 #' @param vcf.file character(1) path to VCF file.
-#' @param pheno.file matrix(1) comprising phenotype data. 
+#' @param covariate.file matrix(1) comprising phenotype (time, event) and additional covariate data. 
+#' @param id.column character(1) providing exact match to sample ID column from \code{covariate.file}
 #' @param time.to.event character(1) string that matches time column name in pheno.file
 #' @param event character(1) string that matches event column name in pheno.file
 #' @param covariates character vector with matching column names in pheno.file of covariates of interest
 #' @param inter.term character(1) string giving the column name of the covariate that will be added to the interaction term with SNP (e.g. \code{term*SNP}). See details.
 #' @param print.covs character(1) string of either \code{"only"}, \code{"all"} or \code{"some"}, defining which covariate statistics should be printed to the output. See details.
 #' @param sample.ids character vector with sample ids to include in analysis
-#' @param chunk.size integer(1) number of variants to process per thread
 #' @param info.filter integer(1) of imputation quality score filter (i.e. 0.7 will filter info > 0.7)
 #' @param maf.filter integer(1) filter out minor allele frequency below threshold (i.e. 0.005 will filter MAF > 0.005)
+#' @param chunk.size integer(1) number of variants to process per thread
 #' @param out.file character(1) string with output name
 #' @param verbose logical(1) for messages that describe which part of the analysis is currently being run
 #' @param clusterObj A cluster object that can be used with the \code{parApply} function. See details.
@@ -42,6 +43,7 @@
 #' Saves text file directly to disk that contains survival analysis results.
 #' 
 #' @examples 
+#' library(gwasurvivr)
 #' vcf.file <- system.file(package="gwasurvivr","extdata", "sanger.pbwt_reference_impute.vcf.gz")
 #' pheno.fl <- system.file(package="gwasurvivr", "extdata", "simulated_pheno.txt")
 #' pheno.file <- read.table(pheno.fl, sep=" ", header=TRUE, stringsAsFactors = FALSE)
@@ -57,16 +59,20 @@
 #'                     filter(group=="experimental") %$%
 #'                     ID_2 
 #' sangerCoxSurv(vcf.file=vcf.file,
-#'               pheno.file=pheno.file,
+#'               covariate.file=pheno.file,
+#'               id.column="ID_2",
+#'               sample.ids=sample.ids,
 #'               time.to.event="time",
 #'               event="event",
 #'               covariates=c("age", "SexFemale", "bmiOVWT"),
-#'               sample.ids=sample.ids,
+#'               inter.term=NULL,
+#'               print.covs="only"
 #'               out.file="sanger_example",
-#'               chunk.size=10000,
 #'               info.filter=0.7,
 #'               maf.filter=0.005,
-#'               verbose=TRUE)
+#'               chunk.size=10000,
+#'               verbose=TRUE,
+#'               clusterObj=NULL)
 #' 
 #' @importFrom survival Surv coxph.fit
 #' @importFrom utils write.table
@@ -147,9 +153,7 @@ sangerCoxSurv <- function(vcf.file,
     
     chunk.start <- chunk.size
     snps_removed <- nrow(out.list$dropped.snps)
-    
-    
-    
+
     ################################################
 
     ################################################
