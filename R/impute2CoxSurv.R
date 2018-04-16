@@ -211,7 +211,7 @@ impute2CoxSurv <- function(impute.file,
                      append = FALSE)
     }
     
-    cox.out <- t(apply(snp.spike, 1, survFit, cox.params=cox.params, cov.interaction=inter.term, print.covs=print.covs))
+    cox.out <- t(apply(snp.spike, 1, survFit, cox.params=cox.params, print.covs=print.covs))
     res.cols <- colnames(coxExtract(cox.out, snp.df, cox.params$n.sample, cox.params$n.event, print.covs=print.covs))
     
     
