@@ -209,19 +209,20 @@ impute2CoxSurv <- function(impute.file,
                      sep="\t",
                      quote = FALSE,
                      append = FALSE)
+    } else {
+        cox.out <- t(apply(snp.spike, 1, survFit, cox.params=cox.params, print.covs=print.covs))
+        res.cols <- colnames(coxExtract(cox.out, snp.df, cox.params$n.sample, cox.params$n.event, print.covs=print.covs))
+        
+        
+        write.table( t(res.cols),
+                     paste0(out.file, ".coxph"),
+                     row.names = FALSE,
+                     col.names=FALSE,
+                     sep="\t",
+                     quote = FALSE,
+                     append = FALSE)
     }
     
-    cox.out <- t(apply(snp.spike, 1, survFit, cox.params=cox.params, print.covs=print.covs))
-    res.cols <- colnames(coxExtract(cox.out, snp.df, cox.params$n.sample, cox.params$n.event, print.covs=print.covs))
-    
-    
-    write.table( t(res.cols),
-                 paste0(out.file, ".coxph"),
-                 row.names = FALSE,
-                 col.names=FALSE,
-                 sep="\t",
-                 quote = FALSE,
-                 append = FALSE)
     
     
     snp.tot <- list()
