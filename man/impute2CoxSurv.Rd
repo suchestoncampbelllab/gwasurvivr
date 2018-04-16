@@ -6,7 +6,7 @@
 \usage{
 impute2CoxSurv(impute.file, sample.file, chr, covariate.file, id.column,
   sample.ids = NULL, time.to.event, event, covariates, inter.term = NULL,
-  print.covs = "only", out.file, maf.filter = 0.05, info.filter = NULL,
+  print.covs = "only", out.file, chunk.size = 10000, maf.filter = 0.05,
   flip.dosage = TRUE, verbose = TRUE, clusterObj = NULL)
 }
 \arguments{
@@ -34,15 +34,17 @@ impute2CoxSurv(impute.file, sample.file, chr, covariate.file, id.column,
 
 \item{out.file}{character(1) of output file name (do not include extension)}
 
-\item{maf.filter}{numeric(1) to filter minor allele frequency (i.e. choosing 0.05 means filtering MAF>0.05). User can set this to `NULL`` if no filtering is preffered. Default is 0.05.}
+\item{chunk.size}{integer(1) number of variants to process per thread}
 
-\item{info.filter}{numeric(1) to filter imputation INFO score (i.e. choosing 0.7 means filtering info>0.7). Default is `NULL`, no filtering is set.}
+\item{maf.filter}{numeric(1) to filter minor allele frequency (i.e. choosing 0.05 means filtering MAF>0.05). User can set this to `NULL`` if no filtering is preffered. Default is 0.05.}
 
 \item{flip.dosage}{logical(1) to flip which allele the dosage was calculated on, default=TRUE}
 
 \item{verbose}{logical(1) for messages that describe which part of the analysis is currently being run}
 
 \item{clusterObj}{A cluster object that can be used with the \code{parApply} function. See details.}
+
+\item{info.filter}{numeric(1) to filter imputation INFO score (i.e. choosing 0.7 means filtering info>0.7). Default is `NULL`, no filtering is set.}
 }
 \value{
 Saves text file directly to disk that contains survival analysis results.
@@ -73,6 +75,7 @@ However, advanced users who wish to optimize it, can provide a cluster object ge
 family of functions that suits their need and platform.
 }
 \examples{
+library(gwasurvivr)
 library(tidyverse)
 library(magrittr)
 impute.file <- system.file(package="gwasurvivr","extdata","impute_example.impute2")
@@ -96,14 +99,19 @@ impute2CoxSurv(impute.file=impute.file,
               sample.file=sample.file,
               chr=14,
               covariate.file=covariate.file,
+              id.column="ID_2",
               sample.ids=sample.ids,
               time.to.event="time",
               event="event",
               covariates=c("age", "SexFemale", "bmiOVWT"),
+              inter.term=NULL,
+              print.covs="only",
               out.file="impute_example",
+              chunk.size=10000,
               maf.filter=0.01,
               info.filter=0.7,
               flip.dosage=TRUE,
-              verbose=TRUE)  
+              verbose=TRUE,
+              clusterObj=NULL)  
  
 }

@@ -51,12 +51,14 @@ install.packages(c("ncdf4", "matrixStats", "parallel", "survival"))
 
 Bioconductor packages:  
 1. `GWASTools`  
-2. `VariantAnnotation` 
+2. `VariantAnnotation`  
+3. `SummarizedExperiment`  
 
 ```{r, eval=FALSE}
 source("https://bioconductor.org/biocLite.R")
 biocLite("GWASTools")
 biocLite("VariantAnnotation")
+biocLite("SummarizedExperiment")
 ```
 
 ## Load package
@@ -87,9 +89,9 @@ pheno.fl <- system.file(package="gwasurvivr",
 pheno.file <- read.table(pheno.fl, sep=" ", header=TRUE, stringsAsFactors = FALSE)
 head(pheno.file)
 ```
-Categorical variables need to be converted into indicator (dummy) variables. In this example, we will select samples from the `experimental` group will test survival only on these genotypes. The first column in the `pheno.file` needs to be sample IDs that we want to match on. 
+Categorical variables need to be converted into indicator (dummy) variables and be of class `numeric`. In this example, we will select samples from the `experimental` group will test survival only on these genotypes. The first column in the `pheno.file` needs to be sample IDs that we want to match on. 
 
-We leverage the `tidyverse` and `magrittr` packages in this example solely for data preparation/manipulation purposes.
+We use `tidyverse` and `magrittr` packages in this example solely for data preparation/manipulation purposes.
 
 ```{r, message=FALSE}
 library(tidyverse)
@@ -119,6 +121,20 @@ sangerCoxSurv(vcf.file=vcf.file,
               event="event",
               covariates=c("age", "SexFemale", "bmiOVWT"),
               sample.ids=sample.ids,
+              output.name=tempfile("sanger_example"),
+              chunk.size=10000,
+              info.filter=0.7,
+              maf.filter=0.01,
+              verbose=TRUE)
+```
+
+```{r,eval=FALSE}
+sangerCoxSurv(vcf.file=vcf.file,
+              pheno.file=pheno.file,
+              time.to.event="time",
+              event="event",
+              covariates=c("age", "SexFemale", "bmiOVWT"),
+              sample.ids=sample.ids,
               output.name="sanger_example",
               chunk.size=10000,
               info.filter=0.7,
@@ -129,6 +145,10 @@ sangerCoxSurv(vcf.file=vcf.file,
 ## Peek at results
 We can look at the results that just came out of that run by loading the data.
 ```{r, message=FALSE}
+sanger_res <- read_tsv(dir(tempdir(), pattern="^sanger_example.*\\.coxph$", full.names = TRUE))
+```
+
+```{r, message=FALSE, eval=FALSE}
 sanger_res <- read_tsv("sanger_example.coxph")
 ```
 
@@ -139,6 +159,18 @@ sanger_res %>%
         arrange(PVALUE) %>% 
         head() %>%
         kable()
+```
+
+## Description of output columns
+
+### Single SNP analysis
+```{r}
+
+```
+
+### SNP with covariate interaction
+```{r}
+
 ```
 
 # IMPUTE2 Imputation
@@ -174,25 +206,57 @@ sample.ids <- covariate.file %>%
         ID_2 
 ```
 
-Now we can run survival
-```{r}
+Now we can run survival. Need to talk about why `flip.dosage=TRUE`
+```{r, echo=FALSE}
 impute2CoxSurv(impute.file=impute.file,
                sample.file=sample.file,
                chr=14,
                covariate.file=covariate.file,
+               id.column="ID_2",
                sample.ids=sample.ids,
                time.to.event="time",
                event="event",
                covariates=c("age", "SexFemale", "bmiOVWT"),
-               out.file="impute_example",
+               inter.term=NULL,
+               print.covs="only",
+               out.file=tempfile("impute_example"),
+               chunk.size=10000,
                maf.filter=0.01,
                info.filter=0.7,
                flip.dosage=TRUE,
-               verbose=TRUE)
+               verbose=TRUE,
+               clusterObj=NULL)
+```
+
+
+```{r, eval=FALSE}
+impute2CoxSurv(impute.file=impute.file,
+               sample.file=sample.file,
+               chr=14,
+               covariate.file=covariate.file,
+               id.column="ID_2",
+               sample.ids=sample.ids,
+               time.to.event="time",
+               event="event",
+               covariates=c("age", "SexFemale", "bmiOVWT"),
+               inter.term=NULL,
+               print.covs="only",
+               out.file="impute_example",
+               chunk.size=10000,
+               maf.filter=0.01,
+               info.filter=0.7,
+               flip.dosage=TRUE,
+               verbose=TRUE,
+               clusterObj=NULL)
 ```
 
 ## Peek at results
-```{r, message=FALSE}
+```{r, message=FALSE, echo=FALSE}
+impute2_res <- read_tsv(dir(tempdir(), pattern="^impute_example.*\\.coxph$", full.names=TRUE))
+```
+
+
+```{r, message=FALSE, eval=FALSE}
 impute2_res <- read_tsv("impute_example.coxph")
 dim(impute2_res)
 ```
@@ -206,6 +270,37 @@ impute2_res %>%
 ```
 
 The results look the same.
+
+## Description of output columns
+
+### Single SNP analysis
+`print.cov="only"`
+```{r}
+
+```
+
+`print.cov="all"`
+```{r}
+
+```
+
+### SNP with covariate interaction
+`print.cov="only"`
+```{r}
+
+```
+
+`print.cov="some"`
+```{r}
+
+```
+
+
+`print.cov="all"`
+```{r}
+
+```
+
 
 # Michigan Imputation Server
 [Michigan Imputation Server](https://imputationserver.sph.umich.edu/index.html) outputs gunzipped variant call format files (`.vcf.gz`). These files are typically stored in full chromosome chunks. Imputation is done using the Minimac3 imputation engine. Pre-phasing is done using either HAPI-UR, SHAPEIT, or EAGLE (default is EAGLE2). 

@@ -12,6 +12,10 @@ sangerCoxSurv(vcf.file, covariate.file, id.column, sample.ids = NULL,
 \arguments{
 \item{vcf.file}{character(1) path to VCF file.}
 
+\item{covariate.file}{matrix(1) comprising phenotype (time, event) and additional covariate data.}
+
+\item{id.column}{character(1) providing exact match to sample ID column from \code{covariate.file}}
+
 \item{sample.ids}{character vector with sample ids to include in analysis}
 
 \item{time.to.event}{character(1) string that matches time column name in pheno.file}
@@ -35,8 +39,6 @@ sangerCoxSurv(vcf.file, covariate.file, id.column, sample.ids = NULL,
 \item{verbose}{logical(1) for messages that describe which part of the analysis is currently being run}
 
 \item{clusterObj}{A cluster object that can be used with the \code{parApply} function. See details.}
-
-\item{pheno.file}{matrix(1) comprising phenotype data.}
 }
 \value{
 Saves text file directly to disk that contains survival analysis results.
@@ -65,6 +67,7 @@ However, advanced users who wish to optimize it, can provide a cluster object ge
 family of functions that suits their need and platform.
 }
 \examples{
+library(gwasurvivr)
 vcf.file <- system.file(package="gwasurvivr","extdata", "sanger.pbwt_reference_impute.vcf.gz")
 pheno.fl <- system.file(package="gwasurvivr", "extdata", "simulated_pheno.txt")
 pheno.file <- read.table(pheno.fl, sep=" ", header=TRUE, stringsAsFactors = FALSE)
@@ -80,15 +83,19 @@ sample.ids <- pheno.file \%>\%
                     filter(group=="experimental") \%$\%
                     ID_2 
 sangerCoxSurv(vcf.file=vcf.file,
-              pheno.file=pheno.file,
+              covariate.file=pheno.file,
+              id.column="ID_2",
+              sample.ids=sample.ids,
               time.to.event="time",
               event="event",
               covariates=c("age", "SexFemale", "bmiOVWT"),
-              sample.ids=sample.ids,
+              inter.term=NULL,
+              print.covs="only"
               out.file="sanger_example",
-              chunk.size=10000,
               info.filter=0.7,
               maf.filter=0.005,
-              verbose=TRUE)
+              chunk.size=10000,
+              verbose=TRUE,
+              clusterObj=NULL)
 
 }
