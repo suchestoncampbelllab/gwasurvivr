@@ -199,7 +199,7 @@ impute2CoxSurv <- function(impute.file,
     snp.spike <- rbind(rnorm(nrow(cox.params$pheno.file)),
                        rnorm(nrow(cox.params$pheno.file)))
     
-    if(is.null(inter.term)){
+    if(!is.null(inter.term)){
         cox.out <- t(apply(snp.spike, 1, survFitInt, cox.params=cox.params, cov.interaction=inter.term, print.covs=print.covs))
         res.cols <- colnames(coxExtract(cox.out, snp.df, cox.params$n.sample, cox.params$n.event, print.covs=print.covs))
         write.table( t(res.cols),
