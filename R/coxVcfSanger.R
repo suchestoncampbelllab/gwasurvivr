@@ -1,4 +1,4 @@
-coxVcfSanger <- function(data, maf.filter, info.filter, cox.params, cl, inter.term, print.covs){
+coxVcfSanger <- function(data, covariates, maf.filter, info.filter, cox.params, cl, inter.term, print.covs){
     
     ####### Get genotype data ############ 
     # read dosage data from collapsed vcf, subset for defined ids
