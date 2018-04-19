@@ -195,7 +195,7 @@ sangerCoxSurv <- function(vcf.file,
         
         chunk.start <- chunk.start+chunk.size
         snps_removed <- snps_removed+nrow(out.list$dropped.snps)
-        snps_tot <-  snps_analyzed+nrow(out.list$res)
+        snps_analyzed <-  snps_analyzed+nrow(out.list$res)
         
     }
     ################################################
@@ -204,7 +204,7 @@ sangerCoxSurv <- function(vcf.file,
     if(verbose) message("Analysis completed on ", format(Sys.time(), "%Y-%m-%d"), " at ", format(Sys.time(), "%H:%M:%S"))
     if(verbose) message(snps_removed, " SNPs were removed from the analysis for not meeting the threshold criteria.")
     if(verbose) message("List of removed SNPs can be found in ", paste0(out.file, ".snps_removed"))
-    if(verbose) message(snps_tot, " SNPs were analyzed total")
+    if(verbose) message(snps_analyzed, " SNPs were analyzed in total")
     if(verbose) message("The survival output can be found at", paste0(out.file, ".coxph"))
     
 }
