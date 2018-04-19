@@ -171,7 +171,7 @@ sangerCoxSurv <- function(vcf.file,
             break
         }
         
-        out.list <- coxVcfSanger(data, maf.filter, info.filter, cox.params, cl, inter.term, print.covs)
+        out.list <- coxVcfSanger(data, covariates, maf.filter, info.filter, cox.params, cl, inter.term, print.covs)
         write.table(
             out.list$res,
             paste0(out.file, ".coxph"),
@@ -204,3 +204,7 @@ sangerCoxSurv <- function(vcf.file,
     if(verbose) message(snps_removed, " SNPs were removed from the analysis for not meeting the threshold criteria.")
     if(verbose) message("List of removed SNPs can be found in ", paste0(out.file, ".snps_removed"))
 }
+
+
+
+
