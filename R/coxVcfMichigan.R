@@ -53,7 +53,7 @@ coxVcfMichigan <- function(data, covariates, maf.filter, info.filter, cox.params
         {
             # Further filter by user defined thresholds
             if(!is.null(maf.filter)){
-                ok.maf <- snp$RefPanelAF>maf.filter & snp$RefPanelAF<(1-maf.filter)
+                ok.maf <- snp$MAF>maf.filter & snp$MAF<(1-maf.filter)
                 snp.drop <- base::rbind(snp.drop,snp[!ok.maf,])
                 snp <- snp[ok.maf,]
                 if(all(!ok.maf)) stop("None of the SNPs pass the MAF threshold")
@@ -61,7 +61,7 @@ coxVcfMichigan <- function(data, covariates, maf.filter, info.filter, cox.params
             }
             
             if(!is.null(info.filter)){
-                ok.info <- snp$INFO >= info.filter
+                ok.info <- snp$R2 >= info.filter
                 snp.drop <- base::rbind(snp.drop,snp[!ok.info,])
                 snp <- snp[ok.info,]
                 if(all(!ok.info)) stop("None of the SNPs pass the info threshold")
