@@ -40,51 +40,78 @@ coxVcfSanger <- function(data, covariates, maf.filter, info.filter, cox.params, 
         snp.drop <- data.frame()
     }
     
-    # Further filter by user defined thresholds
-    if(!is.null(maf.filter)){
-        ok.maf <- snp$RefPanelAF>maf.filter & snp$RefPanelAF<(1-maf.filter)
-        snp.drop <- base::rbind(snp.drop,snp[!ok.maf,])
-        snp <- snp[ok.maf,]
-        genotypes <- genotypes[ok.maf,]
-    }
     
-    if(!is.null(info.filter)){
-        ok.info <- snp$INFO >= info.filter
-        snp.drop <- base::rbind(snp.drop,snp[!ok.info,])
-        snp <- snp[ok.info,]
-        genotypes <- genotypes[ok.info,]
-    }
-    
-    ##################################################
-
-    #############################################################
-    ########## clean and save dropped and kept SNP info ##########
-    # rearrange columns for snp info
-    snp.cols <- c("RSID", "CHR", "POS", "REF", "ALT", "RefPanelAF", 
-                  "TYPED", "INFO", "SAMP_FREQ_ALT", "SAMP_MAF")
-    colnames(snp) <- snp.cols
-    colnames(snp.drop) <- snp.cols
-    snp.ord <- c("RSID", "TYPED", "CHR", "POS", "REF", "ALT", "RefPanelAF",
-                 "SAMP_FREQ_ALT", "SAMP_MAF","INFO")
-    snp <- snp[, snp.ord]
-    snp.drop <- snp.drop[, snp.ord]
-    ###########################################################
-
-    ##########################################################
-    ############### fit models in parallel ###################
-    
-    if(is.null(inter.term)){
-        cox.out <- t(parApply(cl=cl, X=genotypes, MARGIN=1, FUN=survFit, 
-                              cox.params=cox.params, print.covs=print.covs))
-    }else if(inter.term %in% covariates){
-        cox.out <- t(parApply(cl=cl, X=genotypes, MARGIN=1, FUN=survFitInt, 
-                              cox.params=cox.params, 
-                              cov.interaction=inter.term,
-                              print.covs=print.covs))
-    }
-    
-    #############################################
-    sanger.out <- list(dropped.snps= snp.drop)
-    sanger.out$res <- coxExtract(cox.out, snp, cox.params$n.sample, cox.params$n.event, print.covs)
-    return(sanger.out)
+    empty.geno <- tryCatch(
+        {
+            # Further filter by user defined thresholds
+            if(!is.null(maf.filter)){
+                ok.maf <- snp$RefPanelAF>maf.filter & snp$RefPanelAF<(1-maf.filter)
+                snp.drop <- base::rbind(snp.drop,snp[!ok.maf,])
+                snp <- snp[ok.maf,]
+                if(all(!ok.maf)) stop("None of the SNPs pass the MAF threshold")
+                genotypes <- genotypes[ok.maf,]
+            }
+            
+            if(!is.null(info.filter)){
+                ok.info <- snp$INFO >= info.filter
+                snp.drop <- base::rbind(snp.drop,snp[!ok.info,])
+                snp <- snp[ok.info,]
+                if(all(!ok.info)) stop("None of the SNPs pass the info threshold")
+                genotypes <- genotypes[ok.info,]
+            }
+            #############################################################
+            ########## clean and save dropped and kept SNP info #########
+            # rearrange columns for snp info
+            snp.cols <- c("RSID", "CHR", "POS", "REF", "ALT", "RefPanelAF", 
+                          "TYPED", "INFO", "SAMP_FREQ_ALT", "SAMP_MAF")
+            colnames(snp) <- snp.cols
+            colnames(snp.drop) <- snp.cols
+            snp.ord <- c("RSID", "TYPED", "CHR", "POS", "REF", "ALT", "RefPanelAF",
+                         "SAMP_FREQ_ALT", "SAMP_MAF","INFO")
+            snp <- snp[, snp.ord]
+            snp.drop <- snp.drop[, snp.ord]
+            ###########################################################
+            
+            ###########################################################
+            ############### fit models in parallel ####################
+            if(is.null(inter.term)){
+                if(is.matrix(genotypes)){
+                    cox.out <- t(parApply(cl=cl,
+                                          X=genotypes, 
+                                          MARGIN=1, 
+                                          FUN=survFit, 
+                                          cox.params=cox.params,
+                                          print.covs=print.covs))
+                } else {
+                    cox.out <- survFit(genotypes, cox.params=cox.params, print.covs=print.covs) 
+                }
+            }else if(inter.term %in% covariates){
+                if(is.matrix(genotypes)){
+                    cox.out <- t(parApply(cl=cl,
+                                          X=genotypes,
+                                          MARGIN=1,
+                                          FUN=survFitInt, 
+                                          cox.params=cox.params, 
+                                          cov.interaction=inter.term,
+                                          print.covs=print.covs))
+                } else {
+                    cox.out <- survFitInt(genotypes,
+                                          cox.params=cox.params,
+                                          cov.interaction=inter.term, 
+                                          print.covs=print.covs)
+                }
+            }
+            #############################################
+            sanger.out <- list(dropped.snps=snp.drop)
+            sanger.out$res <- coxExtract(cox.out, snp, cox.params$n.sample, cox.params$n.event, print.covs)
+            return(sanger.out)
+        },
+        error=function(err) err
+    )
+    if(inherits(empty.geno, "error")){
+        sanger.out <- list(dropped.snps=snp.drop)
+        sanger.out$res <- NULL
+        return(sanger.out)
+        next
+    } 
 }
