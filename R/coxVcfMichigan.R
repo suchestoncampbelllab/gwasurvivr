@@ -4,11 +4,6 @@ coxVcfMichigan <- function(data, covariates, maf.filter, info.filter, cox.params
     genotypes <- geno(data)$DS[, cox.params$ids, drop=FALSE]
     ########################################
 
-    
-    # add TYPED info column
-    info(data)$TYPED[!is.na(info(data)$ER2)] <- TRUE
-    info(data)$TYPED[is.na(info(data)$ER2)] <- FALSE
-
     # AF MAF R2 ER2
     # calculates sample MAF
     snp.ids <- rownames(data)
@@ -16,10 +11,9 @@ coxVcfMichigan <- function(data, covariates, maf.filter, info.filter, cox.params
     snp.ranges$ALT <- sapply(snp.ranges$ALT, as.character)
     snp.ranges$REF <- sapply(snp.ranges$REF, as.character)
     snp.meta <- data.frame(info(data))
-    
-    samp.exp_alt <- round(rowMeans2(genotypes)*0.5, 4)
-    samp.maf <- ifelse(samp.exp_alt > 0.5, 1-samp.exp_alt, samp.exp_alt)
-    
+    snp.meta$TYPED <- NA
+    snp.meta$TYPED[!is.na(snp.meta$ER2)] <- TRUE
+    snp.meta$TYPED[is.na(snp.meta$ER2)] <- FALSE
     
     samp.exp_alt <- round(rowMeans2(genotypes)*0.5, 4)
     samp.maf <- ifelse(samp.exp_alt > 0.5, 1-samp.exp_alt, samp.exp_alt)
