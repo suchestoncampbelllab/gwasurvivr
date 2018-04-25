@@ -1,4 +1,4 @@
-ID_1 ID_2 event time age bmiOVWT sex group
+ID_1 ID_2 event time age DrugTxYes sex group
 1 SAMP1 0 12 33.93 0 male control
 2 SAMP2 1 7.61 58.71 1 male experimental
 3 SAMP3 0 12 39.38 0 female control
@@ -73,7 +73,7 @@ ID_1 ID_2 event time age bmiOVWT sex group
 72 SAMP72 1 4.43 58.38 0 female experimental
 73 SAMP73 0 12 37.32 0 male experimental
 74 SAMP74 0 6.7 40.93 0 male experimental
-75 SAMP75 1 -0.3 56.35 0 male experimental
+75 SAMP75 1 0.3 56.35 0 male experimental
 76 SAMP76 1 2.62 61.02 1 male experimental
 77 SAMP77 0 12 37.63 0 male control
 78 SAMP78 0 12 35.21 0 male control
@@ -91,7 +91,7 @@ ID_1 ID_2 event time age bmiOVWT sex group
 90 SAMP90 0 12 36.27 0 male experimental
 91 SAMP91 1 5.06 62.15 0 male experimental
 92 SAMP92 1 4.4 54.87 0 female experimental
-93 SAMP93 1 -0.92 61.29 0 female experimental
+93 SAMP93 1 0.92 61.29 0 female experimental
 94 SAMP94 1 5.73 53.45 0 male experimental
 95 SAMP95 1 5.86 56.78 1 female experimental
 96 SAMP96 1 2.75 57.67 0 male control
@@ -126,7 +126,7 @@ ID_1 ID_2 event time age bmiOVWT sex group
 125 SAMP125 1 3.39 57.23 0 male control
 126 SAMP126 0 12 41.82 0 male control
 127 SAMP127 0 12 37.56 0 male control
-128 SAMP128 1 -1.92 56.23 1 male experimental
+128 SAMP128 1 1.92 56.23 1 male experimental
 129 SAMP129 0 12 38.56 0 male control
 130 SAMP130 0 12 37.13 0 female control
 131 SAMP131 0 12 32.73 0 male experimental
@@ -195,9 +195,9 @@ ID_1 ID_2 event time age bmiOVWT sex group
 194 SAMP194 1 5.14 62.28 0 male control
 195 SAMP195 1 3.71 62.56 1 male control
 196 SAMP196 0 12 39.85 0 female control
-197 SAMP197 1 -0.89 59.9 1 male experimental
+197 SAMP197 1 0.89 59.9 1 male experimental
 198 SAMP198 0 12 39.43 0 female experimental
-199 SAMP199 1 -0.62 56.08 0 male control
+199 SAMP199 1 0.62 56.08 0 male control
 200 SAMP200 0 12 39.21 0 male experimental
 201 SAMP201 0 12 35.46 0 female control
 202 SAMP202 1 4.07 59.91 1 male experimental
@@ -241,9 +241,9 @@ ID_1 ID_2 event time age bmiOVWT sex group
 240 SAMP240 0 12 41.45 0 female control
 241 SAMP241 0 12 43.64 0 female experimental
 242 SAMP242 0 12 41.34 0 male experimental
-243 SAMP243 1 -0.82 61.43 1 female control
+243 SAMP243 1 0.82 61.43 1 female control
 244 SAMP244 1 4.06 53.38 1 male experimental
-245 SAMP245 1 -1.31 67.51 1 male experimental
+245 SAMP245 1 1.31 67.51 1 male experimental
 246 SAMP246 0 12 37.27 0 male control
 247 SAMP247 1 7.4 58.73 1 male experimental
 248 SAMP248 0 12 48.2 0 male control
@@ -323,7 +323,7 @@ ID_1 ID_2 event time age bmiOVWT sex group
 322 SAMP322 0 8.8 42.3 0 male experimental
 323 SAMP323 0 12 42.64 0 female control
 324 SAMP324 0 12 35.08 0 male control
-325 SAMP325 1 -0.12 64.86 0 male control
+325 SAMP325 1 0.12 64.86 0 male control
 326 SAMP326 0 12 37.43 0 male experimental
 327 SAMP327 0 12 40.54 0 male experimental
 328 SAMP328 0 12 47.22 0 male control
@@ -346,7 +346,7 @@ ID_1 ID_2 event time age bmiOVWT sex group
 345 SAMP345 0 12 40.62 1 female control
 346 SAMP346 1 0.44 62.88 1 female control
 347 SAMP347 0 4.3 40.49 0 female control
-348 SAMP348 1 -0.36 66.02 1 female experimental
+348 SAMP348 1 0.36 66.02 1 female experimental
 349 SAMP349 1 3.88 61.82 1 male control
 350 SAMP350 0 12 46.49 0 female experimental
 351 SAMP351 0 12 42.13 0 male control
@@ -477,7 +477,7 @@ ID_1 ID_2 event time age bmiOVWT sex group
 476 SAMP476 1 1.42 62.98 1 male control
 477 SAMP477 0 12 39.55 1 male control
 478 SAMP478 0 6.7 38.53 0 male control
-479 SAMP479 1 -0.77 66.68 0 male control
+479 SAMP479 1 0.77 66.68 0 male control
 480 SAMP480 1 1.81 58.89 0 male control
 481 SAMP481 1 3.55 65.11 0 male control
 482 SAMP482 1 5.74 66.59 1 female experimental
