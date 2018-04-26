@@ -64,7 +64,7 @@
 #'               sample.ids=sample.ids,
 #'               time.to.event="time",
 #'               event="event",
-#'               covariates=c("age", "SexFemale", "bmiOVWT"),
+#'               covariates=c("age", "SexFemale", "DrugTxYes"),
 #'               inter.term=NULL,
 #'               print.covs="only",
 #'               out.file="sanger_example",
