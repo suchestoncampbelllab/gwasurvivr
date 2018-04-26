@@ -112,6 +112,5 @@ coxVcfSanger <- function(data, covariates, maf.filter, info.filter, cox.params, 
         sanger.out <- list(dropped.snps=snp.drop)
         sanger.out$res <- NULL
         return(sanger.out)
-        next
     } 
 }

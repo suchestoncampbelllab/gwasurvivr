@@ -114,7 +114,6 @@ coxVcfMichigan <- function(data, covariates, maf.filter, info.filter, cox.params
         michigan.out <- list(dropped.snps=snp.drop)
         michigan.out$res <- NULL
         return(michigan.out)
-        next
     } 
 }
 
