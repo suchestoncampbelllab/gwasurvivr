@@ -2163,17 +2163,21 @@ covariates <- covariates %>%
         str_split("_") %>%
         unlist()
 
-sangerCoxSurv(vcf.file,
-              pheno.file,,
-              time.to.event,
-              event,
-              covariates,
-              sample.ids,
-              chunk.size,
-              info.filter,
-              maf.filter,
-              output.name,
-              verbose=TRUE)
+sangerCoxSurv(vcf.file=vcf.file,
+              covariate.file=pheno.file,
+              id.column="ID_2",
+              sample.ids=sample.ids,
+              time.to.event=time,
+              event=event,
+              covariates=covariates,
+              inter.term=NULL,
+              print.covs="only",
+              out.file="sanger_only",
+              info.filter=0.7,
+              maf.filter=0.005,
+              chunk.size=10000,
+              verbose=TRUE,
+              clusterObj=NULL)
 ```
 
 Now we can run a shell script. This can be used well with manifest files to set up multiple runs with different outcomes and different subsets of samples. The covariates are separated by an underscore (`"_"`). This is so it can be passed properly, and also why we used `str_split` to split the covariates. 
@@ -2187,22 +2191,16 @@ R --script ${PATH}/survival/code/mysurvivalscript.R -q --args \
         pheno.file ${PATH}/phenotype_data/pheno.txt \
         time.to.event time \
         event event \
-        covariates age_SexFemale_DrugTxYes \
-        sample.ids sample.ids \
-        chunk.size 10000 \
-        info.filter 0.7 \
-        maf.filter 0.01 \
-        output.name ${PATH}/survival/results/sanger_example_output
+        out.file ${PATH}/survival/results/sanger_example_output
 ```
 
 The file paths above are completely arbitrary and were just used as an example of how file structure may be and where desirable output would be stored.
 
 ## Batch Example impute2CoxSurv
-Exactly the same as for `sangerCoxSurv` but this time with the input arguments for `impute2CoxSurv`. 
+Exactly the same as for `sangerCoxSurv` but this time with the input arguments for `impute2CoxSurv`. See `?impute2CoxSurv` for help
 
 ## Batch Example michiganCoxSurv
-
-The michigan example will be added soon!
+Exactly the same as for `sangerCoxSurv` but this time with the input arguments for `michiganCoxSurv`. See `?michiganCoxSurv` for help
 
 # Session info
 Here is the output of `sessionInfo()` on the system that this document was compiled:
