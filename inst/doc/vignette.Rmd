@@ -1,0 +1,307 @@
+---
+title: "gwasurvivr Vignette"
+author:
+- name: Abbas Rizvi
+  affiliation: The Ohio State University, Columbus, OH
+- name: Ezgi Karaesmen
+  affiliation: The Ohio State University, Columbus, OH
+- name: Martin Morgan
+  affiliation: Roswell Park Comprehensive Cancer Center, Buffalo, NY    
+- name: Lara Sucheston-Campbell  
+  affiliation: The Ohio State University, Columbus, OH
+package: gwasurvivr
+date: '`r format(Sys.Date(), "%B %d, %Y")`'
+output:
+        BiocStyle::html_document2
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEncoding{UTF-8}          
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, cache=FALSE)
+library(knitr)
+```
+
+# Introduction
+`gwasurvivr` can perform survival analysis on full chromosomes on imputed genotypes from Sanger/Michigan imputation servers or chromosome chunks imputed genotypes from IMPUTE2. This vignette is a tutorial on how to perform survival analysis (Cox proportional hazard models) on imputed GWAS data from either using the imputation software IMPUTE2 or an imputation server (Sanger/Michigan imputation servers). This package can be conveniently batched on a high performing computing cluster. 
+
+# Getting started
+Install `gwasurvivr` from the [Sucheston-Campbell Lab Github repository](http://github.com/suchestoncampbelllab/gwasurvivr) using `devtools`.
+
+```{r, eval=F}
+devtools::install_github("suchestoncampbelllab/gwasurvivr")
+```
+
+## Dependencies
+**Note**:  This package depends on `GWASTools` which uses netcdf framework on linux. Therefore, for linux users, please install `libnetcdf-dev` and `netcdf-bin` before installing `gwasurvivr`. 
+
+CRAN packages:  
+1. `ncdf4`  
+2. `matrixStats`  
+3. `parallel`    
+4. `survival` 
+
+```{r, eval=FALSE}
+install.packages(c("ncdf4", "matrixStats", "parallel", "survival"))
+```
+
+Bioconductor packages:  
+1. `GWASTools`  
+2. `VariantAnnotation` 
+3. `SummarizedExperiment`
+
+```{r, eval=FALSE}
+source("https://bioconductor.org/biocLite.R")
+biocLite("GWASTools")
+biocLite("VariantAnnotation")
+biocLite("SummarizedExperiment")
+```
+
+## Load package
+```{r}
+library(gwasurvivr)
+```
+
+# Sanger Imputation Server
+[Sanger Imputation Server](https://imputation.sanger.ac.uk/) pre-phases using either SHAPEIT or EAGLE and then imputes genotypes using PBWT algorithm. The output from Sanger imputation are `.vcf.gz` files, which are needed as input for `gwasurvivr`. The output comes in full chromosomes, which can easily be run using `gwasurvivr`. `sangerCoxSurv` is the function needed to perform survival. `sangerCoxSurv` can filter info score (imputation quality metric) and on minor allele frequency. `sangerCoxSurv` grabs the reference panel allele frequency from the VCF file (`RefPanelAF`) and also computes a minor allele frequency (MAF) for the sample genotype. The `RefPanelAF` can be filtered as the input argument `maf.filter`.
+
+Users can select which samples that they would like to include in the analysis by providing a vector of `sample.ids`. Since the output from Sanger imputation server returns the samples as `SAMP1, ..., SAMPN`, where `N` is the total number of samples, the user must create an alternate ID for the samples of interest that correspond to the order that the samples were in their input to the Sanger imputation server (this sample order can also be found in the `.fam` file from the genotyping chip). 
+
+To run a prespecified number of cores to use in parallel while fitting the Cox model can be set:
+
+```{r}
+options("gwasurvivr.cores"=4)
+```
+* Note: setting number of cores is not required. 
+
+## R Session Example
+```{r}
+vcf.file <- system.file(package="gwasurvivr",
+                        "extdata", 
+                        "sanger.pbwt_reference_impute.vcf.gz")
+pheno.fl <- system.file(package="gwasurvivr",
+                        "extdata", 
+                        "simulated_pheno.txt")
+pheno.file <- read.table(pheno.fl, sep=" ", header=TRUE, stringsAsFactors = FALSE)
+head(pheno.file)
+```
+Categorical variables need to be converted into indicator (dummy) variables. In this example, we will select samples from the `experimental` group will test survival only on these genotypes. The first column in the `pheno.file` needs to be sample IDs that we want to match on. 
+
+We leverage the `tidyverse` and `magrittr` packages in this example solely for data preparation/manipulation purposes.
+
+```{r, message=FALSE}
+library(tidyverse)
+library(magrittr)
+```
+
+```{r}
+# recode sex column and remove first column 
+pheno.file <- pheno.file %>%
+        mutate(SexFemale=case_when(sex=="female"~1L,
+                                   sex=="male"~0L)) %>%
+        dplyr::select(-ID_1)
+
+# select only experimental group sample.ids
+sample.ids <- pheno.file %>%
+        filter(group=="experimental") %$%
+        ID_2 
+head(sample.ids)
+```
+
+Now run survival using `sangerCoxSurv`. 
+
+```{r}
+sangerCoxSurv(vcf.file=vcf.file,
+              pheno.file=pheno.file,
+              time.to.event="time",
+              event="event",
+              covariates=c("age", "SexFemale", "bmiOVWT"),
+              sample.ids=sample.ids,
+              output.name="sanger_example",
+              chunk.size=10000,
+              info.filter=0.7,
+              maf.filter=0.01,
+              verbose=TRUE)
+```
+
+## Peek at results
+We can look at the results that just came out of that run by loading the data.
+```{r, message=FALSE}
+sanger_res <- read_tsv("sanger_example.coxph")
+```
+
+```{r}
+dim(sanger_res)
+sanger_res %>% 
+        select(RSID, TYPED, PVALUE, COEF, HR) %>%
+        arrange(PVALUE) %>% 
+        head() %>%
+        kable()
+```
+
+# IMPUTE2 Imputation
+## File structure
+IMPUTE2 outputs 6 files, but only 2 of these files required for analysis using `gwasurvivr`:
+
+  - Genotype file (`.impute`)  
+  - Sample file (`.sample`)  
+  
+[More information can be read about these formats](http://www.stats.ox.ac.uk/~marchini/software/gwas/file_format.html)
+
+## R Session Example
+First the user needs to find correct paths of the files and load up the covariate file. The covariate file needs to be a `data.frame`
+```{r, message=FALSE}
+impute.file <- system.file(package="gwasurvivr",
+                           "extdata",
+                           "impute_example.impute2")
+sample.file <- system.file(package="gwasurvivr",
+                           "extdata", 
+                           "impute_example.impute2_sample")
+chr <- 14
+covariate.file <- system.file(package="gwasurvivr", 
+                       "extdata",
+                       "simulated_pheno.txt")
+covariate.file <- read_delim(covariate.file, delim=" ")
+covariate.file <- covariate.file %>% 
+        mutate(SexFemale=case_when(sex=="female"~1L,
+                                   sex=="male"~0L)) %>%
+        dplyr::select(-ID_1)
+covariate.file %>% head
+sample.ids <- covariate.file %>%
+        filter(group=="experimental") %$%
+        ID_2 
+```
+
+Now we can run survival
+```{r}
+impute2CoxSurv(impute.file=impute.file,
+               sample.file=sample.file,
+               chr=14,
+               covariate.file=covariate.file,
+               sample.ids=sample.ids,
+               time.to.event="time",
+               event="event",
+               covariates=c("age", "SexFemale", "bmiOVWT"),
+               out.file="impute_example",
+               maf.filter=0.01,
+               info.filter=0.7,
+               flip.dosage=TRUE,
+               verbose=TRUE)
+```
+
+## Peek at results
+```{r, message=FALSE}
+impute2_res <- read_tsv("impute_example.coxph")
+dim(impute2_res)
+```
+
+```{r}
+impute2_res %>%
+        select(RSID, TYPED, PVALUE, COEF, HR) %>%
+        arrange(PVALUE) %>%
+        head() %>%
+        kable() 
+```
+
+The results look the same.
+
+# Michigan Imputation Server
+[Michigan Imputation Server](https://imputationserver.sph.umich.edu/index.html) outputs gunzipped variant call format files (`.vcf.gz`). These files are typically stored in full chromosome chunks. Imputation is done using the Minimac3 imputation engine. Pre-phasing is done using either HAPI-UR, SHAPEIT, or EAGLE (default is EAGLE2). 
+
+## R Session Example
+The michigan example will be added soon!
+
+# Batch Examples
+
+## Batch Example sangerCoxSurv
+Batch jobs for multiple analyses and different subsets are easy to implement using `gwasurvivr`. This is facilitated by the package `batch`, which can internalize R variables from bash. First write an R script (e.g. `mysurvivalscript.R`) to pass in bash.
+
+```{r, eval=FALSE}
+## mysurvivalscript.R
+library(gwasurvivr)
+library(batch)
+parseCommandArgs(evaluate=TRUE)
+
+options("gwasurvivr.cores"=4)
+# recode sex column and remove first column
+pheno.file <- pheno.file %>%
+        mutate(SexFemale=case_when(sex=="female"~1L,
+                                   sex=="male"~0L)) %>%
+        dplyr::select(-ID_1)
+
+# select only experimental group
+sample.ids <- pheno.file %>%
+        filter(group=="experimental") %$%
+        ID_2 
+
+## -- unlist the covariates 
+## (refer below to the shell script as to why we are doing this)
+covariates <- covariates %>%
+        str_split("_") %>%
+        unlist()
+
+sangerCoxSurv(vcf.file,
+              pheno.file,,
+              time.to.event,
+              event,
+              covariates,
+              sample.ids,
+              chunk.size,
+              info.filter,
+              maf.filter,
+              output.name,
+              verbose=TRUE)
+```
+
+Now we can run a shell script. This can be used well with manifest files to set up multiple runs with different outcomes and different subsets of samples. The covariates are separated by an underscore (`"_"`). This is so it can be passed properly, and also why we used `str_split` to split the covariates. 
+
+```{bash, eval=FALSE}
+#!/bin/bash
+PATH=/path/to/dir/impute_chr
+
+R --script ${PATH}/survival/code/mysurvivalscript.R -q --args \
+        vcf.file ${PATH}/chr14.vcf.gz \
+        pheno.file ${PATH}/phenotype_data/pheno.txt \
+        time.to.event time \
+        event event \
+        covariates age_SexFemale_bmiOVWT \
+        sample.ids sample.ids \
+        chunk.size 10000 \
+        info.filter 0.7 \
+        maf.filter 0.01 \
+        output.name ${PATH}/survival/results/sanger_example_output
+```
+
+The file paths above are completely arbitrary and were just used as an example of how file structure may be and where desirable output would be stored.
+
+## Batch Example impute2CoxSurv
+Exactly the same as for `sangerCoxSurv` but this time with the input arguments for `impute2CoxSurv`. 
+
+## Batch Example michiganCoxSurv
+
+The michigan example will be added soon!
+
+# Session info
+Here is the output of `sessionInfo()` on the system that this document was compiled:
+```{r, echo=FALSE}
+sessionInfo()
+```
+
+# References
+1. Terry M. Therneau and Patricia M. Grambsch (2000). Modeling Survival Data: Extending the Cox Model. Springer, New York. ISBN 0-387-98784-3.  
+
+2. Martin Morgan, Valerie Obenchain, Jim Hester and Hervé Pagès (2017). SummarizedExperiment: SummarizedExperiment container. R package version 1.6.3.  
+
+3. Gogarten SM, Bhangale T, Conomos MP, Laurie CA, McHugh CP, Painter I, Zheng X, Crosslin DR, Levine D, Lumley T, Nelson SC, Rice K, Shen J, Swarnkar R, Weir BS and Laurie CC (2012). “GWASTools: an R/Bioconductor package for quality control and analysis of genome-wide association studies.” Bioinformatics, 28(24), pp. 3329-3331. doi: 10.1093/bioinformatics/bts610.  
+
+4. B. N. Howie, P. Donnelly and J. Marchini (2009) A flexible and accurate genotype imputation method for the next generation of genome-wide association studies. PLoS Genetics 5(6): e1000529  
+
+5. Das S, Forer L, Schönherr S, Sidore C, Locke AE, Kwong A, Vrieze S, Chew EY, Levy S, McGue M, Schlessinger D, Stambolian D, Loh PR, Iacono WG, Swaroop A, Scott LJ, Cucca F, Kronenberg F, Boehnke M, Abecasis GR, Fuchsberger C. **Next-generation genotype imputation service and methods.** Nature Genetics 48, 1284–1287 (2016). [27571263](https://www.ncbi.nlm.nih.gov/pubmed/27571263)  
+
+6. Efficient haplotype matching and storage using the Positional Burrows-Wheeler Transform (PBWT)", Richard Durbin Bioinformatics 30:1266-72 (2014).   
+
+
