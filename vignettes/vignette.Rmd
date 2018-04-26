@@ -12,7 +12,7 @@ author:
 package: gwasurvivr
 date: '`r format(Sys.Date(), "%B %d, %Y")`'
 output:
-        BiocStyle::html_document2
+        BiocStyle::html_document
 vignette: >
   %\VignetteIndexEntry{Vignette Title}
   %\VignetteEncoding{UTF-8}          
@@ -27,7 +27,7 @@ library(knitr)
 ```
 
 # Introduction
-`gwasurvivr` can perform survival analysis on full chromosomes on imputed genotypes from Sanger/Michigan imputation servers or chromosome chunks imputed genotypes from IMPUTE2. This vignette is a tutorial on how to perform survival analysis (Cox proportional hazard models) on imputed GWAS data from either using the imputation software IMPUTE2 or an imputation server (Sanger/Michigan imputation servers). This package can be conveniently batched on a high performing computing cluster. 
+`gwasurvivr` can perform survival analysis on full chromosomes on imputed genotypes from Sanger/Michigan imputation servers or chromosome chunks imputed genotypes from IMPUTE2. This vignette is a tutorial on how to perform survival analysis (Cox proportional hazard models) on imputed GWAS data from either using the imputation software IMPUTE2 or an imputation server (Sanger/Michigan imputation servers). This package can be conveniently batched on a high performing computing cluster. `gwasurvivr` iteratively processes the data in chunks and therefore intense memory requirements are not necessary.
 
 # Getting started
 Install `gwasurvivr` from the [Sucheston-Campbell Lab Github repository](http://github.com/suchestoncampbelllab/gwasurvivr) using `devtools`.
@@ -37,7 +37,7 @@ devtools::install_github("suchestoncampbelllab/gwasurvivr")
 ```
 
 ## Dependencies
-**Note**:  This package depends on `GWASTools` which uses netcdf framework on linux. Therefore, for linux users, please install `libnetcdf-dev` and `netcdf-bin` before installing `gwasurvivr`. 
+**Note**:  This package depends on `GWASTools` which uses netcdf framework on linux. Therefore, for linux users, please install `libnetcdf-dev` and `netcdf-bin` before installing `gwasurvivr`. These linux libraries are likely already installed on an academic computing cluster. 
 
 CRAN packages:  
 1. `ncdf4`  
@@ -67,7 +67,7 @@ library(gwasurvivr)
 ```
 
 # Sanger Imputation Server
-[Sanger Imputation Server](https://imputation.sanger.ac.uk/) pre-phases using either SHAPEIT or EAGLE and then imputes genotypes using PBWT algorithm. The output from Sanger imputation are `.vcf.gz` files, which are needed as input for `gwasurvivr`. The output comes in full chromosomes, which can easily be run using `gwasurvivr`. `sangerCoxSurv` is the function needed to perform survival. `sangerCoxSurv` can filter info score (imputation quality metric) and on minor allele frequency. `sangerCoxSurv` grabs the reference panel allele frequency from the VCF file (`RefPanelAF`) and also computes a minor allele frequency (MAF) for the sample genotype. The `RefPanelAF` can be filtered as the input argument `maf.filter`.
+[Sanger Imputation Server](https://imputation.sanger.ac.uk/) pre-phases using either SHAPEIT or EAGLE and then imputes genotypes using PBWT algorithm. The output from Sanger imputation are `.vcf.gz` files, which are needed as input for `gwasurvivr`. The output comes in full chromosomes, which can easily be run using `gwasurvivr`. `sangerCoxSurv` is the function needed to perform survival analysis. `sangerCoxSurv` can filter info score (imputation quality metric) and on minor allele frequency (MAF). `sangerCoxSurv` grabs the reference panel allele frequency from the VCF file (`RefPanelAF`) and also computes a MAF for the sample genotype. The `RefPanelAF` can be filtered as the input argument `maf.filter`.
 
 Users can select which samples that they would like to include in the analysis by providing a vector of `sample.ids`. Since the output from Sanger imputation server returns the samples as `SAMP1, ..., SAMPN`, where `N` is the total number of samples, the user must create an alternate ID for the samples of interest that correspond to the order that the samples were in their input to the Sanger imputation server (this sample order can also be found in the `.fam` file from the genotyping chip). 
 
@@ -79,19 +79,7 @@ options("gwasurvivr.cores"=4)
 * Note: setting number of cores is not required. 
 
 ## R Session Example
-```{r}
-vcf.file <- system.file(package="gwasurvivr",
-                        "extdata", 
-                        "sanger.pbwt_reference_impute.vcf.gz")
-pheno.fl <- system.file(package="gwasurvivr",
-                        "extdata", 
-                        "simulated_pheno.txt")
-pheno.file <- read.table(pheno.fl, sep=" ", header=TRUE, stringsAsFactors = FALSE)
-head(pheno.file)
-```
-Categorical variables need to be converted into indicator (dummy) variables and be of class `numeric`. In this example, we will select samples from the `experimental` group will test survival only on these genotypes. The first column in the `pheno.file` needs to be sample IDs that we want to match on. 
-
-We use `tidyverse` and `magrittr` packages in this example solely for data preparation/manipulation purposes.
+We use `tidyverse` and `magrittr` packages in this example solely for data preparation/manipulation purposes. Altneratively, any of the data pre-processing steps can be done in base R.
 
 ```{r, message=FALSE}
 library(tidyverse)
@@ -99,11 +87,28 @@ library(magrittr)
 ```
 
 ```{r}
+vcf.file <- system.file(package="gwasurvivr",
+                        "extdata", 
+                        "sanger.pbwt_reference_impute.vcf.gz")
+pheno.fl <- system.file(package="gwasurvivr",
+                        "extdata", 
+                        "simulated_pheno.txt")
+pheno.file <- read.table(pheno.fl,
+                         sep=" ",
+                         header=TRUE,
+                         stringsAsFactors = FALSE)
+head(pheno.file)
+```
+
+Categorical variables need to be converted into indicator (dummy) variables and be of class `numeric`. In this example, we will select samples from the `experimental` group will test survival only on these genotypes. The first column in the `pheno.file` needs to be sample IDs that we want to match on. The covariates that we are going to include in the model are `age`, `DrugTxYes`, and `sex`. 
+
+
+```{r}
 # recode sex column and remove first column 
 pheno.file <- pheno.file %>%
         mutate(SexFemale=case_when(sex=="female"~1L,
                                    sex=="male"~0L)) %>%
-        dplyr::select(-ID_1)
+        select(-ID_1)
 
 # select only experimental group sample.ids
 sample.ids <- pheno.file %>%
@@ -112,66 +117,658 @@ sample.ids <- pheno.file %>%
 head(sample.ids)
 ```
 
-Now run survival using `sangerCoxSurv`. 
+We perform the analysis only on the `experimental` group to demonstrate how one may want to prepare their data (i.e. stratify analysis by case/control, donor/recipients, etc). We also are showing how the IDs (`sample.ids`) need to be a vector of class `character`. The `chunk.size` is defaulted to 10000 rows and users can customize that to their needs. The larger the `chunk.size` the more memory (RAM) required to run the analysis. The recommended `chunk.size=10000` and probably should not exceed `chunk.size=100000`. 
 
-```{r}
-sangerCoxSurv(vcf.file=vcf.file,
-              pheno.file=pheno.file,
-              time.to.event="time",
-              event="event",
-              covariates=c("age", "SexFemale", "bmiOVWT"),
-              sample.ids=sample.ids,
-              output.name=tempfile("sanger_example"),
-              chunk.size=10000,
-              info.filter=0.7,
-              maf.filter=0.01,
-              verbose=TRUE)
-```
+In addition to printing the survival results for the SNP adjusted for other covariates (which is the default; `print.covs='only'`), users can select `print.covs=all` to get the coefficient estimates for other covariates included in the model. This is available primarily for potential modeling steps (covariate selection) and not necessarily needed for a survival GWAS. First we will run the analysis with the default, `print.covs="only"`, followed by loading the results into R and looking at the top hits, followed by a description of all of the columns in the results. And then we will run the analysis again using `print.covs="all"`.
+
+Now we will run survival using `sangerCoxSurv`. Use `?sangerCoxSurv` for argument specific documentation.
 
 ```{r,eval=FALSE}
 sangerCoxSurv(vcf.file=vcf.file,
-              pheno.file=pheno.file,
+              covariate.file=pheno.file,
+              id.column="ID_2",
+              sample.ids=sample.ids,
               time.to.event="time",
               event="event",
-              covariates=c("age", "SexFemale", "bmiOVWT"),
-              sample.ids=sample.ids,
-              output.name="sanger_example",
-              chunk.size=10000,
+              covariates=c("age", "SexFemale", "DrugTxYes"),
+              inter.term=NULL,
+              print.covs="only",
+              out.file="sanger_only",
               info.filter=0.7,
-              maf.filter=0.01,
-              verbose=TRUE)
+              maf.filter=0.005,
+              chunk.size=10000,
+              verbose=TRUE,
+              clusterObj=NULL)
 ```
 
-## Peek at results
-We can look at the results that just came out of that run by loading the data.
-```{r, message=FALSE}
-sanger_res <- read_tsv(dir(tempdir(), pattern="^sanger_example.*\\.coxph$", full.names = TRUE))
-```
 
-```{r, message=FALSE, eval=FALSE}
-sanger_res <- read_tsv("sanger_example.coxph")
+```{r, echo=FALSE}
+sangerCoxSurv(vcf.file=vcf.file,
+              covariate.file=pheno.file,
+              id.column="ID_2",
+              sample.ids=sample.ids,
+              time.to.event="time",
+              event="event",
+              covariates=c("age", "SexFemale", "DrugTxYes"),
+              inter.term=NULL,
+              print.covs="only",
+              out.file=tempfile("sanger_only"),
+              info.filter=0.7,
+              maf.filter=0.005,
+              chunk.size=10000,
+              verbose=TRUE,
+              clusterObj=NULL)
 ```
-
-```{r}
-dim(sanger_res)
-sanger_res %>% 
-        select(RSID, TYPED, PVALUE, COEF, HR) %>%
-        arrange(PVALUE) %>% 
-        head() %>%
-        kable()
-```
-
-## Description of output columns
 
 ### Single SNP analysis
-```{r}
 
+`print.covs="only"`
+
+We can look at the results that just came out of that run by loading the data. 
+
+```{r, message=FALSE, eval=FALSE}
+sanger_only <- read_tsv("sanger_only.coxph")
 ```
+
+```{r, message=FALSE, echo=FALSE}
+sanger_only <- read_tsv(dir(tempdir(), pattern="^sanger_only.*\\.coxph$", full.names = TRUE))
+```
+
+```{r}
+sanger_only %>% 
+    head() %>%
+    glimpse()
+```
+
+Below the column headers are described:
+
+```{r, echo=FALSE}
+cols <- c("RSID",
+          "TYPED",
+          "CHR",
+          "POS",
+          "REF", 
+          "ALT", 
+          "RefPanelAF",
+          "SAMP_FREQ_ALT",
+          "SAMP_MAF",
+          "INFO", 
+          "PVALUE",
+          "HR", 
+          "HR_lowerCI", 
+          "HR_upperCI", 
+          "COEF", 
+          "SE.COEF", 
+          "Z",
+          "N", 
+          "NEVENT")
+
+desc <- c("SNP ID",
+          "Imputation status: TRUE (SNP IS TYPED)/FALSE (SNP IS IMPUTED)`",
+          "Chromosome number",
+          "Genomic Position (BP)",
+          "Reference Allele",
+          "Alternate Allele",
+          "Reference Panel Allele Frequency",
+          "Frequency of Alternate Allele",
+          "Minor allele frequency in sample being tested",
+          "Imputation INFO score",
+          "P-value",
+          "Hazard Ratio (HR)",
+          "Lower bound 95% CI of HR",
+          "Upper bound 95% CI of HR",
+          "Estimated coefficient of SNP",
+          "Standard error of coefficient estimate",
+          "Z-statistic",
+          "Number of individuals in sample being tested",
+          "Number of events that occurred in sample being tested")
+
+df <- cbind(cols, desc)
+colnames(df) <- c("Column", "Description")
+kable(df)
+```
+
+`print.covs="all"`
+In this example, `sangerCoxSurv`  is used with `print.covs="all"`. The output is slightly different and are described below. `verbose=FALSE` was used for these examples so the function does not display messages while running.
+
+```{r,eval=FALSE}
+sangerCoxSurv(vcf.file=vcf.file,
+              covariate.file=pheno.file,
+              id.column="ID_2",
+              sample.ids=sample.ids,
+              time.to.event="time",
+              event="event",
+              covariates=c("age", "SexFemale", "DrugTxYes"),
+              inter.term=NULL,
+              print.covs="all",
+              out.file="sanger_all",
+              info.filter=0.7,
+              maf.filter=0.005,
+              chunk.size=10000,
+              verbose=FALSE,
+              clusterObj=NULL)
+```
+
+
+```{r, echo=FALSE}
+sangerCoxSurv(vcf.file=vcf.file,
+              covariate.file=pheno.file,
+              id.column="ID_2",
+              sample.ids=sample.ids,
+              time.to.event="time",
+              event="event",
+              covariates=c("age", "SexFemale", "DrugTxYes"),
+              inter.term=NULL,
+              print.covs="all",
+              out.file=tempfile("sanger_all"),
+              info.filter=0.7,
+              maf.filter=0.005,
+              chunk.size=10000,
+              verbose=FALSE,
+              clusterObj=NULL)
+```
+
+
+```{r, message=FALSE, eval=FALSE}
+sanger_all <- read_tsv("sanger_all.coxph")
+```
+
+```{r, message=FALSE, echo=FALSE}
+sanger_all <- read_tsv(dir(tempdir(), pattern="^sanger_all.*\\.coxph$", full.names = TRUE))
+```
+
+```{r}
+sanger_all %>% 
+    head() %>%
+    glimpse()
+```
+
+```{r, echo=FALSE}
+cols <- c("RSID",
+          "TYPED",
+          "CHR",
+          "POS",
+          "REF", 
+          "ALT", 
+          "RefPanelAF",
+          "SAMP_FREQ_ALT",
+          "SAMP_MAF",
+          "INFO", 
+          "PVALUE_SNP",
+          "PVALUE_age",
+          "PVALUE_SexFemale",
+          "PVALUE_DrugTxYes",
+          "HR_SNP",
+          "HR_age",
+          "HR_SexFemale",
+          "HR_DrugTxYes",
+          "HR_lowerCI_SNP",
+          "HR_lowerCI_age",
+          "HR_lowerCI_SexFemale",
+          "HR_lowerCI_DrugTxYes",
+          "HR_upperCI_SNP",
+          "HR_upperCI_age",
+          "HR_upperCI_SexFemale",
+          "HR_upperCI_DrugTxYes", 
+          "COEF_SNP",
+          "COEF_age",
+          "COEF_SexFemale",
+          "COEF_DrugTxYes",
+          "SE.COEF_SNP",
+          "SE.COEF_age",
+          "SE.COEF_SexFemale",
+          "SE.COEF_DrugTxYes",
+          "Z_SNP",
+          "Z_age",
+          "Z_SexFemale",
+          "Z_DrugTxYes",
+          "N", 
+          "NEVENT")
+
+desc <- c("SNP ID",
+          "Imputation status: TRUE (SNP IS TYPED)/FALSE (SNP IS IMPUTED)`",
+          "Chromosome number",
+          "Genomic Position (BP)",
+          "Reference Allele",
+          "Alternate Allele",
+          "Reference Panel Allele Frequency",
+          "Frequency of Alternate Allele",
+          "Minor allele frequency in sample being tested",
+          "Imputation INFO score",
+          "P-value of SNP alone",
+          "P-value of age alone",
+          "P-value of SexFemale alone",
+          "P-value of DrugTxYes alone",
+          "HR of SNP alone",
+          "HR of age alone",
+          "HR of SexFemale alone",
+          "HR of DrugTxYes alone",
+          "Lower 95% CI HR of SNP alone",
+          "Lower 95% CI HR of age alone",
+          "Lower 95% CI HR of SexFemale alone",
+          "Lower 95% CI HR of DrugTxYes alone",
+          "Upper 95% CI HR of SNP alone",
+          "Upper 95% CI HR of age alone",
+          "Upper 95% CI HR of SexFemale alone",
+          "Upper 95% CI HR of DrugTxYes alone",
+          "Coefficient Estimate of SNP alone",
+          "Coefficient Estimate of age alone",
+          "Coefficient Estimate of SexFemale alone",
+          "Coefficient Estimate of DrugTxYes alone",
+          "Standard error of Coefficient Estimate of SNP alone",
+          "Standard error of Coefficient Estimate of age alone",
+          "Standard error of Coefficient Estimate of SexFemale alone",
+          "Standard error of Coefficient Estimate of DrugTxYes alone",
+          "Z statistic of SNP alone",
+          "Z statistic of age alone",
+          "Z statistic of SexFemale alone",
+          "Z statistic of DrugTxYes alone",
+          "Number of individuals in sample being tested",
+          "Number of events that occurred in sample being tested")
+
+df <- cbind(cols, desc)
+colnames(df) <- c("Column", "Description")
+kable(df)
+```
+
+
 
 ### SNP with covariate interaction
-```{r}
+A SNP*covariate interaction can be implemented using the `inter.term` argument. In this example, we will use `DrugTxYes` from the covariate file as the covariate we want to test for interaction with the SNP. We will first run an example showing the output from `print.covs="only"`, followed by `print.covs="some"` and then `print.covs="all"` to show how the outputs vary.
 
+`print.covs="only"`
+
+
+```{r,eval=FALSE}
+sangerCoxSurv(vcf.file=vcf.file,
+              covariate.file=pheno.file,
+              id.column="ID_2",
+              sample.ids=sample.ids,
+              time.to.event="time",
+              event="event",
+              covariates=c("age", "SexFemale", "DrugTxYes"),
+              inter.term="DrugTxYes",
+              print.covs="only",
+              out.file="sanger_intx_only",
+              info.filter=0.7,
+              maf.filter=0.005,
+              chunk.size=10000,
+              verbose=TRUE,
+              clusterObj=NULL)
 ```
+
+
+```{r, echo=FALSE}
+sangerCoxSurv(vcf.file=vcf.file,
+              covariate.file=pheno.file,
+              id.column="ID_2",
+              sample.ids=sample.ids,
+              time.to.event="time",
+              event="event",
+              covariates=c("age", "SexFemale", "DrugTxYes"),
+              inter.term="DrugTxYes",
+              print.covs="only",
+              out.file=tempfile("sanger_intx_only"),
+              info.filter=0.7,
+              maf.filter=0.005,
+              chunk.size=10000,
+              verbose=TRUE,
+              clusterObj=NULL)
+```
+
+
+```{r, message=FALSE, eval=FALSE}
+sanger_intx_only <- read_tsv("sanger_intx_only.coxph")
+```
+
+```{r, message=FALSE, echo=FALSE}
+sanger_intx_only <- read_tsv(dir(tempdir(), pattern="^sanger_intx_only.*\\.coxph$", full.names = TRUE))
+```
+
+```{r}
+sanger_intx_only %>% 
+    head() %>%
+    glimpse()
+```
+
+Below can be found the description of the output for the SNP*covariate interaction model when `print.covs='only'`.
+
+```{r, echo=FALSE}
+cols <- c("RSID",
+          "TYPED",
+          "CHR",
+          "POS",
+          "REF", 
+          "ALT", 
+          "RefPanelAF",
+          "SAMP_FREQ_ALT",
+          "SAMP_MAF",
+          "INFO", 
+          "PVALUE",
+          "HR", 
+          "HR_lowerCI", 
+          "HR_upperCI", 
+          "COEF", 
+          "SE.COEF", 
+          "Z",
+          "N", 
+          "NEVENT")
+
+desc <- c("SNP ID",
+          "Imputation status: TRUE (SNP IS TYPED)/FALSE (SNP IS IMPUTED)`",
+          "Chromosome number",
+          "Genomic Position (BP)",
+          "Reference Allele",
+          "Alternate Allele",
+          "Reference Panel Allele Frequency",
+          "Frequency of Alternate Allele",
+          "Minor allele frequency in sample being tested",
+          "Imputation INFO score",
+          "P-value of interaction term (SNP*DrugTxYes)",
+          "Hazard Ratio (HR) of interaction term (SNP*DrugTxYes)",
+          "Lower bound 95% CI of HR of interaction term (SNP*DrugTxYes)",
+          "Upper bound 95% CI of HR of interaction term (SNP*DrugTxYes)",
+          "Estimated coefficient of SNP of interaction term (SNP*DrugTxYes)",
+          "Standard error of coefficient estimate of interaction term (SNP*DrugTxYes)",
+          "Z-statistic of interaction term (SNP*DrugTxYes)",
+          "Number of individuals in sample being tested",
+          "Number of events that occurred in sample being tested")
+
+df <- cbind(cols, desc)
+colnames(df) <- c("Column", "Description")
+kable(df)
+```
+
+
+
+`print.covs="some"`
+
+```{r,eval=FALSE}
+sangerCoxSurv(vcf.file=vcf.file,
+              covariate.file=pheno.file,
+              id.column="ID_2",
+              sample.ids=sample.ids,
+              time.to.event="time",
+              event="event",
+              covariates=c("age", "SexFemale", "DrugTxYes"),
+              inter.term="DrugTxYes",
+              print.covs="some",
+              out.file="sanger_intx_some",
+              info.filter=0.7,
+              maf.filter=0.005,
+              chunk.size=10000,
+              verbose=FALSE,
+              clusterObj=NULL)
+```
+
+
+```{r, echo=FALSE}
+sangerCoxSurv(vcf.file=vcf.file,
+              covariate.file=pheno.file,
+              id.column="ID_2",
+              sample.ids=sample.ids,
+              time.to.event="time",
+              event="event",
+              covariates=c("age", "SexFemale", "DrugTxYes"),
+              inter.term="DrugTxYes",
+              print.covs="some",
+              out.file=tempfile("sanger_intx_some"),
+              info.filter=0.7,
+              maf.filter=0.005,
+              chunk.size=10000,
+              verbose=FALSE,
+              clusterObj=NULL)
+```
+
+
+```{r, message=FALSE, eval=FALSE}
+sanger_intx_some <- read_tsv("sanger_intx_some.coxph")
+```
+
+```{r, message=FALSE, echo=FALSE}
+sanger_intx_some <- read_tsv(dir(tempdir(), pattern="^sanger_intx_some.*\\.coxph$", full.names = TRUE))
+```
+
+```{r}
+sanger_intx_some %>% 
+    head() %>%
+    glimpse()
+```
+
+Below can be found the description of the output for the SNP*covariate interaction model when `print.covs='all'`.
+
+```{r, echo=FALSE}
+cols <- c("RSID",
+          "TYPED",
+          "CHR",
+          "POS",
+          "REF", 
+          "ALT", 
+          "RefPanelAF",
+          "SAMP_FREQ_ALT",
+          "SAMP_MAF",
+          "INFO", 
+          "PVALUE_INTER.TERM",
+          "PVALUE_SNP",
+          "PVALUE_DrugTxYes",
+          "HR_INTER.TERM",
+          "HR_SNP",
+          "HR_DrugTxYes",
+          "HR_lowerCI_INTER.TERM",
+          "HR_lowerCI_SNP",
+          "HR_lowerCI_DrugTxYes",
+          "HR_upperCI_INTER.TERM", 
+          "HR_upperCI_SNP", 
+          "HR_upperCI_DrugTxYes", 
+          "COEF_INERM.TERM",
+          "COEF_SNP",
+          "COEF_DrugTxYes",
+          "SE.COEF_INTER.TERM",
+          "SE.COEF_SNP",
+          "SE.COEF_DrugTxYes",
+          "Z_INTER.TERM",
+          "Z_SNP",
+          "Z_DrugTxYes",
+          "N", 
+          "NEVENT")
+
+desc <- c("SNP ID",
+          "Imputation status: TRUE (SNP IS TYPED)/FALSE (SNP IS IMPUTED)`",
+          "Chromosome number",
+          "Genomic Position (BP)",
+          "Reference Allele",
+          "Alternate Allele",
+          "Reference Panel Allele Frequency",
+          "Frequency of Alternate Allele",
+          "Minor allele frequency in sample being tested",
+          "Imputation INFO score",
+          "P-value of interaction term (SNP*DrugTxYes)",
+          "P-value of SNP alone",
+          "P-value of DrugTxYes alone",
+          "HR of interaction term (SNP*DrugTxYes)",
+          "HR of SNP alone",
+          "HR of DrugTxYes alone",
+          "Lower 95% CI HR of interaction term (SNP*DrugTxYes)",
+          "Lower 95% CI HR of SNP alone",
+          "Lower 95% CI HR of DrugTxYes alone",
+          "Upper 95% CI HR of interaction term (SNP*DrugTxYes)",
+          "Upper 95% CI HR of SNP alone",
+          "Upper 95% CI HR of DrugTxYes alone",
+          "Coefficient Estimate of interaction term (SNP*DrugTxYes)",
+          "Coefficient Estimate of SNP alone",
+          "Coefficient Estimate of DrugTxYes alone",
+          "Standard Error of Coefficent of interaction term (SNP*DrugTxYes)",
+          "Standard Error of Coefficent of SNP alone",
+          "Standard Error of Coefficent of DrugTxYes alone",
+          "Z statistic of interaction term (SNP*DrugTxYes)",
+          "Z statistic of SNP alone",
+          "Z statistic of DrugTxYes alone",
+          "Number of individuals in sample being tested",
+          "Number of events that occurred in sample being tested")
+
+df <- cbind(cols, desc)
+colnames(df) <- c("Column", "Description")
+kable(df)
+```
+
+`print.covs="all"`
+
+
+```{r,eval=FALSE}
+sangerCoxSurv(vcf.file=vcf.file,
+              covariate.file=pheno.file,
+              id.column="ID_2",
+              sample.ids=sample.ids,
+              time.to.event="time",
+              event="event",
+              covariates=c("age", "SexFemale", "DrugTxYes"),
+              inter.term="DrugTxYes",
+              print.covs="all",
+              out.file="sanger_intx_all",
+              info.filter=0.7,
+              maf.filter=0.005,
+              chunk.size=10000,
+              verbose=FALSE,
+              clusterObj=NULL)
+```
+
+
+```{r, echo=FALSE}
+sangerCoxSurv(vcf.file=vcf.file,
+              covariate.file=pheno.file,
+              id.column="ID_2",
+              sample.ids=sample.ids,
+              time.to.event="time",
+              event="event",
+              covariates=c("age", "SexFemale", "DrugTxYes"),
+              inter.term="DrugTxYes",
+              print.covs="all",
+              out.file=tempfile("sanger_intx_all"),
+              info.filter=0.7,
+              maf.filter=0.005,
+              chunk.size=10000,
+              verbose=FALSE,
+              clusterObj=NULL)
+```
+
+
+```{r, message=FALSE, eval=FALSE}
+sanger_intx_all <- read_tsv("sanger_intx_all.coxph")
+```
+
+```{r, message=FALSE, echo=FALSE}
+sanger_intx_all <- read_tsv(dir(tempdir(), pattern="^sanger_intx_all.*\\.coxph$", full.names = TRUE))
+```
+
+```{r}
+sanger_intx_all %>% 
+    head() %>%
+    glimpse()
+```
+
+```{r, echo=FALSE}
+cols <- c("RSID",
+          "TYPED",
+          "CHR",
+          "POS",
+          "REF", 
+          "ALT", 
+          "RefPanelAF",
+          "SAMP_FREQ_ALT",
+          "SAMP_MAF",
+          "INFO", 
+          "PVALUE_INTER.TERM",
+          "PVALUE_SNP",
+          "PVALUE_age",
+          "PVALUE_SexFemale",
+          "PVALUE_DrugTxYes",
+          "HR_INTER.TERM",
+          "HR_SNP",
+          "HR_age",
+          "HR_SexFemale",
+          "HR_DrugTxYes",
+          "HR_lowerCI_INTER.TERM",
+          "HR_lowerCI_SNP",
+          "HR_lowerCI_age",
+          "HR_lowerCI_SexFemale",
+          "HR_lowerCI_DrugTxYes",
+          "HR_upperCI_INTER.TERM",
+          "HR_upperCI_SNP",
+          "HR_upperCI_age",
+          "HR_upperCI_SexFemale",
+          "HR_upperCI_DrugTxYes", 
+          "COEF_INERM.TERM",
+          "COEF_SNP",
+          "COEF_age",
+          "COEF_SexFemale",
+          "COEF_DrugTxYes",
+          "SE.COEF_INTER.TERM",
+          "SE.COEF_SNP",
+          "SE.COEF_age",
+          "SE.COEF_SexFemale",
+          "SE.COEF_DrugTxYes",
+          "Z_INTER.TERM",
+          "Z_SNP",
+          "Z_age",
+          "Z_SexFemale",
+          "Z_DrugTxYes",
+          "N", 
+          "NEVENT")
+
+desc <- c("SNP ID",
+          "Imputation status: TRUE (SNP IS TYPED)/FALSE (SNP IS IMPUTED)`",
+          "Chromosome number",
+          "Genomic Position (BP)",
+          "Reference Allele",
+          "Alternate Allele",
+          "Reference Panel Allele Frequency",
+          "Frequency of Alternate Allele",
+          "Minor allele frequency in sample being tested",
+          "Imputation INFO score",
+          "P-value of interaction term (SNP*DrugTxYes)",
+          "P-value of SNP alone",
+          "P-value of age alone",
+          "P-value of SexFemale alone",
+          "P-value of DrugTxYes alone",
+          "HR of interaction term (SNP*DrugTxYes)",
+          "HR of SNP alone",
+          "HR of age alone",
+          "HR of SexFemale alone",
+          "HR of DrugTxYes alone",
+          "Lower 95% CI HR of interaction term (SNP*DrugTxYes)",
+          "Lower 95% CI HR of SNP alone",
+          "Lower 95% CI HR of age alone",
+          "Lower 95% CI HR of SexFemale alone",
+          "Lower 95% CI HR of DrugTxYes alone",
+          "Upper 95% CI HR of interaction term (SNP*DrugTxYes)",
+          "Upper 95% CI HR of SNP alone",
+          "Upper 95% CI HR of age alone",
+          "Upper 95% CI HR of SexFemale alone",
+          "Upper 95% CI HR of DrugTxYes alone",
+          "Coefficient Estimate of interaction term (SNP*DrugTxYes)",
+          "Coefficient Estimate of SNP alone",
+          "Coefficient Estimate of age alone",
+          "Coefficient Estimate of SexFemale alone",
+          "Coefficient Estimate of DrugTxYes alone",
+          "Standard error of Coefficient Estimate of interaction term (SNP*DrugTxYes)",
+          "Standard error of Coefficient Estimate of SNP alone",
+          "Standard error of Coefficient Estimate of age alone",
+          "Standard error of Coefficient Estimate of SexFemale alone",
+          "Standard error of Coefficient Estimate of DrugTxYes alone",
+          "Z statistic of interaction term (SNP*DrugTxYes)",
+          "Z statistic of SNP alone",
+          "Z statistic of age alone",
+          "Z statistic of SexFemale alone",
+          "Z statistic of DrugTxYes alone",
+          "Number of individuals in sample being tested",
+          "Number of events that occurred in sample being tested")
+
+df <- cbind(cols, desc)
+colnames(df) <- c("Column", "Description")
+kable(df)
+```
+
+
 
 # IMPUTE2 Imputation
 ## File structure
@@ -191,7 +788,6 @@ impute.file <- system.file(package="gwasurvivr",
 sample.file <- system.file(package="gwasurvivr",
                            "extdata", 
                            "impute_example.impute2_sample")
-chr <- 14
 covariate.file <- system.file(package="gwasurvivr", 
                        "extdata",
                        "simulated_pheno.txt")
@@ -199,35 +795,20 @@ covariate.file <- read_delim(covariate.file, delim=" ")
 covariate.file <- covariate.file %>% 
         mutate(SexFemale=case_when(sex=="female"~1L,
                                    sex=="male"~0L)) %>%
-        dplyr::select(-ID_1)
-covariate.file %>% head
+        select(-ID_1)
+covariate.file %>%
+    head()
 sample.ids <- covariate.file %>%
         filter(group=="experimental") %$%
         ID_2 
 ```
 
-Now we can run survival. Need to talk about why `flip.dosage=TRUE`
-```{r, echo=FALSE}
-impute2CoxSurv(impute.file=impute.file,
-               sample.file=sample.file,
-               chr=14,
-               covariate.file=covariate.file,
-               id.column="ID_2",
-               sample.ids=sample.ids,
-               time.to.event="time",
-               event="event",
-               covariates=c("age", "SexFemale", "bmiOVWT"),
-               inter.term=NULL,
-               print.covs="only",
-               out.file=tempfile("impute_example"),
-               chunk.size=10000,
-               maf.filter=0.01,
-               info.filter=0.7,
-               flip.dosage=TRUE,
-               verbose=TRUE,
-               clusterObj=NULL)
-```
+Now we can run survival.
 
+## Description of output columns
+
+### Single SNP analysis
+`print.cov="only"`
 
 ```{r, eval=FALSE}
 impute2CoxSurv(impute.file=impute.file,
@@ -238,10 +819,264 @@ impute2CoxSurv(impute.file=impute.file,
                sample.ids=sample.ids,
                time.to.event="time",
                event="event",
-               covariates=c("age", "SexFemale", "bmiOVWT"),
+               covariates=c("age", "SexFemale", "DrugTxYes"),
                inter.term=NULL,
                print.covs="only",
-               out.file="impute_example",
+               out.file="impute_example_only",
+               chunk.size=10000,
+               maf.filter=0.01,
+               info.filter=0.7,
+               flip.dosage=TRUE,
+               verbose=FALSE,
+               clusterObj=NULL)
+```
+
+```{r, echo=FALSE}
+impute2CoxSurv(impute.file=impute.file,
+               sample.file=sample.file,
+               chr=14,
+               covariate.file=covariate.file,
+               id.column="ID_2",
+               sample.ids=sample.ids,
+               time.to.event="time",
+               event="event",
+               covariates=c("age", "SexFemale", "DrugTxYes"),
+               inter.term=NULL,
+               print.covs="only",
+               out.file=tempfile("impute_example_only"),
+               chunk.size=10000,
+               maf.filter=0.01,
+               info.filter=0.7,
+               flip.dosage=TRUE,
+               verbose=FALSE,
+               clusterObj=NULL)
+```
+
+```{r, message=FALSE, eval=FALSE}
+impute2_res_only <- read_tsv("impute_example_only.coxph")
+impute2_res_only %>%
+    head() %>% 
+    glimpse()
+```
+
+
+```{r, message=FALSE, echo=FALSE}
+impute2_res_only <- read_tsv(dir(tempdir(), pattern="^impute_example_only.*\\.coxph$", full.names=TRUE))
+impute2_res_only %>%
+    head() %>%
+    glimpse()
+```
+
+
+```{r, echo=FALSE}
+cols <- c("RSID",
+          "TYPED",
+          "CHR",
+          "POS",
+          "A0", 
+          "A1", 
+          "exp_freq_A1",
+          "SAMP_MAF",
+          "INFO", 
+          "PVALUE",
+          "HR", 
+          "HR_lowerCI", 
+          "HR_upperCI", 
+          "COEF", 
+          "SE.COEF", 
+          "Z",
+          "N", 
+          "NEVENT")
+
+desc <- c("SNP ID",
+          "Imputation status: Typed (RSID repeated)/Imputed `(---)`",
+          "Chromosome number",
+          "Genomic Position (BP)",
+          "Allele coded as 0",
+          "Allele coded as 1",
+          "Expected allele frequency of Allele 1 within the sample being tested",
+          "Minor allele frequency (MAF) within the sample being tested",
+          "Imputation INFO score",
+          "P-value",
+          "Hazard Ratio (HR)",
+          "Lower bound 95% CI of HR",
+          "Upper bound 95% CI of HR",
+          "Estimated coefficient of SNP",
+          "Standard error of coefficient estimate",
+          "Z-statistic",
+          "Number of individuals in sample being tested",
+          "Number of events that occurred in sample being tested")
+
+df <- cbind(cols, desc)
+colnames(df) <- c("Column", "Description")
+kable(df)
+```
+
+`print.cov="all"`
+
+```{r, eval=FALSE}
+impute2CoxSurv(impute.file=impute.file,
+               sample.file=sample.file,
+               chr=14,
+               covariate.file=covariate.file,
+               id.column="ID_2",
+               sample.ids=sample.ids,
+               time.to.event="time",
+               event="event",
+               covariates=c("age", "SexFemale", "DrugTxYes"),
+               inter.term=NULL,
+               print.covs="all",
+               out.file="impute_example_all",
+               chunk.size=10000,
+               maf.filter=0.01,
+               info.filter=0.7,
+               flip.dosage=TRUE,
+               verbose=FALSE,
+               clusterObj=NULL)
+```
+
+
+```{r, echo=FALSE}
+impute2CoxSurv(impute.file=impute.file,
+               sample.file=sample.file,
+               chr=14,
+               covariate.file=covariate.file,
+               id.column="ID_2",
+               sample.ids=sample.ids,
+               time.to.event="time",
+               event="event",
+               covariates=c("age", "SexFemale", "DrugTxYes"),
+               inter.term=NULL,
+               print.covs="all",
+               out.file=tempfile("impute_example_all"),
+               chunk.size=10000,
+               maf.filter=0.01,
+               info.filter=0.7,
+               flip.dosage=TRUE,
+               verbose=FALSE,
+               clusterObj=NULL)
+```
+
+
+```{r, message=FALSE, eval=FALSE}
+impute2_res_all <- read_tsv("impute_example_all.coxph")
+impute2_res_all %>%
+    head() %>% 
+    glimpse()
+```
+
+
+```{r, message=FALSE, echo=FALSE}
+impute2_res_all <- read_tsv(dir(tempdir(), pattern="^impute_example_all.*\\.coxph$", full.names=TRUE))
+impute2_res_all %>%
+    head() %>%
+    glimpse()
+```
+
+
+```{r, echo=FALSE}
+cols <- c("RSID",
+          "TYPED",
+          "CHR",
+          "POS",
+          "A0", 
+          "A1", 
+          "exp_freq_A1",
+          "SAMP_MAF",
+          "INFO", 
+          "PVALUE_SNP",
+          "PVALUE_age",
+          "PVALUE_SexFemale",
+          "PVALUE_DrugTxYes",
+          "HR_SNP",
+          "HR_age",
+          "HR_SexFemale",
+          "HR_DrugTxYes",
+          "HR_lowerCI_SNP",
+          "HR_lowerCI_age",
+          "HR_lowerCI_SexFemale",
+          "HR_lowerCI_DrugTxYes",
+          "HR_upperCI_SNP",
+          "HR_upperCI_age",
+          "HR_upperCI_SexFemale",
+          "HR_upperCI_DrugTxYes", 
+          "COEF_SNP",
+          "COEF_age",
+          "COEF_SexFemale",
+          "COEF_DrugTxYes",
+          "SE.COEF_SNP",
+          "SE.COEF_age",
+          "SE.COEF_SexFemale",
+          "SE.COEF_DrugTxYes",
+          "Z_SNP",
+          "Z_age",
+          "Z_SexFemale",
+          "Z_DrugTxYes",
+          "N", 
+          "NEVENT")
+
+desc <- c("SNP ID",
+          "Imputation status: Typed (RSID repeated)/Imputed `(---)`",
+          "Chromosome number",
+          "Genomic Position (BP)",
+          "Allele coded as 0",
+          "Allele coded as 1",
+          "Expected allele frequency of Allele 1 within the sample being tested",
+          "Minor allele frequency (MAF) within the sample being tested",
+          "Imputation INFO score",
+          "P-value of SNP alone",
+          "P-value of age alone",
+          "P-value of SexFemale alone",
+          "P-value of DrugTxYes alone",
+          "HR of SNP alone",
+          "HR of age alone",
+          "HR of SexFemale alone",
+          "HR of DrugTxYes alone",
+          "Lower 95% CI HR of SNP alone",
+          "Lower 95% CI HR of age alone",
+          "Lower 95% CI HR of SexFemale alone",
+          "Lower 95% CI HR of DrugTxYes alone",
+          "Upper 95% CI HR of SNP alone",
+          "Upper 95% CI HR of age alone",
+          "Upper 95% CI HR of SexFemale alone",
+          "Upper 95% CI HR of DrugTxYes alone",
+          "Coefficient Estimate of SNP alone",
+          "Coefficient Estimate of age alone",
+          "Coefficient Estimate of SexFemale alone",
+          "Coefficient Estimate of DrugTxYes alone",
+          "Standard error of Coefficient Estimate of SNP alone",
+          "Standard error of Coefficient Estimate of age alone",
+          "Standard error of Coefficient Estimate of SexFemale alone",
+          "Standard error of Coefficient Estimate of DrugTxYes alone",
+          "Z statistic of SNP alone",
+          "Z statistic of age alone",
+          "Z statistic of SexFemale alone",
+          "Z statistic of DrugTxYes alone",
+          "Number of individuals in sample being tested",
+          "Number of events that occurred in sample being tested")
+
+df <- cbind(cols, desc)
+colnames(df) <- c("Column", "Description")
+kable(df)
+```
+
+### SNP with covariate interaction
+
+`print.cov="only"`
+
+```{r, eval=FALSE}
+impute2CoxSurv(impute.file=impute.file,
+               sample.file=sample.file,
+               chr=14,
+               covariate.file=covariate.file,
+               id.column="ID_2",
+               sample.ids=sample.ids,
+               time.to.event="time",
+               event="event",
+               covariates=c("age", "SexFemale", "DrugTxYes"),
+               inter.term="DrugTxYes",
+               print.covs="only",
+               out.file="intx_only",
                chunk.size=10000,
                maf.filter=0.01,
                info.filter=0.7,
@@ -250,63 +1085,1054 @@ impute2CoxSurv(impute.file=impute.file,
                clusterObj=NULL)
 ```
 
-## Peek at results
+```{r, echo=FALSE}
+impute2CoxSurv(impute.file=impute.file,
+               sample.file=sample.file,
+               chr=14,
+               covariate.file=covariate.file,
+               id.column="ID_2",
+               sample.ids=sample.ids,
+               time.to.event="time",
+               event="event",
+               covariates=c("age", "SexFemale", "DrugTxYes"),
+               inter.term="DrugTxYes",
+               print.covs="only",
+               out.file=tempfile("intx_only"),
+               chunk.size=10000,
+               maf.filter=0.01,
+               info.filter=0.7,
+               flip.dosage=TRUE,
+               verbose=TRUE,
+               clusterObj=NULL)
+```
+
+```{r, message=FALSE, eval=FALSE}
+intx_only <- read_tsv("intx_only.coxph")
+intx_only %>%
+    head() %>% 
+    glimpse()
+```
+
+
 ```{r, message=FALSE, echo=FALSE}
-impute2_res <- read_tsv(dir(tempdir(), pattern="^impute_example.*\\.coxph$", full.names=TRUE))
+intx_only <- read_tsv(dir(tempdir(), pattern="^intx_only.*\\.coxph$", full.names=TRUE))
+intx_only %>%
+    head() %>% 
+    glimpse()
+```
+
+```{r, echo=FALSE}
+cols <- c("RSID",
+          "TYPED",
+          "CHR",
+          "POS",
+          "A0", 
+          "A1", 
+          "exp_freq_A1",
+          "SAMP_MAF",
+          "INFO", 
+          "PVALUE",
+          "HR", 
+          "HR_lowerCI", 
+          "HR_upperCI", 
+          "COEF", 
+          "SE.COEF", 
+          "Z",
+          "N", 
+          "NEVENT")
+
+desc <- c("SNP ID",
+          "Imputation status: Typed (RSID repeated)/Imputed `(---)`",
+          "Chromosome number",
+          "Genomic Position (BP)",
+          "Allele coded as 0",
+          "Allele coded as 1",
+          "Expected allele frequency of Allele 1 within the sample being tested",
+          "Minor allele frequency (MAF) within the sample being tested",
+          "Imputation INFO score",
+          "P-value of Interaction term (SNP*DrugTxYes)",
+          "Hazard Ratio (HR) of Interaction term (SNP*DrugTxYes)",
+          "Lower bound 95% CI of HR of Interaction term (SNP*DrugTxYes)",
+          "Upper bound 95% CI of HR of Interaction term (SNP*DrugTxYes)",
+          "Estimated coefficient of SNP of Interaction term (SNP*DrugTxYes)",
+          "Standard error of coefficient estimate of Interaction term (SNP*DrugTxYes)",
+          "Z-statistic of Interaction term (SNP*DrugTxYes)",
+          "Number of individuals in sample being tested",
+          "Number of events that occurred in sample being tested")
+
+df <- cbind(cols, desc)
+colnames(df) <- c("Column", "Description")
+kable(df)
+```
+
+`print.cov="some"`
+
+```{r, eval=FALSE}
+impute2CoxSurv(impute.file=impute.file,
+               sample.file=sample.file,
+               chr=14,
+               covariate.file=covariate.file,
+               id.column="ID_2",
+               sample.ids=sample.ids,
+               time.to.event="time",
+               event="event",
+               covariates=c("age", "SexFemale", "DrugTxYes"),
+               inter.term="DrugTxYes",
+               print.covs="some",
+               out.file="intx_some",
+               chunk.size=10000,
+               maf.filter=0.01,
+               info.filter=0.7,
+               flip.dosage=TRUE,
+               verbose=FALSE,
+               clusterObj=NULL)
+```
+
+```{r, echo=FALSE}
+impute2CoxSurv(impute.file=impute.file,
+               sample.file=sample.file,
+               chr=14,
+               covariate.file=covariate.file,
+               id.column="ID_2",
+               sample.ids=sample.ids,
+               time.to.event="time",
+               event="event",
+               covariates=c("age", "SexFemale", "DrugTxYes"),
+               inter.term="DrugTxYes",
+               print.covs="some",
+               out.file=tempfile("intx_some"),
+               chunk.size=10000,
+               maf.filter=0.01,
+               info.filter=0.7,
+               flip.dosage=TRUE,
+               verbose=FALSE,
+               clusterObj=NULL)
+```
+
+```{r, message=FALSE, eval=FALSE}
+intx_some <- read_tsv("intx_some.coxph")
+intx_some %>%
+    head() %>% 
+    glimpse()
+```
+
+```{r, message=FALSE, echo=FALSE}
+intx_some <- read_tsv(dir(tempdir(), pattern="^intx_some.*\\.coxph$", full.names=TRUE))
+intx_some %>%
+    head() %>% 
+    glimpse()
+```
+
+```{r, echo=FALSE}
+cols <- c("RSID",
+          "TYPED",
+          "CHR",
+          "POS",
+          "A0", 
+          "A1", 
+          "exp_freq_A1",
+          "SAMP_MAF",
+          "INFO", 
+          "PVALUE_INTER.TERM",
+          "PVALUE_SNP",
+          "PVALUE_DrugTxYes",
+          "HR_INTER.TERM",
+          "HR_SNP",
+          "HR_DrugTxYes",
+          "HR_lowerCI_INTER.TERM",
+          "HR_lowerCI_SNP",
+          "HR_lowerCI_DrugTxYes",
+          "HR_upperCI_INTER.TERM", 
+          "HR_upperCI_SNP", 
+          "HR_upperCI_DrugTxYes", 
+          "COEF_INERM.TERM",
+          "COEF_SNP",
+          "COEF_DrugTxYes",
+          "SE.COEF_INTER.TERM",
+          "SE.COEF_SNP",
+          "SE.COEF_DrugTxYes",
+          "Z_INTER.TERM",
+          "Z_SNP",
+          "Z_DrugTxYes",
+          "NEVENT")
+
+desc <- c("SNP ID",
+          "Imputation status: Typed (RSID repeated)/Imputed `(---)`",
+          "Chromosome number",
+          "Genomic Position (BP)",
+          "Allele coded as 0",
+          "Allele coded as 1",
+          "Expected allele frequency of Allele 1 within the sample being tested",
+          "Minor allele frequency (MAF) within the sample being tested",
+          "Imputation INFO score",
+          "P-value of interaction term (SNP*DrugTxYes)",
+          "P-value of SNP alone",
+          "P-value of DrugTxYes alone",
+          "HR of interaction term (SNP*DrugTxYes)",
+          "HR of SNP alone",
+          "HR of DrugTxYes alone",
+          "Lower 95% CI HR of interaction term (SNP*DrugTxYes)",
+          "Lower 95% CI HR of SNP alone",
+          "Lower 95% CI HR of DrugTxYes alone",
+          "Upper 95% CI HR of interaction term (SNP*DrugTxYes)",
+          "Upper 95% CI HR of SNP alone",
+          "Upper 95% CI HR of DrugTxYes alone",
+          "Coefficient Estimate of interaction term (SNP*DrugTxYes)",
+          "Coefficient Estimate of SNP alone",
+          "Coefficient Estimate of DrugTxYes alone",
+          "Standard Error of Coefficent of interaction term (SNP*DrugTxYes)",
+          "Standard Error of Coefficent of SNP alone",
+          "Standard Error of Coefficent of DrugTxYes alone",
+          "Z statistic of interaction term (SNP*DrugTxYes)",
+          "Z statistic of SNP alone",
+          "Z statistic of DrugTxYes alone",
+          "Number of individuals in sample being tested",
+          "Number of events that occurred in sample being tested")
+
+df <- cbind(cols, desc)
+colnames(df) <- c("Column", "Description")
+kable(df)
+```
+
+`print.cov="all"`
+
+```{r, eval=FALSE}
+impute2CoxSurv(impute.file=impute.file,
+               sample.file=sample.file,
+               chr=14,
+               covariate.file=covariate.file,
+               id.column="ID_2",
+               sample.ids=sample.ids,
+               time.to.event="time",
+               event="event",
+               covariates=c("age", "SexFemale", "DrugTxYes"),
+               inter.term="DrugTxYes",
+               print.covs="all",
+               out.file="intx_all",
+               chunk.size=10000,
+               maf.filter=0.01,
+               info.filter=0.7,
+               flip.dosage=TRUE,
+               verbose=FALSE,
+               clusterObj=NULL)
+```
+
+```{r, echo=FALSE}
+impute2CoxSurv(impute.file=impute.file,
+               sample.file=sample.file,
+               chr=14,
+               covariate.file=covariate.file,
+               id.column="ID_2",
+               sample.ids=sample.ids,
+               time.to.event="time",
+               event="event",
+               covariates=c("age", "SexFemale", "DrugTxYes"),
+               inter.term="DrugTxYes",
+               print.covs="all",
+               out.file=tempfile("intx_all"),
+               chunk.size=10000,
+               maf.filter=0.01,
+               info.filter=0.7,
+               flip.dosage=TRUE,
+               verbose=FALSE,
+               clusterObj=NULL)
+```
+
+```{r, message=FALSE, eval=FALSE}
+intx_all <- read_tsv("intx_all.coxph")
+intx_all %>%
+    head() %>% 
+    glimpse()
+```
+
+```{r, message=FALSE, echo=FALSE}
+intx_all <- read_tsv(dir(tempdir(), pattern="^intx_all.*\\.coxph$", full.names=TRUE))
+intx_all %>%
+    head() %>% 
+    glimpse()
+```
+
+```{r, echo=FALSE}
+cols <- c("RSID",
+          "TYPED",
+          "CHR",
+          "POS",
+          "A0", 
+          "A1", 
+          "exp_freq_A1",
+          "SAMP_MAF",
+          "INFO", 
+          "PVALUE_INTER.TERM",
+          "PVALUE_SNP",
+          "PVALUE_age",
+          "PVALUE_SexFemale",
+          "PVALUE_DrugTxYes",
+          "HR_INTER.TERM",
+          "HR_SNP",
+          "HR_age",
+          "HR_SexFemale",
+          "HR_DrugTxYes",
+          "HR_lowerCI_INTER.TERM",
+          "HR_lowerCI_SNP",
+          "HR_lowerCI_age",
+          "HR_lowerCI_SexFemale",
+          "HR_lowerCI_DrugTxYes",
+          "HR_upperCI_INTER.TERM",
+          "HR_upperCI_SNP",
+          "HR_upperCI_age",
+          "HR_upperCI_SexFemale",
+          "HR_upperCI_DrugTxYes", 
+          "COEF_INERM.TERM",
+          "COEF_SNP",
+          "COEF_age",
+          "COEF_SexFemale",
+          "COEF_DrugTxYes",
+          "SE.COEF_INTER.TERM",
+          "SE.COEF_SNP",
+          "SE.COEF_age",
+          "SE.COEF_SexFemale",
+          "SE.COEF_DrugTxYes",
+          "Z_INTER.TERM",
+          "Z_SNP",
+          "Z_age",
+          "Z_SexFemale",
+          "Z_DrugTxYes",
+          "N",
+          "NEVENT")
+
+desc <- c("SNP ID",
+          "Imputation status: Typed (RSID repeated)/Imputed `(---)`",
+          "Chromosome number",
+          "Genomic Position (BP)",
+          "Allele coded as 0",
+          "Allele coded as 1",
+          "Expected allele frequency of Allele 1 within the sample being tested",
+          "Minor allele frequency (MAF) within the sample being tested",
+          "Imputation INFO score",
+          "P-value of interaction term (SNP*DrugTxYes)",
+          "P-value of SNP alone",
+          "P-value of age alone",
+          "P-value of SexFemale alone",
+          "P-value of DrugTxYes alone",
+          "HR of interaction term (SNP*DrugTxYes)",
+          "HR of SNP alone",
+          "HR of age alone",
+          "HR of SexFemale alone",
+          "HR of DrugTxYes alone",
+          "Lower 95% CI HR of interaction term (SNP*DrugTxYes)",
+          "Lower 95% CI HR of SNP alone",
+          "Lower 95% CI HR of age alone",
+          "Lower 95% CI HR of SexFemale alone",
+          "Lower 95% CI HR of DrugTxYes alone",
+          "Upper 95% CI HR of interaction term (SNP*DrugTxYes)",
+          "Upper 95% CI HR of SNP alone",
+          "Upper 95% CI HR of age alone",
+          "Upper 95% CI HR of SexFemale alone",
+          "Upper 95% CI HR of DrugTxYes alone",
+          "Coefficient Estimate of interaction term (SNP*DrugTxYes)",
+          "Coefficient Estimate of SNP alone",
+          "Coefficient Estimate of age alone",
+          "Coefficient Estimate of SexFemale alone",
+          "Coefficient Estimate of DrugTxYes alone",
+          "Standard error of Coefficient Estimate of interaction term (SNP*DrugTxYes)",
+          "Standard error of Coefficient Estimate of SNP alone",
+          "Standard error of Coefficient Estimate of age alone",
+          "Standard error of Coefficient Estimate of SexFemale alone",
+          "Standard error of Coefficient Estimate of DrugTxYes alone",
+          "Z statistic of interaction term (SNP*DrugTxYes)",
+          "Z statistic of SNP alone",
+          "Z statistic of age alone",
+          "Z statistic of SexFemale alone",
+          "Z statistic of DrugTxYes alone",
+          "Number of individuals in sample being tested",
+          "Number of events that occurred in sample being tested")
+
+df <- cbind(cols, desc)
+colnames(df) <- c("Column", "Description")
+kable(df)
+```
+
+# Michigan Imputation Server
+[Michigan Imputation Server](https://imputationserver.sph.umich.edu/index.html) outputs Blocked GNU Zip Format VCF files (`.vcf.gz`). These files are typically stored in full chromosome chunks. Imputation is done using the Minimac3 imputation engine. Pre-phasing is done using either HAPI-UR, SHAPEIT, or EAGLE (default is EAGLE2). 
+
+## R Session Example
+```{r}
+vcf.file <- system.file(package="gwasurvivr",
+                        "extdata", 
+                        "michigan.chr14.dose.vcf.gz")
+pheno.fl <- system.file(package="gwasurvivr",
+                        "extdata", 
+                        "simulated_pheno.txt")
+pheno.file <- read.table(pheno.fl, sep=" ", header=TRUE, stringsAsFactors = FALSE)
+head(pheno.file)
+# recode sex column and remove first column 
+pheno.file <- pheno.file %>%
+        mutate(SexFemale=case_when(sex=="female"~1L,
+                                   sex=="male"~0L)) %>%
+        select(-ID_1)
+
+# select only experimental group sample.ids
+sample.ids <- pheno.file %>%
+        filter(group=="experimental") %$%
+        ID_2 
+head(sample.ids)
+```
+
+### Single SNP analysis
+
+`print.covs="only"`
+
+```{r,eval=FALSE}
+michiganCoxSurv(vcf.file=vcf.file,
+                covariate.file=pheno.file,
+                id.column="ID_2",
+                sample.ids=sample.ids,
+                time.to.event="time",
+                event="event",
+                covariates=c("age", "SexFemale", "DrugTxYes"),
+                inter.term=NULL,
+                print.covs="only",
+                out.file="michigan_only",
+                info.filter=0.7,
+                maf.filter=0.005,
+                chunk.size=10000,
+                verbose=TRUE,
+                clusterObj=NULL)
+```
+
+
+```{r, echo=FALSE}
+michiganCoxSurv(vcf.file=vcf.file,
+                covariate.file=pheno.file,
+                id.column="ID_2",
+                sample.ids=sample.ids,
+                time.to.event="time",
+                event="event",
+                covariates=c("age", "SexFemale", "DrugTxYes"),
+                inter.term=NULL,
+                print.covs="only",
+                out.file=tempfile("michigan_only"),
+                info.filter=0.7,
+                maf.filter=0.005,
+                chunk.size=10000,
+                verbose=TRUE,
+                clusterObj=NULL)
 ```
 
 
 ```{r, message=FALSE, eval=FALSE}
-impute2_res <- read_tsv("impute_example.coxph")
-dim(impute2_res)
+michigan_only <- read_tsv("michigan_only.coxph")
+```
+
+```{r, message=FALSE, echo=FALSE}
+michigan_only <- read_tsv(dir(tempdir(), pattern="^michigan_only.*\\.coxph$", full.names = TRUE))
 ```
 
 ```{r}
-impute2_res %>%
-        select(RSID, TYPED, PVALUE, COEF, HR) %>%
-        arrange(PVALUE) %>%
-        head() %>%
-        kable() 
+michigan_only %>% 
+    head() %>%
+    glimpse()
 ```
 
-The results look the same.
+```{r, echo=FALSE}
+cols <- c("RSID",
+          "TYPED",
+          "CHR",
+          "POS",
+          "REF", 
+          "ALT", 
+          "AF",
+          "MAF",
+          "SAMP_FREQ_ALT",
+          "SAMP_MAF",
+          "INFO",
+          "ER2",
+          "PVALUE",
+          "HR", 
+          "HR_lowerCI", 
+          "HR_upperCI", 
+          "COEF", 
+          "SE.COEF", 
+          "Z",
+          "N", 
+          "NEVENT")
 
-## Description of output columns
+desc <- c("SNP ID",
+          "Imputation status: TRUE (SNP IS TYPED)/FALSE (SNP IS IMPUTED)`",
+          "Chromosome number",
+          "Genomic Position (BP)",
+          "Reference Allele",
+          "Alternate Allele",
+          "Minimac3 output Alternate Allele Frequency",
+          "Minimac3 output of Minor Allele Frequency",
+          "Alternate allele frequency in sample being tested",
+          "Minor allele frequency in sample being tested",
+          "Imputation INFO score (minimac3 R2)",
+          "Minimac3 ouput empirical R2",
+          "P-value",
+          "Hazard Ratio (HR)",
+          "Lower bound 95% CI of HR",
+          "Upper bound 95% CI of HR",
+          "Estimated coefficient of SNP",
+          "Standard error of coefficient estimate",
+          "Z-statistic",
+          "Number of individuals in sample being tested",
+          "Number of events that occurred in sample being tested")
 
-### Single SNP analysis
-`print.cov="only"`
+df <- cbind(cols, desc)
+colnames(df) <- c("Column", "Description")
+kable(df)
+```
+
+`print.covs="all"`
+
+```{r,eval=FALSE}
+michiganCoxSurv(vcf.file=vcf.file,
+                covariate.file=pheno.file,
+                id.column="ID_2",
+                sample.ids=sample.ids,
+                time.to.event="time",
+                event="event",
+                covariates=c("age", "SexFemale", "DrugTxYes"),
+                inter.term=NULL,
+                print.covs="all",
+                out.file="michigan_all",
+                info.filter=0.7,
+                maf.filter=0.005,
+                chunk.size=10000,
+                verbose=FALSE,
+                clusterObj=NULL)
+```
+
+
+```{r, echo=FALSE}
+michiganCoxSurv(vcf.file=vcf.file,
+                covariate.file=pheno.file,
+                id.column="ID_2",
+                sample.ids=sample.ids,
+                time.to.event="time",
+                event="event",
+                covariates=c("age", "SexFemale", "DrugTxYes"),
+                inter.term=NULL,
+                print.covs="all",
+                out.file=tempfile("michigan_all"),
+                info.filter=0.7,
+                maf.filter=0.005,
+                chunk.size=10000,
+                verbose=FALSE,
+                clusterObj=NULL)
+```
+
+
+```{r, message=FALSE, eval=FALSE}
+michigan_all <- read_tsv("michigan_all.coxph")
+```
+
+```{r, message=FALSE, echo=FALSE}
+michigan_all <- read_tsv(dir(tempdir(), pattern="^michigan_all.*\\.coxph$", full.names = TRUE))
+```
+
 ```{r}
-
+michigan_all %>% 
+    head() %>%
+    glimpse()
 ```
 
-`print.cov="all"`
-```{r}
+```{r, echo=FALSE}
+cols <- c("RSID",
+          "TYPED",
+          "CHR",
+          "POS",
+          "REF", 
+          "ALT", 
+          "AF",
+          "MAF",
+          "SAMP_FREQ_ALT",
+          "SAMP_MAF",
+          "INFO",
+          "ER2",
+          "PVALUE_SNP",
+          "PVALUE_age",
+          "PVALUE_SexFemale",
+          "PVALUE_DrugTxYes",
+          "HR_SNP",
+          "HR_age",
+          "HR_SexFemale",
+          "HR_DrugTxYes",
+          "HR_lowerCI_SNP",
+          "HR_lowerCI_age",
+          "HR_lowerCI_SexFemale",
+          "HR_lowerCI_DrugTxYes",
+          "HR_upperCI_SNP",
+          "HR_upperCI_age",
+          "HR_upperCI_SexFemale",
+          "HR_upperCI_DrugTxYes", 
+          "COEF_SNP",
+          "COEF_age",
+          "COEF_SexFemale",
+          "COEF_DrugTxYes",
+          "SE.COEF_SNP",
+          "SE.COEF_age",
+          "SE.COEF_SexFemale",
+          "SE.COEF_DrugTxYes",
+          "Z_SNP",
+          "Z_age",
+          "Z_SexFemale",
+          "Z_DrugTxYes",
+          "N", 
+          "NEVENT")
 
+desc <- c("SNP ID",
+          "Imputation status: TRUE (SNP IS TYPED)/FALSE (SNP IS IMPUTED)`",
+          "Chromosome number",
+          "Genomic Position (BP)",
+          "Reference Allele",
+          "Alternate Allele",
+          "Minimac3 output Alternate Allele Frequency",
+          "Minimac3 output of Minor Allele Frequency",
+          "Alternate allele frequency in sample being tested",
+          "Minor allele frequency in sample being tested",
+          "Imputation INFO score (minimac3 R2)",
+          "Minimac3 ouput empirical R2",
+          "P-value of SNP alone",
+          "P-value of age alone",
+          "P-value of SexFemale alone",
+          "P-value of DrugTxYes alone",
+          "HR of SNP alone",
+          "HR of age alone",
+          "HR of SexFemale alone",
+          "HR of DrugTxYes alone",
+          "Lower 95% CI HR of SNP alone",
+          "Lower 95% CI HR of age alone",
+          "Lower 95% CI HR of SexFemale alone",
+          "Lower 95% CI HR of DrugTxYes alone",
+          "Upper 95% CI HR of SNP alone",
+          "Upper 95% CI HR of age alone",
+          "Upper 95% CI HR of SexFemale alone",
+          "Upper 95% CI HR of DrugTxYes alone",
+          "Coefficient Estimate of SNP alone",
+          "Coefficient Estimate of age alone",
+          "Coefficient Estimate of SexFemale alone",
+          "Coefficient Estimate of DrugTxYes alone",
+          "Standard error of Coefficient Estimate of SNP alone",
+          "Standard error of Coefficient Estimate of age alone",
+          "Standard error of Coefficient Estimate of SexFemale alone",
+          "Standard error of Coefficient Estimate of DrugTxYes alone",
+          "Z statistic of SNP alone",
+          "Z statistic of age alone",
+          "Z statistic of SexFemale alone",
+          "Z statistic of DrugTxYes alone",
+          "Number of individuals in sample being tested",
+          "Number of events that occurred in sample being tested")
+
+df <- cbind(cols, desc)
+colnames(df) <- c("Column", "Description")
+kable(df)
 ```
+
+
+
 
 ### SNP with covariate interaction
-`print.cov="only"`
-```{r}
 
+`print.covs="only"`
+
+```{r,eval=FALSE}
+michiganCoxSurv(vcf.file=vcf.file,
+                covariate.file=pheno.file,
+                id.column="ID_2",
+                sample.ids=sample.ids,
+                time.to.event="time",
+                event="event",
+                covariates=c("age", "SexFemale", "DrugTxYes"),
+                inter.term="DrugTxYes",
+                print.covs="only",
+                out.file="michigan_intx_only",
+                info.filter=0.7,
+                maf.filter=0.005,
+                chunk.size=10000,
+                verbose=FALSE,
+                clusterObj=NULL)
 ```
 
-`print.cov="some"`
-```{r}
 
+```{r, echo=FALSE}
+michiganCoxSurv(vcf.file=vcf.file,
+                covariate.file=pheno.file,
+                id.column="ID_2",
+                sample.ids=sample.ids,
+                time.to.event="time",
+                event="event",
+                covariates=c("age", "SexFemale", "DrugTxYes"),
+                inter.term="DrugTxYes",
+                print.covs="only",
+                out.file=tempfile("michigan_intx_only"),
+                info.filter=0.7,
+                maf.filter=0.005,
+                chunk.size=10000,
+                verbose=FALSE,
+                clusterObj=NULL)
 ```
 
 
-`print.cov="all"`
-```{r}
+```{r, message=FALSE, eval=FALSE}
+michigan_intx_only <- read_tsv("michigan_intx_only.coxph")
+```
 
+```{r, message=FALSE, echo=FALSE}
+michigan_intx_only <- read_tsv(dir(tempdir(), pattern="^michigan_intx_only.*\\.coxph$", full.names = TRUE))
+```
+
+```{r}
+michigan_intx_only %>% 
+    head() %>%
+    glimpse()
 ```
 
 
-# Michigan Imputation Server
-[Michigan Imputation Server](https://imputationserver.sph.umich.edu/index.html) outputs gunzipped variant call format files (`.vcf.gz`). These files are typically stored in full chromosome chunks. Imputation is done using the Minimac3 imputation engine. Pre-phasing is done using either HAPI-UR, SHAPEIT, or EAGLE (default is EAGLE2). 
+```{r, echo=FALSE}
+cols <- c("RSID",
+          "TYPED",
+          "CHR",
+          "POS",
+          "REF", 
+          "ALT", 
+          "AF",
+          "MAF",
+          "SAMP_FREQ_ALT",
+          "SAMP_MAF",
+          "INFO",
+          "ER2",
+          "PVALUE",
+          "HR", 
+          "HR_lowerCI", 
+          "HR_upperCI", 
+          "COEF", 
+          "SE.COEF", 
+          "Z",
+          "N", 
+          "NEVENT")
 
-## R Session Example
-The michigan example will be added soon!
+desc <- c("SNP ID",
+          "Imputation status: TRUE (SNP IS TYPED)/FALSE (SNP IS IMPUTED)`",
+          "Chromosome number",
+          "Genomic Position (BP)",
+          "Reference Allele",
+          "Alternate Allele",
+          "Minimac3 output Alternate Allele Frequency",
+          "Minimac3 output of Minor Allele Frequency",
+          "Alternate allele frequency in sample being tested",
+          "Minor allele frequency in sample being tested",
+          "Imputation INFO score (minimac3 R2)",
+          "Minimac3 ouput empirical R2",
+          "P-value of interaction term (SNP*DrugTxYes)",
+          "Hazard Ratio (HR) of interaction term (SNP*DrugTxYes)",
+          "Lower bound 95% CI of HR of interaction term (SNP*DrugTxYes)",
+          "Upper bound 95% CI of HR of interaction term (SNP*DrugTxYes)",
+          "Estimated coefficient of SNP of interaction term (SNP*DrugTxYes)",
+          "Standard error of coefficient estimate of interaction term (SNP*DrugTxYes)",
+          "Z-statistic of interaction term (SNP*DrugTxYes)",
+          "Number of individuals in sample being tested",
+          "Number of events that occurred in sample being tested")
+
+df <- cbind(cols, desc)
+colnames(df) <- c("Column", "Description")
+kable(df)
+```
+
+`print.covs="some"`
+
+
+```{r,eval=FALSE}
+michiganCoxSurv(vcf.file=vcf.file,
+                covariate.file=pheno.file,
+                id.column="ID_2",
+                sample.ids=sample.ids,
+                time.to.event="time",
+                event="event",
+                covariates=c("age", "SexFemale", "DrugTxYes"),
+                inter.term="DrugTxYes",
+                print.covs="some",
+                out.file="michigan_intx_some",
+                info.filter=0.7,
+                maf.filter=0.005,
+                chunk.size=10000,
+                verbose=FALSE,
+                clusterObj=NULL)
+```
+
+
+```{r, echo=FALSE}
+michiganCoxSurv(vcf.file=vcf.file,
+                covariate.file=pheno.file,
+                id.column="ID_2",
+                sample.ids=sample.ids,
+                time.to.event="time",
+                event="event",
+                covariates=c("age", "SexFemale", "DrugTxYes"),
+                inter.term="DrugTxYes",
+                print.covs="some",
+                out.file=tempfile("michigan_intx_some"),
+                info.filter=0.7,
+                maf.filter=0.005,
+                chunk.size=10000,
+                verbose=FALSE,
+                clusterObj=NULL)
+```
+
+```{r, message=FALSE, eval=FALSE}
+michigan_intx_some <- read_tsv("michigan_intx_some.coxph")
+```
+
+```{r, message=FALSE, echo=FALSE}
+michigan_intx_some <- read_tsv(dir(tempdir(), pattern="^michigan_intx_some.*\\.coxph$", full.names = TRUE))
+```
+
+```{r}
+michigan_intx_some %>% 
+    head() %>%
+    glimpse()
+```
+
+```{r, echo=FALSE}
+cols <- c("RSID",
+          "TYPED",
+          "CHR",
+          "POS",
+          "REF", 
+          "ALT", 
+          "AF",
+          "MAF",
+          "SAMP_FREQ_ALT",
+          "SAMP_MAF",
+          "INFO",
+          "ER2",
+          "PVALUE_INTER.TERM",
+          "PVALUE_SNP",
+          "PVALUE_DrugTxYes",
+          "HR_INTER.TERM",
+          "HR_SNP",
+          "HR_DrugTxYes",
+          "HR_lowerCI_INTER.TERM",
+          "HR_lowerCI_SNP",
+          "HR_lowerCI_DrugTxYes",
+          "HR_upperCI_INTER.TERM", 
+          "HR_upperCI_SNP", 
+          "HR_upperCI_DrugTxYes", 
+          "COEF_INERM.TERM",
+          "COEF_SNP",
+          "COEF_DrugTxYes",
+          "SE.COEF_INTER.TERM",
+          "SE.COEF_SNP",
+          "SE.COEF_DrugTxYes",
+          "Z_INTER.TERM",
+          "Z_SNP",
+          "Z_DrugTxYes",
+          "N", 
+          "NEVENT")
+
+desc <- c("SNP ID",
+          "Imputation status: TRUE (SNP IS TYPED)/FALSE (SNP IS IMPUTED)`",
+          "Chromosome number",
+          "Genomic Position (BP)",
+          "Reference Allele",
+          "Alternate Allele",
+          "Minimac3 output Alternate Allele Frequency",
+          "Minimac3 output of Minor Allele Frequency",
+          "Alternate allele frequency in sample being tested",
+          "Minor allele frequency in sample being tested",
+          "Imputation INFO score (minimac3 R2)",
+          "Minimac3 ouput empirical R2",
+          "P-value of interaction term (SNP*DrugTxYes)",
+          "P-value of SNP alone",
+          "P-value of DrugTxYes alone",
+          "HR of interaction term (SNP*DrugTxYes)",
+          "HR of SNP alone",
+          "HR of DrugTxYes alone",
+          "Lower 95% CI HR of interaction term (SNP*DrugTxYes)",
+          "Lower 95% CI HR of SNP alone",
+          "Lower 95% CI HR of DrugTxYes alone",
+          "Upper 95% CI HR of interaction term (SNP*DrugTxYes)",
+          "Upper 95% CI HR of SNP alone",
+          "Upper 95% CI HR of DrugTxYes alone",
+          "Coefficient Estimate of interaction term (SNP*DrugTxYes)",
+          "Coefficient Estimate of SNP alone",
+          "Coefficient Estimate of DrugTxYes alone",
+          "Standard Error of Coefficent of interaction term (SNP*DrugTxYes)",
+          "Standard Error of Coefficent of SNP alone",
+          "Standard Error of Coefficent of DrugTxYes alone",
+          "Z statistic of interaction term (SNP*DrugTxYes)",
+          "Z statistic of SNP alone",
+          "Z statistic of DrugTxYes alone",
+          "Number of individuals in sample being tested",
+          "Number of events that occurred in sample being tested")
+
+df <- cbind(cols, desc)
+colnames(df) <- c("Column", "Description")
+kable(df)
+```
+
+
+`print.covs="all"`
+
+```{r,eval=FALSE}
+michiganCoxSurv(vcf.file=vcf.file,
+                covariate.file=pheno.file,
+                id.column="ID_2",
+                sample.ids=sample.ids,
+                time.to.event="time",
+                event="event",
+                covariates=c("age", "SexFemale", "DrugTxYes"),
+                inter.term="DrugTxYes",
+                print.covs="only",
+                out.file="michigan_intx_all",
+                info.filter=0.7,
+                maf.filter=0.005,
+                chunk.size=10000,
+                verbose=FALSE,
+                clusterObj=NULL)
+```
+
+
+```{r, echo=FALSE}
+michiganCoxSurv(vcf.file=vcf.file,
+                covariate.file=pheno.file,
+                id.column="ID_2",
+                sample.ids=sample.ids,
+                time.to.event="time",
+                event="event",
+                covariates=c("age", "SexFemale", "DrugTxYes"),
+                inter.term="DrugTxYes",
+                print.covs="only",
+                out.file=tempfile("michigan_intx_all"),
+                info.filter=0.7,
+                maf.filter=0.005,
+                chunk.size=10000,
+                verbose=FALSE,
+                clusterObj=NULL)
+```
+
+```{r, message=FALSE, eval=FALSE}
+michigan_intx_all <- read_tsv("michigan_intx_all.coxph")
+```
+
+```{r, message=FALSE, echo=FALSE}
+michigan_intx_all <- read_tsv(dir(tempdir(), pattern="^michigan_intx_all.*\\.coxph$", full.names = TRUE))
+```
+
+```{r}
+michigan_intx_all %>% 
+    head() %>%
+    glimpse()
+```
+
+```{r, echo=FALSE}
+cols <- c("RSID",
+          "TYPED",
+          "CHR",
+          "POS",
+          "REF", 
+          "ALT", 
+          "AF",
+          "MAF",
+          "SAMP_FREQ_ALT",
+          "SAMP_MAF",
+          "INFO",
+          "ER2",
+          "PVALUE_INTER.TERM",
+          "PVALUE_SNP",
+          "PVALUE_age",
+          "PVALUE_SexFemale",
+          "PVALUE_DrugTxYes",
+          "HR_INTER.TERM",
+          "HR_SNP",
+          "HR_age",
+          "HR_SexFemale",
+          "HR_DrugTxYes",
+          "HR_lowerCI_INTER.TERM",
+          "HR_lowerCI_SNP",
+          "HR_lowerCI_age",
+          "HR_lowerCI_SexFemale",
+          "HR_lowerCI_DrugTxYes",
+          "HR_upperCI_INTER.TERM",
+          "HR_upperCI_SNP",
+          "HR_upperCI_age",
+          "HR_upperCI_SexFemale",
+          "HR_upperCI_DrugTxYes", 
+          "COEF_INERM.TERM",
+          "COEF_SNP",
+          "COEF_age",
+          "COEF_SexFemale",
+          "COEF_DrugTxYes",
+          "SE.COEF_INTER.TERM",
+          "SE.COEF_SNP",
+          "SE.COEF_age",
+          "SE.COEF_SexFemale",
+          "SE.COEF_DrugTxYes",
+          "Z_INTER.TERM",
+          "Z_SNP",
+          "Z_age",
+          "Z_SexFemale",
+          "Z_DrugTxYes",
+          "N", 
+          "NEVENT")
+
+desc <- c("SNP ID",
+          "Imputation status: TRUE (SNP IS TYPED)/FALSE (SNP IS IMPUTED)`",
+          "Chromosome number",
+          "Genomic Position (BP)",
+          "Reference Allele",
+          "Alternate Allele",
+          "Minimac3 output Alternate Allele Frequency",
+          "Minimac3 output of Minor Allele Frequency",
+          "Alternate allele frequency in sample being tested",
+          "Minor allele frequency in sample being tested",
+          "Imputation INFO score (minimac3 R2)",
+          "Minimac3 ouput empirical R2",
+          "P-value of interaction term (SNP*DrugTxYes)",
+          "P-value of SNP alone",
+          "P-value of age alone",
+          "P-value of SexFemale alone",
+          "P-value of DrugTxYes alone",
+          "HR of interaction term (SNP*DrugTxYes)",
+          "HR of SNP alone",
+          "HR of age alone",
+          "HR of SexFemale alone",
+          "HR of DrugTxYes alone",
+          "Lower 95% CI HR of interaction term (SNP*DrugTxYes)",
+          "Lower 95% CI HR of SNP alone",
+          "Lower 95% CI HR of age alone",
+          "Lower 95% CI HR of SexFemale alone",
+          "Lower 95% CI HR of DrugTxYes alone",
+          "Upper 95% CI HR of interaction term (SNP*DrugTxYes)",
+          "Upper 95% CI HR of SNP alone",
+          "Upper 95% CI HR of age alone",
+          "Upper 95% CI HR of SexFemale alone",
+          "Upper 95% CI HR of DrugTxYes alone",
+          "Coefficient Estimate of interaction term (SNP*DrugTxYes)",
+          "Coefficient Estimate of SNP alone",
+          "Coefficient Estimate of age alone",
+          "Coefficient Estimate of SexFemale alone",
+          "Coefficient Estimate of DrugTxYes alone",
+          "Standard error of Coefficient Estimate of interaction term (SNP*DrugTxYes)",
+          "Standard error of Coefficient Estimate of SNP alone",
+          "Standard error of Coefficient Estimate of age alone",
+          "Standard error of Coefficient Estimate of SexFemale alone",
+          "Standard error of Coefficient Estimate of DrugTxYes alone",
+          "Z statistic of interaction term (SNP*DrugTxYes)",
+          "Z statistic of SNP alone",
+          "Z statistic of age alone",
+          "Z statistic of SexFemale alone",
+          "Z statistic of DrugTxYes alone",
+          "Number of individuals in sample being tested",
+          "Number of events that occurred in sample being tested")
+
+df <- cbind(cols, desc)
+colnames(df) <- c("Column", "Description")
+kable(df)
+```
+
+
 
 # Batch Examples
 
@@ -324,7 +2150,7 @@ options("gwasurvivr.cores"=4)
 pheno.file <- pheno.file %>%
         mutate(SexFemale=case_when(sex=="female"~1L,
                                    sex=="male"~0L)) %>%
-        dplyr::select(-ID_1)
+        select(-ID_1)
 
 # select only experimental group
 sample.ids <- pheno.file %>%
@@ -361,7 +2187,7 @@ R --script ${PATH}/survival/code/mysurvivalscript.R -q --args \
         pheno.file ${PATH}/phenotype_data/pheno.txt \
         time.to.event time \
         event event \
-        covariates age_SexFemale_bmiOVWT \
+        covariates age_SexFemale_DrugTxYes \
         sample.ids sample.ids \
         chunk.size 10000 \
         info.filter 0.7 \

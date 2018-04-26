@@ -66,7 +66,7 @@
 #'               event="event",
 #'               covariates=c("age", "SexFemale", "bmiOVWT"),
 #'               inter.term=NULL,
-#'               print.covs="only"
+#'               print.covs="only",
 #'               out.file="michigan_example",
 #'               info.filter=0.7,
 #'               maf.filter=0.005,

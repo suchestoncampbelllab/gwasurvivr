@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2018-03-26" />
+<meta name="date" content="2018-04-25" />
 
 <title>gwasurvivr Vignette</title>
 
@@ -117,7 +117,7 @@ $(document).ready(function () {
 <h1 class="title toc-ignore">gwasurvivr Vignette</h1>
 <p class="author-name">Abbas Rizvi<span class="affil-mark">1</span>, Ezgi Karaesmen<span class="affil-mark">1</span>, Martin Morgan<span class="affil-mark">2</span> and Lara Sucheston-Campbell<span class="affil-mark">1</span></p>
 <p class="author-affiliation"><span class="affil-mark">1</span>The Ohio State University, Columbus, OH<br><span class="affil-mark">2</span>Roswell Park Comprehensive Cancer Center, Buffalo, NY</p>
-<h4 class="date"><em>March 26, 2018</em></h4>
+<h4 class="date"><em>April 25, 2018</em></h4>
 <h4 class="package">Package</h4>
 <p>gwasurvivr 0.99.0</p>
 
@@ -132,16 +132,24 @@ $(document).ready(function () {
 <li><a href="#load-package"><span class="toc-section-number">2.2</span> Load package</a></li>
 </ul></li>
 <li><a href="#sanger-imputation-server"><span class="toc-section-number">3</span> Sanger Imputation Server</a><ul>
-<li><a href="#r-session-example"><span class="toc-section-number">3.1</span> R Session Example</a></li>
-<li><a href="#peek-at-results"><span class="toc-section-number">3.2</span> Peek at results</a></li>
+<li><a href="#r-session-example"><span class="toc-section-number">3.1</span> R Session Example</a><ul>
+<li><a href="#single-snp-analysis"><span class="toc-section-number">3.1.1</span> Single SNP analysis</a></li>
+<li><a href="#snp-with-covariate-interaction"><span class="toc-section-number">3.1.2</span> SNP with covariate interaction</a></li>
+</ul></li>
 </ul></li>
 <li><a href="#impute2-imputation"><span class="toc-section-number">4</span> IMPUTE2 Imputation</a><ul>
 <li><a href="#file-structure"><span class="toc-section-number">4.1</span> File structure</a></li>
 <li><a href="#r-session-example-1"><span class="toc-section-number">4.2</span> R Session Example</a></li>
-<li><a href="#peek-at-results-1"><span class="toc-section-number">4.3</span> Peek at results</a></li>
+<li><a href="#description-of-output-columns"><span class="toc-section-number">4.3</span> Description of output columns</a><ul>
+<li><a href="#single-snp-analysis-1"><span class="toc-section-number">4.3.1</span> Single SNP analysis</a></li>
+<li><a href="#snp-with-covariate-interaction-1"><span class="toc-section-number">4.3.2</span> SNP with covariate interaction</a></li>
+</ul></li>
 </ul></li>
 <li><a href="#michigan-imputation-server"><span class="toc-section-number">5</span> Michigan Imputation Server</a><ul>
-<li><a href="#r-session-example-2"><span class="toc-section-number">5.1</span> R Session Example</a></li>
+<li><a href="#r-session-example-2"><span class="toc-section-number">5.1</span> R Session Example</a><ul>
+<li><a href="#single-snp-analysis-2"><span class="toc-section-number">5.1.1</span> Single SNP analysis</a></li>
+<li><a href="#snp-with-covariate-interaction-2"><span class="toc-section-number">5.1.2</span> SNP with covariate interaction</a></li>
+</ul></li>
 </ul></li>
 <li><a href="#batch-examples"><span class="toc-section-number">6</span> Batch Examples</a><ul>
 <li><a href="#batch-example-sangercoxsurv"><span class="toc-section-number">6.1</span> Batch Example sangerCoxSurv</a></li>
@@ -155,7 +163,7 @@ $(document).ready(function () {
 
 <div id="introduction" class="section level1">
 <h1><span class="header-section-number">1</span> Introduction</h1>
-<p><code>gwasurvivr</code> can perform survival analysis on full chromosomes on imputed genotypes from Sanger/Michigan imputation servers or chromosome chunks imputed genotypes from IMPUTE2. This vignette is a tutorial on how to perform survival analysis (Cox proportional hazard models) on imputed GWAS data from either using the imputation software IMPUTE2 or an imputation server (Sanger/Michigan imputation servers). This package can be conveniently batched on a high performing computing cluster.</p>
+<p><code>gwasurvivr</code> can perform survival analysis on full chromosomes on imputed genotypes from Sanger/Michigan imputation servers or chromosome chunks imputed genotypes from IMPUTE2. This vignette is a tutorial on how to perform survival analysis (Cox proportional hazard models) on imputed GWAS data from either using the imputation software IMPUTE2 or an imputation server (Sanger/Michigan imputation servers). This package can be conveniently batched on a high performing computing cluster. <code>gwasurvivr</code> iteratively processes the data in chunks and therefore intense memory requirements are not necessary.</p>
 </div>
 <div id="getting-started" class="section level1">
 <h1><span class="header-section-number">2</span> Getting started</h1>
@@ -163,7 +171,7 @@ $(document).ready(function () {
 <pre class="r"><code>devtools::install_github(&quot;suchestoncampbelllab/gwasurvivr&quot;)</code></pre>
 <div id="dependencies" class="section level2">
 <h2><span class="header-section-number">2.1</span> Dependencies</h2>
-<p><strong>Note</strong>: This package depends on <code>GWASTools</code> which uses netcdf framework on linux. Therefore, for linux users, please install <code>libnetcdf-dev</code> and <code>netcdf-bin</code> before installing <code>gwasurvivr</code>.</p>
+<p><strong>Note</strong>: This package depends on <code>GWASTools</code> which uses netcdf framework on linux. Therefore, for linux users, please install <code>libnetcdf-dev</code> and <code>netcdf-bin</code> before installing <code>gwasurvivr</code>. These linux libraries are likely already installed on an academic computing cluster.</p>
 <p>CRAN packages:<br />
 1. <code>ncdf4</code><br />
 2. <code>matrixStats</code><br />
@@ -172,10 +180,12 @@ $(document).ready(function () {
 <pre class="r"><code>install.packages(c(&quot;ncdf4&quot;, &quot;matrixStats&quot;, &quot;parallel&quot;, &quot;survival&quot;))</code></pre>
 <p>Bioconductor packages:<br />
 1. <code>GWASTools</code><br />
-2. <code>VariantAnnotation</code></p>
+2. <code>VariantAnnotation</code><br />
+3. <code>SummarizedExperiment</code></p>
 <pre class="r"><code>source(&quot;https://bioconductor.org/biocLite.R&quot;)
 biocLite(&quot;GWASTools&quot;)
-biocLite(&quot;VariantAnnotation&quot;)</code></pre>
+biocLite(&quot;VariantAnnotation&quot;)
+biocLite(&quot;SummarizedExperiment&quot;)</code></pre>
 </div>
 <div id="load-package" class="section level2">
 <h2><span class="header-section-number">2.2</span> Load package</h2>
@@ -184,7 +194,7 @@ biocLite(&quot;VariantAnnotation&quot;)</code></pre>
 </div>
 <div id="sanger-imputation-server" class="section level1">
 <h1><span class="header-section-number">3</span> Sanger Imputation Server</h1>
-<p><a href="https://imputation.sanger.ac.uk/">Sanger Imputation Server</a> pre-phases using either SHAPEIT or EAGLE and then imputes genotypes using PBWT algorithm. The output from Sanger imputation are <code>.vcf.gz</code> files, which are needed as input for <code>gwasurvivr</code>. The output comes in full chromosomes, which can easily be run using <code>gwasurvivr</code>. <code>sangerCoxSurv</code> is the function needed to perform survival. <code>sangerCoxSurv</code> can filter info score (imputation quality metric) and on minor allele frequency. <code>sangerCoxSurv</code> grabs the reference panel allele frequency from the VCF file (<code>RefPanelAF</code>) and also computes a minor allele frequency (MAF) for the sample genotype. The <code>RefPanelAF</code> can be filtered as the input argument <code>maf.filter</code>.</p>
+<p><a href="https://imputation.sanger.ac.uk/">Sanger Imputation Server</a> pre-phases using either SHAPEIT or EAGLE and then imputes genotypes using PBWT algorithm. The output from Sanger imputation are <code>.vcf.gz</code> files, which are needed as input for <code>gwasurvivr</code>. The output comes in full chromosomes, which can easily be run using <code>gwasurvivr</code>. <code>sangerCoxSurv</code> is the function needed to perform survival analysis. <code>sangerCoxSurv</code> can filter info score (imputation quality metric) and on minor allele frequency (MAF). <code>sangerCoxSurv</code> grabs the reference panel allele frequency from the VCF file (<code>RefPanelAF</code>) and also computes a MAF for the sample genotype. The <code>RefPanelAF</code> can be filtered as the input argument <code>maf.filter</code>.</p>
 <p>Users can select which samples that they would like to include in the analysis by providing a vector of <code>sample.ids</code>. Since the output from Sanger imputation server returns the samples as <code>SAMP1, ..., SAMPN</code>, where <code>N</code> is the total number of samples, the user must create an alternate ID for the samples of interest that correspond to the order that the samples were in their input to the Sanger imputation server (this sample order can also be found in the <code>.fam</code> file from the genotyping chip).</p>
 <p>To run a prespecified number of cores to use in parallel while fitting the Cox model can be set:</p>
 <pre class="r"><code>options(&quot;gwasurvivr.cores&quot;=4)</code></pre>
@@ -193,25 +203,28 @@ biocLite(&quot;VariantAnnotation&quot;)</code></pre>
 </ul>
 <div id="r-session-example" class="section level2">
 <h2><span class="header-section-number">3.1</span> R Session Example</h2>
+<p>We use <code>tidyverse</code> and <code>magrittr</code> packages in this example solely for data preparation/manipulation purposes. Altneratively, any of the data pre-processing steps can be done in base R.</p>
+<pre class="r"><code>library(tidyverse)
+library(magrittr)</code></pre>
 <pre class="r"><code>vcf.file &lt;- system.file(package=&quot;gwasurvivr&quot;,
                         &quot;extdata&quot;, 
                         &quot;sanger.pbwt_reference_impute.vcf.gz&quot;)
 pheno.fl &lt;- system.file(package=&quot;gwasurvivr&quot;,
                         &quot;extdata&quot;, 
                         &quot;simulated_pheno.txt&quot;)
-pheno.file &lt;- read.table(pheno.fl, sep=&quot; &quot;, header=TRUE, stringsAsFactors = FALSE)
+pheno.file &lt;- read.table(pheno.fl,
+                         sep=&quot; &quot;,
+                         header=TRUE,
+                         stringsAsFactors = FALSE)
 head(pheno.file)</code></pre>
-<pre><code>##   ID_1  ID_2 event  time   age bmiOVWT    sex        group
-## 1    1 SAMP1     0 12.00 33.93       0   male      control
-## 2    2 SAMP2     1  7.61 58.71       1   male experimental
-## 3    3 SAMP3     0 12.00 39.38       0 female      control
-## 4    4 SAMP4     0  4.30 38.85       0   male      control
-## 5    5 SAMP5     0 12.00 43.58       0   male experimental
-## 6    6 SAMP6     1  2.60 57.74       0   male      control</code></pre>
-<p>Categorical variables need to be converted into indicator (dummy) variables. In this example, we will select samples from the <code>experimental</code> group will test survival only on these genotypes. The first column in the <code>pheno.file</code> needs to be sample IDs that we want to match on.</p>
-<p>We leverage the <code>tidyverse</code> and <code>magrittr</code> packages in this example solely for data preparation/manipulation purposes.</p>
-<pre class="r"><code>library(tidyverse)
-library(magrittr)</code></pre>
+<pre><code>##   ID_1  ID_2 event  time   age DrugTxYes    sex        group
+## 1    1 SAMP1     0 12.00 33.93         0   male      control
+## 2    2 SAMP2     1  7.61 58.71         1   male experimental
+## 3    3 SAMP3     0 12.00 39.38         0 female      control
+## 4    4 SAMP4     0  4.30 38.85         0   male      control
+## 5    5 SAMP5     0 12.00 43.58         0   male experimental
+## 6    6 SAMP6     1  2.60 57.74         0   male      control</code></pre>
+<p>Categorical variables need to be converted into indicator (dummy) variables and be of class <code>numeric</code>. In this example, we will select samples from the <code>experimental</code> group will test survival only on these genotypes. The first column in the <code>pheno.file</code> needs to be sample IDs that we want to match on. The covariates that we are going to include in the model are <code>age</code>, <code>DrugTxYes</code>, and <code>sex</code>.</p>
 <pre class="r"><code># recode sex column and remove first column 
 pheno.file &lt;- pheno.file %&gt;%
         mutate(SexFemale=case_when(sex==&quot;female&quot;~1L,
@@ -224,95 +237,987 @@ sample.ids &lt;- pheno.file %&gt;%
         ID_2 
 head(sample.ids)</code></pre>
 <pre><code>## [1] &quot;SAMP2&quot;  &quot;SAMP5&quot;  &quot;SAMP7&quot;  &quot;SAMP9&quot;  &quot;SAMP11&quot; &quot;SAMP12&quot;</code></pre>
+<p>We perform the analysis only on the <code>experimental</code> group to demonstrate how one may want to prepare their data (i.e. stratify analysis by case/control, donor/recipients, etc). We also are showing how the IDs (<code>sample.ids</code>) need to be a vector of class <code>character</code>. The <code>chunk.size</code> is defaulted to 10000 rows and users can customize that to their needs. The larger the <code>chunk.size</code> the more memory (RAM) required to run the analysis. The recommended <code>chunk.size=10000</code> and probably should not exceed <code>chunk.size=100000</code>.</p>
+<p>In addition to printing the survival results for the SNP adjusted for other covariates (which is the default; <code>print.covs='only'</code>), users can select <code>print.covs=all</code> to get the coefficient estimates for other covariates included in the model. This is available primarily for potential modeling steps (covariate selection) and not necessarily needed for a survival GWAS. First we will run the analysis with the default, <code>print.covs=&quot;only&quot;</code>, followed by loading the results into R and looking at the top hits, followed by a description of all of the columns in the results. And then we will run the analysis again using <code>print.covs=&quot;all&quot;</code>.</p>
 <p>Now run survival using <code>sangerCoxSurv</code>.</p>
 <pre class="r"><code>sangerCoxSurv(vcf.file=vcf.file,
-              pheno.file=pheno.file,
+              covariate.file=pheno.file,
+              id.column=&quot;ID_2&quot;,
+              sample.ids=sample.ids,
               time.to.event=&quot;time&quot;,
               event=&quot;event&quot;,
-              covariates=c(&quot;age&quot;, &quot;SexFemale&quot;, &quot;bmiOVWT&quot;),
-              sample.ids=sample.ids,
-              output.name=&quot;sanger_example&quot;,
-              chunk.size=10000,
+              covariates=c(&quot;age&quot;, &quot;SexFemale&quot;, &quot;DrugTxYes&quot;),
+              inter.term=NULL,
+              print.covs=&quot;only&quot;,
+              out.file=&quot;sanger_only&quot;,
               info.filter=0.7,
-              maf.filter=0.01,
-              verbose=TRUE)</code></pre>
-<pre><code>## Analysis started on 2018-03-26 at 18:16:52</code></pre>
-<pre><code>## Analysis running for 253 samples.</code></pre>
-<pre><code>## Covariates included in the models are: age, bmiOVWT, SexFemale</code></pre>
-<pre><code>## If your covariates of interest are not included in the model
-## please stop the analysis and make sure user defined covariates
-## match the column names in the pheno.file</code></pre>
+              maf.filter=0.005,
+              chunk.size=10000,
+              verbose=TRUE,
+              clusterObj=NULL)</code></pre>
+<pre><code>## Analysis started on 2018-04-25 at 21:43:49</code></pre>
+<pre><code>## Covariates included in the models are: age, DrugTxYes, SexFemale</code></pre>
+<pre><code>## 253 samples are included in the analysis</code></pre>
 <pre><code>## Analyzing chunk 0-10000</code></pre>
-<pre><code>## Analysis completed on 2018-03-26 at 18:17:22</code></pre>
-<pre><code>## 7254 SNPs were removed from the analysis for not meeting the threshold criteria.</code></pre>
-<pre><code>## List of removed SNPs can be found in sanger_example.MAF_INFO_removed</code></pre>
-</div>
-<div id="peek-at-results" class="section level2">
-<h2><span class="header-section-number">3.2</span> Peek at results</h2>
+<pre><code>## Analyzing chunk 10000-20000</code></pre>
+<pre><code>## Analysis completed on 2018-04-25 at 21:44:10</code></pre>
+<pre><code>## 6406 SNPs were removed from the analysis for not meeting the threshold criteria.</code></pre>
+<pre><code>## List of removed SNPs can be found in /var/folders/1w/bb5rrzjn4v9bvq_hlptzq4bc0000gn/T//RtmpnOlrn1/sanger_onlyf5e121363af0.snps_removed</code></pre>
+<pre><code>## 849 SNPs were analyzed in total</code></pre>
+<pre><code>## The survival output can be found at/var/folders/1w/bb5rrzjn4v9bvq_hlptzq4bc0000gn/T//RtmpnOlrn1/sanger_onlyf5e121363af0.coxph</code></pre>
+<div id="single-snp-analysis" class="section level3">
+<h3><span class="header-section-number">3.1.1</span> Single SNP analysis</h3>
+<p><code>print.covs=&quot;only&quot;</code></p>
 <p>We can look at the results that just came out of that run by loading the data.</p>
-<pre class="r"><code>sanger_res &lt;- read_tsv(&quot;sanger_example.coxph&quot;)</code></pre>
-<pre class="r"><code>dim(sanger_res)</code></pre>
-<pre><code>## [1] 736  18</code></pre>
-<pre class="r"><code>sanger_res %&gt;% 
-        select(RSID, TYPED, PVALUE, COEF, HR) %&gt;%
-        arrange(PVALUE) %&gt;% 
-        head() %&gt;%
-        kable()</code></pre>
+<pre class="r"><code>sanger_only &lt;- read_tsv(&quot;sanger_only.coxph&quot;)</code></pre>
+<pre class="r"><code>sanger_only %&gt;% 
+    head() %&gt;%
+    glimpse()</code></pre>
+<pre><code>## Observations: 6
+## Variables: 19
+## $ RSID          &lt;chr&gt; &quot;rs201487625&quot;, &quot;rs28874340&quot;, &quot;rs367910327&quot;, &quot;rs286...
+## $ TYPED         &lt;lgl&gt; FALSE, FALSE, FALSE, TRUE, FALSE, FALSE
+## $ CHR           &lt;int&gt; 14, 14, 14, 14, 14, 14
+## $ POS           &lt;int&gt; 19258506, 19266184, 19277567, 19327823, 20260443, ...
+## $ REF           &lt;chr&gt; &quot;A&quot;, &quot;A&quot;, &quot;T&quot;, &quot;T&quot;, &quot;A&quot;, &quot;G&quot;
+## $ ALT           &lt;chr&gt; &quot;G&quot;, &quot;G&quot;, &quot;C&quot;, &quot;C&quot;, &quot;G&quot;, &quot;A&quot;
+## $ RefPanelAF    &lt;dbl&gt; 0.75337200, 0.77717900, 0.70170900, 0.77453000, 0....
+## $ SAMP_FREQ_ALT &lt;dbl&gt; 0.7861, 0.8064, 0.7379, 0.8063, 0.0059, 0.0309
+## $ SAMP_MAF      &lt;dbl&gt; 0.2139, 0.1936, 0.2621, 0.1937, 0.0059, 0.0309
+## $ INFO          &lt;dbl&gt; 0.925998, 0.990349, 0.845283, 1.000000, 0.846617, ...
+## $ PVALUE        &lt;dbl&gt; 0.52214228, 0.39747029, 0.05702106, 0.32056499, 0....
+## $ HR            &lt;dbl&gt; 0.8965579, 0.8640559, 0.7135934, 0.8380038, 4.0610...
+## $ HR_lowerCI    &lt;dbl&gt; 0.6417414, 0.6159546, 0.5041085, 0.5912797, 0.5355...
+## $ HR_upperCI    &lt;dbl&gt; 1.252554, 1.212090, 1.010131, 1.187679, 30.796401,...
+## $ COEF          &lt;dbl&gt; -0.1091924, -0.1461178, -0.3374419, -0.1767327, 1....
+## $ SE.COEF       &lt;dbl&gt; 0.1706007, 0.1726859, 0.1773071, 0.1779252, 1.0336...
+## $ Z             &lt;dbl&gt; -0.6400466, -0.8461478, -1.9031493, -0.9932975, 1....
+## $ N             &lt;int&gt; 253, 253, 253, 253, 253, 253
+## $ NEVENT        &lt;int&gt; 100, 100, 100, 100, 100, 100</code></pre>
 <table>
 <thead>
 <tr class="header">
-<th align="left">RSID</th>
-<th align="left">TYPED</th>
-<th align="right">PVALUE</th>
-<th align="right">COEF</th>
-<th align="right">HR</th>
+<th align="left">Column</th>
+<th align="left">Description</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td align="left">rs56178399</td>
-<td align="left">FALSE</td>
-<td align="right">0.0001774</td>
-<td align="right">1.646147</td>
-<td align="right">5.186956</td>
+<td align="left">RSID</td>
+<td align="left">SNP ID</td>
 </tr>
 <tr class="even">
-<td align="left">rs80175559</td>
-<td align="left">FALSE</td>
-<td align="right">0.0002293</td>
-<td align="right">1.569031</td>
-<td align="right">4.801994</td>
+<td align="left">TYPED</td>
+<td align="left">Imputation status: TRUE (SNP IS TYPED)/FALSE (SNP IS IMPUTED)`</td>
 </tr>
 <tr class="odd">
-<td align="left">rs74833732</td>
-<td align="left">FALSE</td>
-<td align="right">0.0008713</td>
-<td align="right">1.368206</td>
-<td align="right">3.928297</td>
+<td align="left">CHR</td>
+<td align="left">Chromosome number</td>
 </tr>
 <tr class="even">
-<td align="left">rs12586922</td>
-<td align="left">TRUE</td>
-<td align="right">0.0009214</td>
-<td align="right">1.098080</td>
-<td align="right">2.998402</td>
+<td align="left">POS</td>
+<td align="left">Genomic Position (BP)</td>
 </tr>
 <tr class="odd">
-<td align="left">rs34610474</td>
-<td align="left">FALSE</td>
-<td align="right">0.0009248</td>
-<td align="right">1.189763</td>
-<td align="right">3.286301</td>
+<td align="left">REF</td>
+<td align="left">Reference Allele</td>
 </tr>
 <tr class="even">
-<td align="left">rs4643237</td>
-<td align="left">FALSE</td>
-<td align="right">0.0010024</td>
-<td align="right">1.130329</td>
-<td align="right">3.096675</td>
+<td align="left">ALT</td>
+<td align="left">Alternate Allele</td>
+</tr>
+<tr class="odd">
+<td align="left">RefPanelAF</td>
+<td align="left">Reference Panel Allele Frequency</td>
+</tr>
+<tr class="even">
+<td align="left">SAMP_FREQ_ALT</td>
+<td align="left">Frequency of Alternate Allele</td>
+</tr>
+<tr class="odd">
+<td align="left">SAMP_MAF</td>
+<td align="left">Minor allele frequency in sample being tested</td>
+</tr>
+<tr class="even">
+<td align="left">INFO</td>
+<td align="left">Imputation INFO score</td>
+</tr>
+<tr class="odd">
+<td align="left">PVALUE</td>
+<td align="left">P-value</td>
+</tr>
+<tr class="even">
+<td align="left">HR</td>
+<td align="left">Hazard Ratio (HR)</td>
+</tr>
+<tr class="odd">
+<td align="left">HR_lowerCI</td>
+<td align="left">Lower bound 95% CI of HR</td>
+</tr>
+<tr class="even">
+<td align="left">HR_upperCI</td>
+<td align="left">Upper bound 95% CI of HR</td>
+</tr>
+<tr class="odd">
+<td align="left">COEF</td>
+<td align="left">Estimated coefficient of SNP</td>
+</tr>
+<tr class="even">
+<td align="left">SE.COEF</td>
+<td align="left">Standard error of coefficient estimate</td>
+</tr>
+<tr class="odd">
+<td align="left">Z</td>
+<td align="left">Z-statistic</td>
+</tr>
+<tr class="even">
+<td align="left">N</td>
+<td align="left">Number of individuals in sample being tested</td>
+</tr>
+<tr class="odd">
+<td align="left">NEVENT</td>
+<td align="left">Number of events that occurred in sample being tested</td>
 </tr>
 </tbody>
 </table>
+<p><code>print.covs=&quot;all&quot;</code></p>
+<pre class="r"><code>sangerCoxSurv(vcf.file=vcf.file,
+              covariate.file=pheno.file,
+              id.column=&quot;ID_2&quot;,
+              sample.ids=sample.ids,
+              time.to.event=&quot;time&quot;,
+              event=&quot;event&quot;,
+              covariates=c(&quot;age&quot;, &quot;SexFemale&quot;, &quot;DrugTxYes&quot;),
+              inter.term=NULL,
+              print.covs=&quot;all&quot;,
+              out.file=&quot;sanger_all&quot;,
+              info.filter=0.7,
+              maf.filter=0.005,
+              chunk.size=10000,
+              verbose=FALSE,
+              clusterObj=NULL)</code></pre>
+<pre class="r"><code>sanger_all &lt;- read_tsv(&quot;sanger_all.coxph&quot;)</code></pre>
+<pre class="r"><code>sanger_all %&gt;% 
+    head() %&gt;%
+    glimpse()</code></pre>
+<pre><code>## Observations: 6
+## Variables: 40
+## $ RSID                 &lt;chr&gt; &quot;rs201487625&quot;, &quot;rs28874340&quot;, &quot;rs367910327&quot;,...
+## $ TYPED                &lt;lgl&gt; FALSE, FALSE, FALSE, TRUE, FALSE, FALSE
+## $ CHR                  &lt;int&gt; 14, 14, 14, 14, 14, 14
+## $ POS                  &lt;int&gt; 19258506, 19266184, 19277567, 19327823, 202...
+## $ REF                  &lt;chr&gt; &quot;A&quot;, &quot;A&quot;, &quot;T&quot;, &quot;T&quot;, &quot;A&quot;, &quot;G&quot;
+## $ ALT                  &lt;chr&gt; &quot;G&quot;, &quot;G&quot;, &quot;C&quot;, &quot;C&quot;, &quot;G&quot;, &quot;A&quot;
+## $ RefPanelAF           &lt;dbl&gt; 0.75337200, 0.77717900, 0.70170900, 0.77453...
+## $ SAMP_FREQ_ALT        &lt;dbl&gt; 0.7861, 0.8064, 0.7379, 0.8063, 0.0059, 0.0309
+## $ SAMP_MAF             &lt;dbl&gt; 0.2139, 0.1936, 0.2621, 0.1937, 0.0059, 0.0309
+## $ INFO                 &lt;dbl&gt; 0.925998, 0.990349, 0.845283, 1.000000, 0.8...
+## $ PVALUE_SNP           &lt;dbl&gt; 0.52214228, 0.39747029, 0.05702106, 0.32056...
+## $ PVALUE_age           &lt;dbl&gt; 1.932742e-25, 3.270821e-25, 3.940344e-25, 3...
+## $ PVALUE_SexFemale     &lt;dbl&gt; 0.7090943, 0.6517581, 0.5864499, 0.6178515,...
+## $ PVALUE_DrugTxYes     &lt;dbl&gt; 0.001031364, 0.001751319, 0.005075145, 0.00...
+## $ HR_SNP               &lt;dbl&gt; 0.8965579, 0.8640559, 0.7135934, 0.8380038,...
+## $ HR_age               &lt;dbl&gt; 1.172425, 1.173876, 1.178022, 1.174485, 1.1...
+## $ HR_SexFemale         &lt;dbl&gt; 1.083151, 1.102061, 1.124347, 1.114039, 1.0...
+## $ HR_DrugTxYes         &lt;dbl&gt; 2.304006, 2.242604, 2.085507, 2.230348, 2.2...
+## $ HR_lowerCI_SNP       &lt;dbl&gt; 0.6417414, 0.6159546, 0.5041085, 0.5912797,...
+## $ HR_lowerCI_age       &lt;dbl&gt; 1.137876, 1.138853, 1.142053, 1.139295, 1.1...
+## $ HR_lowerCI_SexFemale &lt;dbl&gt; 0.7119432, 0.7226279, 0.7370634, 0.7288601,...
+## $ HR_lowerCI_DrugTxYes &lt;dbl&gt; 1.399582, 1.352302, 1.247214, 1.345339, 1.3...
+## $ HR_upperCI_SNP       &lt;dbl&gt; 1.252554, 1.212090, 1.010131, 1.187679, 30....
+## $ HR_upperCI_age       &lt;dbl&gt; 1.208023, 1.209975, 1.215123, 1.210761, 1.2...
+## $ HR_upperCI_SexFemale &lt;dbl&gt; 1.647905, 1.680725, 1.715126, 1.702774, 1.6...
+## $ HR_upperCI_DrugTxYes &lt;dbl&gt; 3.792879, 3.719046, 3.487244, 3.697543, 3.7...
+## $ COEF_SNP             &lt;dbl&gt; -0.1091924, -0.1461178, -0.3374419, -0.1767...
+## $ COEF_age             &lt;dbl&gt; 0.1590742, 0.1603107, 0.1638367, 0.1608294,...
+## $ COEF_SexFemale       &lt;dbl&gt; 0.07987393, 0.09718212, 0.11720273, 0.10799...
+## $ COEF_DrugTxYes       &lt;dbl&gt; 0.8346493, 0.8076377, 0.7350120, 0.8021575,...
+## $ SE.COEF_SNP          &lt;dbl&gt; 0.1706007, 0.1726859, 0.1773071, 0.1779252,...
+## $ SE.COEF_age          &lt;dbl&gt; 0.01526081, 0.01545377, 0.01582083, 0.01552...
+## $ SE.COEF_SexFemale    &lt;dbl&gt; 0.2140975, 0.2153281, 0.2154511, 0.2164622,...
+## $ SE.COEF_DrugTxYes    &lt;dbl&gt; 0.2543245, 0.2580763, 0.2622958, 0.2579139,...
+## $ Z_SNP                &lt;dbl&gt; -0.6400466, -0.8461478, -1.9031493, -0.9932...
+## $ Z_age                &lt;dbl&gt; 10.42371, 10.37357, 10.35576, 10.36243, 10....
+## $ Z_SexFemale          &lt;dbl&gt; 0.3730728, 0.4513212, 0.5439878, 0.4988976,...
+## $ Z_DrugTxYes          &lt;dbl&gt; 3.281828, 3.129453, 2.802225, 3.110176, 3.2...
+## $ N                    &lt;int&gt; 253, 253, 253, 253, 253, 253
+## $ NEVENT               &lt;int&gt; 100, 100, 100, 100, 100, 100</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Column</th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">RSID</td>
+<td align="left">SNP ID</td>
+</tr>
+<tr class="even">
+<td align="left">TYPED</td>
+<td align="left">Imputation status: TRUE (SNP IS TYPED)/FALSE (SNP IS IMPUTED)`</td>
+</tr>
+<tr class="odd">
+<td align="left">CHR</td>
+<td align="left">Chromosome number</td>
+</tr>
+<tr class="even">
+<td align="left">POS</td>
+<td align="left">Genomic Position (BP)</td>
+</tr>
+<tr class="odd">
+<td align="left">REF</td>
+<td align="left">Reference Allele</td>
+</tr>
+<tr class="even">
+<td align="left">ALT</td>
+<td align="left">Alternate Allele</td>
+</tr>
+<tr class="odd">
+<td align="left">RefPanelAF</td>
+<td align="left">Reference Panel Allele Frequency</td>
+</tr>
+<tr class="even">
+<td align="left">SAMP_FREQ_ALT</td>
+<td align="left">Frequency of Alternate Allele</td>
+</tr>
+<tr class="odd">
+<td align="left">SAMP_MAF</td>
+<td align="left">Minor allele frequency in sample being tested</td>
+</tr>
+<tr class="even">
+<td align="left">INFO</td>
+<td align="left">Imputation INFO score</td>
+</tr>
+<tr class="odd">
+<td align="left">PVALUE_SNP</td>
+<td align="left">P-value of SNP alone</td>
+</tr>
+<tr class="even">
+<td align="left">PVALUE_age</td>
+<td align="left">P-value of age alone</td>
+</tr>
+<tr class="odd">
+<td align="left">PVALUE_SexFemale</td>
+<td align="left">P-value of SexFemale alone</td>
+</tr>
+<tr class="even">
+<td align="left">PVALUE_DrugTxYes</td>
+<td align="left">P-value of DrugTxYes alone</td>
+</tr>
+<tr class="odd">
+<td align="left">HR_SNP</td>
+<td align="left">HR of SNP alone</td>
+</tr>
+<tr class="even">
+<td align="left">HR_age</td>
+<td align="left">HR of age alone</td>
+</tr>
+<tr class="odd">
+<td align="left">HR_SexFemale</td>
+<td align="left">HR of SexFemale alone</td>
+</tr>
+<tr class="even">
+<td align="left">HR_DrugTxYes</td>
+<td align="left">HR of DrugTxYes alone</td>
+</tr>
+<tr class="odd">
+<td align="left">HR_lowerCI_SNP</td>
+<td align="left">Lower 95% CI HR of SNP alone</td>
+</tr>
+<tr class="even">
+<td align="left">HR_lowerCI_age</td>
+<td align="left">Lower 95% CI HR of age alone</td>
+</tr>
+<tr class="odd">
+<td align="left">HR_lowerCI_SexFemale</td>
+<td align="left">Lower 95% CI HR of SexFemale alone</td>
+</tr>
+<tr class="even">
+<td align="left">HR_lowerCI_DrugTxYes</td>
+<td align="left">Lower 95% CI HR of DrugTxYes alone</td>
+</tr>
+<tr class="odd">
+<td align="left">HR_upperCI_SNP</td>
+<td align="left">Upper 95% CI HR of SNP alone</td>
+</tr>
+<tr class="even">
+<td align="left">HR_upperCI_age</td>
+<td align="left">Upper 95% CI HR of age alone</td>
+</tr>
+<tr class="odd">
+<td align="left">HR_upperCI_SexFemale</td>
+<td align="left">Upper 95% CI HR of SexFemale alone</td>
+</tr>
+<tr class="even">
+<td align="left">HR_upperCI_DrugTxYes</td>
+<td align="left">Upper 95% CI HR of DrugTxYes alone</td>
+</tr>
+<tr class="odd">
+<td align="left">COEF_SNP</td>
+<td align="left">Coefficient Estimate of SNP alone</td>
+</tr>
+<tr class="even">
+<td align="left">COEF_age</td>
+<td align="left">Coefficient Estimate of age alone</td>
+</tr>
+<tr class="odd">
+<td align="left">COEF_SexFemale</td>
+<td align="left">Coefficient Estimate of SexFemale alone</td>
+</tr>
+<tr class="even">
+<td align="left">COEF_DrugTxYes</td>
+<td align="left">Coefficient Estimate of DrugTxYes alone</td>
+</tr>
+<tr class="odd">
+<td align="left">SE.COEF_SNP</td>
+<td align="left">Standard error of Coefficient Estimate of SNP alone</td>
+</tr>
+<tr class="even">
+<td align="left">SE.COEF_age</td>
+<td align="left">Standard error of Coefficient Estimate of age alone</td>
+</tr>
+<tr class="odd">
+<td align="left">SE.COEF_SexFemale</td>
+<td align="left">Standard error of Coefficient Estimate of SexFemale alone</td>
+</tr>
+<tr class="even">
+<td align="left">SE.COEF_DrugTxYes</td>
+<td align="left">Standard error of Coefficient Estimate of DrugTxYes alone</td>
+</tr>
+<tr class="odd">
+<td align="left">Z_SNP</td>
+<td align="left">Z statistic of SNP alone</td>
+</tr>
+<tr class="even">
+<td align="left">Z_age</td>
+<td align="left">Z statistic of age alone</td>
+</tr>
+<tr class="odd">
+<td align="left">Z_SexFemale</td>
+<td align="left">Z statistic of SexFemale alone</td>
+</tr>
+<tr class="even">
+<td align="left">Z_DrugTxYes</td>
+<td align="left">Z statistic of DrugTxYes alone</td>
+</tr>
+<tr class="odd">
+<td align="left">N</td>
+<td align="left">Number of individuals in sample being tested</td>
+</tr>
+<tr class="even">
+<td align="left">NEVENT</td>
+<td align="left">Number of events that occurred in sample being tested</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="snp-with-covariate-interaction" class="section level3">
+<h3><span class="header-section-number">3.1.2</span> SNP with covariate interaction</h3>
+<p><code>print.covs=&quot;only&quot;</code></p>
+<pre class="r"><code>sangerCoxSurv(vcf.file=vcf.file,
+              covariate.file=pheno.file,
+              id.column=&quot;ID_2&quot;,
+              sample.ids=sample.ids,
+              time.to.event=&quot;time&quot;,
+              event=&quot;event&quot;,
+              covariates=c(&quot;age&quot;, &quot;SexFemale&quot;, &quot;DrugTxYes&quot;),
+              inter.term=&quot;DrugTxYes&quot;,
+              print.covs=&quot;only&quot;,
+              out.file=&quot;sanger_intx_only&quot;,
+              info.filter=0.7,
+              maf.filter=0.005,
+              chunk.size=10000,
+              verbose=TRUE,
+              clusterObj=NULL)</code></pre>
+<pre><code>## Analysis started on 2018-04-25 at 21:44:35</code></pre>
+<pre><code>## Covariates included in the models are: age, DrugTxYes, SexFemale</code></pre>
+<pre><code>## Models will include interaction term: SNP*DrugTxYes</code></pre>
+<pre><code>## 253 samples are included in the analysis</code></pre>
+<pre><code>## Analyzing chunk 0-10000</code></pre>
+<pre><code>## Analyzing chunk 10000-20000</code></pre>
+<pre><code>## Analysis completed on 2018-04-25 at 21:45:01</code></pre>
+<pre><code>## 6406 SNPs were removed from the analysis for not meeting the threshold criteria.</code></pre>
+<pre><code>## List of removed SNPs can be found in /var/folders/1w/bb5rrzjn4v9bvq_hlptzq4bc0000gn/T//RtmpnOlrn1/sanger_intx_onlyf5e154b14886.snps_removed</code></pre>
+<pre><code>## 849 SNPs were analyzed in total</code></pre>
+<pre><code>## The survival output can be found at/var/folders/1w/bb5rrzjn4v9bvq_hlptzq4bc0000gn/T//RtmpnOlrn1/sanger_intx_onlyf5e154b14886.coxph</code></pre>
+<pre class="r"><code>sanger_intx_only &lt;- read_tsv(&quot;sanger_intx_only.coxph&quot;)</code></pre>
+<pre class="r"><code>sanger_intx_only %&gt;% 
+    head() %&gt;%
+    glimpse()</code></pre>
+<pre><code>## Observations: 6
+## Variables: 19
+## $ RSID          &lt;chr&gt; &quot;rs201487625&quot;, &quot;rs28874340&quot;, &quot;rs367910327&quot;, &quot;rs286...
+## $ TYPED         &lt;lgl&gt; FALSE, FALSE, FALSE, TRUE, FALSE, FALSE
+## $ CHR           &lt;int&gt; 14, 14, 14, 14, 14, 14
+## $ POS           &lt;int&gt; 19258506, 19266184, 19277567, 19327823, 20260443, ...
+## $ REF           &lt;chr&gt; &quot;A&quot;, &quot;A&quot;, &quot;T&quot;, &quot;T&quot;, &quot;A&quot;, &quot;G&quot;
+## $ ALT           &lt;chr&gt; &quot;G&quot;, &quot;G&quot;, &quot;C&quot;, &quot;C&quot;, &quot;G&quot;, &quot;A&quot;
+## $ RefPanelAF    &lt;dbl&gt; 0.75337200, 0.77717900, 0.70170900, 0.77453000, 0....
+## $ SAMP_FREQ_ALT &lt;dbl&gt; 0.7861, 0.8064, 0.7379, 0.8063, 0.0059, 0.0309
+## $ SAMP_MAF      &lt;dbl&gt; 0.2139, 0.1936, 0.2621, 0.1937, 0.0059, 0.0309
+## $ INFO          &lt;dbl&gt; 0.925998, 0.990349, 0.845283, 1.000000, 0.846617, ...
+## $ PVALUE        &lt;dbl&gt; 0.4592886, 0.1828051, 0.2540931, 0.2064032, 0.9965...
+## $ HR            &lt;dbl&gt; 1.331283e+00, 1.674438e+00, 1.552078e+00, 1.630835...
+## $ HR_lowerCI    &lt;dbl&gt; 0.6239217, 0.7843206, 0.7291380, 0.7636851, 0.0000...
+## $ HR_upperCI    &lt;dbl&gt; 2.840604, 3.574739, 3.303828, 3.482617, Inf, 10.68...
+## $ COEF          &lt;dbl&gt; 0.2861432, 0.5154773, 0.4395947, 0.4890921, 13.978...
+## $ SE.COEF       &lt;dbl&gt; 0.3866702, 0.3869463, 0.3854526, 0.3870877, 3197.8...
+## $ Z             &lt;dbl&gt; 0.740018710, 1.332167615, 1.140463901, 1.263517569...
+## $ N             &lt;int&gt; 253, 253, 253, 253, 253, 253
+## $ NEVENT        &lt;int&gt; 100, 100, 100, 100, 100, 100</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Column</th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">RSID</td>
+<td align="left">SNP ID</td>
+</tr>
+<tr class="even">
+<td align="left">TYPED</td>
+<td align="left">Imputation status: TRUE (SNP IS TYPED)/FALSE (SNP IS IMPUTED)`</td>
+</tr>
+<tr class="odd">
+<td align="left">CHR</td>
+<td align="left">Chromosome number</td>
+</tr>
+<tr class="even">
+<td align="left">POS</td>
+<td align="left">Genomic Position (BP)</td>
+</tr>
+<tr class="odd">
+<td align="left">REF</td>
+<td align="left">Reference Allele</td>
+</tr>
+<tr class="even">
+<td align="left">ALT</td>
+<td align="left">Alternate Allele</td>
+</tr>
+<tr class="odd">
+<td align="left">RefPanelAF</td>
+<td align="left">Reference Panel Allele Frequency</td>
+</tr>
+<tr class="even">
+<td align="left">SAMP_FREQ_ALT</td>
+<td align="left">Frequency of Alternate Allele</td>
+</tr>
+<tr class="odd">
+<td align="left">SAMP_MAF</td>
+<td align="left">Minor allele frequency in sample being tested</td>
+</tr>
+<tr class="even">
+<td align="left">INFO</td>
+<td align="left">Imputation INFO score</td>
+</tr>
+<tr class="odd">
+<td align="left">PVALUE</td>
+<td align="left">P-value of interaction term (SNP*DrugTxYes)</td>
+</tr>
+<tr class="even">
+<td align="left">HR</td>
+<td align="left">Hazard Ratio (HR) of interaction term (SNP*DrugTxYes)</td>
+</tr>
+<tr class="odd">
+<td align="left">HR_lowerCI</td>
+<td align="left">Lower bound 95% CI of HR of interaction term (SNP*DrugTxYes)</td>
+</tr>
+<tr class="even">
+<td align="left">HR_upperCI</td>
+<td align="left">Upper bound 95% CI of HR of interaction term (SNP*DrugTxYes)</td>
+</tr>
+<tr class="odd">
+<td align="left">COEF</td>
+<td align="left">Estimated coefficient of SNP of interaction term (SNP*DrugTxYes)</td>
+</tr>
+<tr class="even">
+<td align="left">SE.COEF</td>
+<td align="left">Standard error of coefficient estimate of interaction term (SNP*DrugTxYes)</td>
+</tr>
+<tr class="odd">
+<td align="left">Z</td>
+<td align="left">Z-statistic of interaction term (SNP*DrugTxYes)</td>
+</tr>
+<tr class="even">
+<td align="left">N</td>
+<td align="left">Number of individuals in sample being tested</td>
+</tr>
+<tr class="odd">
+<td align="left">NEVENT</td>
+<td align="left">Number of events that occurred in sample being tested</td>
+</tr>
+</tbody>
+</table>
+<p><code>print.covs=&quot;some&quot;</code></p>
+<pre class="r"><code>sangerCoxSurv(vcf.file=vcf.file,
+              covariate.file=pheno.file,
+              id.column=&quot;ID_2&quot;,
+              sample.ids=sample.ids,
+              time.to.event=&quot;time&quot;,
+              event=&quot;event&quot;,
+              covariates=c(&quot;age&quot;, &quot;SexFemale&quot;, &quot;DrugTxYes&quot;),
+              inter.term=&quot;DrugTxYes&quot;,
+              print.covs=&quot;some&quot;,
+              out.file=&quot;sanger_intx_some&quot;,
+              info.filter=0.7,
+              maf.filter=0.005,
+              chunk.size=10000,
+              verbose=FALSE,
+              clusterObj=NULL)</code></pre>
+<pre class="r"><code>sanger_intx_some &lt;- read_tsv(&quot;sanger_intx_some.coxph&quot;)</code></pre>
+<pre class="r"><code>sanger_intx_some %&gt;% 
+    head() %&gt;%
+    glimpse()</code></pre>
+<pre><code>## Observations: 6
+## Variables: 33
+## $ RSID                  &lt;chr&gt; &quot;rs201487625&quot;, &quot;rs28874340&quot;, &quot;rs367910327&quot;...
+## $ TYPED                 &lt;lgl&gt; FALSE, FALSE, FALSE, TRUE, FALSE, FALSE
+## $ CHR                   &lt;int&gt; 14, 14, 14, 14, 14, 14
+## $ POS                   &lt;int&gt; 19258506, 19266184, 19277567, 19327823, 20...
+## $ REF                   &lt;chr&gt; &quot;A&quot;, &quot;A&quot;, &quot;T&quot;, &quot;T&quot;, &quot;A&quot;, &quot;G&quot;
+## $ ALT                   &lt;chr&gt; &quot;G&quot;, &quot;G&quot;, &quot;C&quot;, &quot;C&quot;, &quot;G&quot;, &quot;A&quot;
+## $ RefPanelAF            &lt;dbl&gt; 0.75337200, 0.77717900, 0.70170900, 0.7745...
+## $ SAMP_FREQ_ALT         &lt;dbl&gt; 0.7861, 0.8064, 0.7379, 0.8063, 0.0059, 0....
+## $ SAMP_MAF              &lt;dbl&gt; 0.2139, 0.1936, 0.2621, 0.1937, 0.0059, 0....
+## $ INFO                  &lt;dbl&gt; 0.925998, 0.990349, 0.845283, 1.000000, 0....
+## $ PVALUE_INTER.TERM     &lt;dbl&gt; 0.4592886, 0.1828051, 0.2540931, 0.2064032...
+## $ PVALUE_SNP            &lt;dbl&gt; 0.32881093, 0.10458687, 0.04505057, 0.1005...
+## $ PVALUE_DrugTxYes      &lt;dbl&gt; 0.536674773, 0.939937438, 0.931704452, 0.9...
+## $ HR_INTER.TERM         &lt;dbl&gt; 1.331283e+00, 1.674438e+00, 1.552078e+00, ...
+## $ HR_SNP                &lt;dbl&gt; 7.248586e-01, 5.797955e-01, 5.133373e-01, ...
+## $ HR_DrugTxYes          &lt;dbl&gt; 1.4845985, 0.9499045, 1.0564296, 0.9915043...
+## $ HR_lowerCI_INTER.TERM &lt;dbl&gt; 0.6239217, 0.7843206, 0.7291380, 0.7636851...
+## $ HR_lowerCI_SNP        &lt;dbl&gt; 0.3799807, 0.3001913, 0.2674175, 0.3016735...
+## $ HR_lowerCI_DrugTxYes  &lt;dbl&gt; 0.4238523, 0.2495055, 0.3010226, 0.2614824...
+## $ HR_upperCI_INTER.TERM &lt;dbl&gt; 2.840604, 3.574739, 3.303828, 3.482617, In...
+## $ HR_upperCI_SNP        &lt;dbl&gt; 1.3827545, 1.1198286, 0.9854075, 1.1114652...
+## $ HR_upperCI_DrugTxYes  &lt;dbl&gt; 5.200002, 3.616427, 3.707508, 3.759644, 3....
+## $ COEF_INTER.TERM       &lt;dbl&gt; 0.2861432, 0.5154773, 0.4395947, 0.4890921...
+## $ COEF_SNP              &lt;dbl&gt; -0.3217787, -0.5450799, -0.6668221, -0.546...
+## $ COEF_DrugTxYes        &lt;dbl&gt; 0.395144393, -0.051393842, 0.054894930, -0...
+## $ SE.COEF_INTER.TERM    &lt;dbl&gt; 0.3866702, 0.3869463, 0.3854526, 0.3870877...
+## $ SE.COEF_SNP           &lt;dbl&gt; 0.3295185, 0.3358447, 0.3327153, 0.3326758...
+## $ SE.COEF_DrugTxYes     &lt;dbl&gt; 0.6395483, 0.6820819, 0.6405434, 0.6800287...
+## $ Z_INTER.TERM          &lt;dbl&gt; 0.740018710, 1.332167615, 1.140463901, 1.2...
+## $ Z_SNP                 &lt;dbl&gt; -0.976511754, -1.623011856, -2.004181967, ...
+## $ Z_DrugTxYes           &lt;dbl&gt; 0.61784916, -0.07534849, 0.08570057, -0.01...
+## $ N                     &lt;int&gt; 253, 253, 253, 253, 253, 253
+## $ NEVENT                &lt;int&gt; 100, 100, 100, 100, 100, 100</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Column</th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">RSID</td>
+<td align="left">SNP ID</td>
+</tr>
+<tr class="even">
+<td align="left">TYPED</td>
+<td align="left">Imputation status: TRUE (SNP IS TYPED)/FALSE (SNP IS IMPUTED)`</td>
+</tr>
+<tr class="odd">
+<td align="left">CHR</td>
+<td align="left">Chromosome number</td>
+</tr>
+<tr class="even">
+<td align="left">POS</td>
+<td align="left">Genomic Position (BP)</td>
+</tr>
+<tr class="odd">
+<td align="left">REF</td>
+<td align="left">Reference Allele</td>
+</tr>
+<tr class="even">
+<td align="left">ALT</td>
+<td align="left">Alternate Allele</td>
+</tr>
+<tr class="odd">
+<td align="left">RefPanelAF</td>
+<td align="left">Reference Panel Allele Frequency</td>
+</tr>
+<tr class="even">
+<td align="left">SAMP_FREQ_ALT</td>
+<td align="left">Frequency of Alternate Allele</td>
+</tr>
+<tr class="odd">
+<td align="left">SAMP_MAF</td>
+<td align="left">Minor allele frequency in sample being tested</td>
+</tr>
+<tr class="even">
+<td align="left">INFO</td>
+<td align="left">Imputation INFO score</td>
+</tr>
+<tr class="odd">
+<td align="left">PVALUE_INTER.TERM</td>
+<td align="left">P-value of interaction term (SNP*DrugTxYes)</td>
+</tr>
+<tr class="even">
+<td align="left">PVALUE_SNP</td>
+<td align="left">P-value of SNP alone</td>
+</tr>
+<tr class="odd">
+<td align="left">PVALUE_DrugTxYes</td>
+<td align="left">P-value of DrugTxYes alone</td>
+</tr>
+<tr class="even">
+<td align="left">HR_INTER.TERM</td>
+<td align="left">HR of interaction term (SNP*DrugTxYes)</td>
+</tr>
+<tr class="odd">
+<td align="left">HR_SNP</td>
+<td align="left">HR of SNP alone</td>
+</tr>
+<tr class="even">
+<td align="left">HR_DrugTxYes</td>
+<td align="left">HR of DrugTxYes alone</td>
+</tr>
+<tr class="odd">
+<td align="left">HR_lowerCI_INTER.TERM</td>
+<td align="left">Lower 95% CI HR of interaction term (SNP*DrugTxYes)</td>
+</tr>
+<tr class="even">
+<td align="left">HR_lowerCI_SNP</td>
+<td align="left">Lower 95% CI HR of SNP alone</td>
+</tr>
+<tr class="odd">
+<td align="left">HR_lowerCI_DrugTxYes</td>
+<td align="left">Lower 95% CI HR of DrugTxYes alone</td>
+</tr>
+<tr class="even">
+<td align="left">HR_upperCI_INTER.TERM</td>
+<td align="left">Upper 95% CI HR of interaction term (SNP*DrugTxYes)</td>
+</tr>
+<tr class="odd">
+<td align="left">HR_upperCI_SNP</td>
+<td align="left">Upper 95% CI HR of SNP alone</td>
+</tr>
+<tr class="even">
+<td align="left">HR_upperCI_DrugTxYes</td>
+<td align="left">Upper 95% CI HR of DrugTxYes alone</td>
+</tr>
+<tr class="odd">
+<td align="left">COEF_INERM.TERM</td>
+<td align="left">Coefficient Estimate of interaction term (SNP*DrugTxYes)</td>
+</tr>
+<tr class="even">
+<td align="left">COEF_SNP</td>
+<td align="left">Coefficient Estimate of SNP alone</td>
+</tr>
+<tr class="odd">
+<td align="left">COEF_DrugTxYes</td>
+<td align="left">Coefficient Estimate of DrugTxYes alone</td>
+</tr>
+<tr class="even">
+<td align="left">SE.COEF_INTER.TERM</td>
+<td align="left">Standard Error of Coefficent of interaction term (SNP*DrugTxYes)</td>
+</tr>
+<tr class="odd">
+<td align="left">SE.COEF_SNP</td>
+<td align="left">Standard Error of Coefficent of SNP alone</td>
+</tr>
+<tr class="even">
+<td align="left">SE.COEF_DrugTxYes</td>
+<td align="left">Standard Error of Coefficent of DrugTxYes alone</td>
+</tr>
+<tr class="odd">
+<td align="left">Z_INTER.TERM</td>
+<td align="left">Z statistic of interaction term (SNP*DrugTxYes)</td>
+</tr>
+<tr class="even">
+<td align="left">Z_SNP</td>
+<td align="left">Z statistic of SNP alone</td>
+</tr>
+<tr class="odd">
+<td align="left">Z_DrugTxYes</td>
+<td align="left">Z statistic of DrugTxYes alone</td>
+</tr>
+<tr class="even">
+<td align="left">N</td>
+<td align="left">Number of individuals in sample being tested</td>
+</tr>
+<tr class="odd">
+<td align="left">NEVENT</td>
+<td align="left">Number of events that occurred in sample being tested</td>
+</tr>
+</tbody>
+</table>
+<p><code>print.covs=&quot;all&quot;</code></p>
+<pre class="r"><code>sangerCoxSurv(vcf.file=vcf.file,
+              covariate.file=pheno.file,
+              id.column=&quot;ID_2&quot;,
+              sample.ids=sample.ids,
+              time.to.event=&quot;time&quot;,
+              event=&quot;event&quot;,
+              covariates=c(&quot;age&quot;, &quot;SexFemale&quot;, &quot;DrugTxYes&quot;),
+              inter.term=&quot;DrugTxYes&quot;,
+              print.covs=&quot;all&quot;,
+              out.file=&quot;sanger_intx_all&quot;,
+              info.filter=0.7,
+              maf.filter=0.005,
+              chunk.size=10000,
+              verbose=FALSE,
+              clusterObj=NULL)</code></pre>
+<pre class="r"><code>sanger_intx_all &lt;- read_tsv(&quot;sanger_intx_all.coxph&quot;)</code></pre>
+<pre class="r"><code>sanger_intx_all %&gt;% 
+    head() %&gt;%
+    glimpse()</code></pre>
+<pre><code>## Observations: 6
+## Variables: 47
+## $ RSID                  &lt;chr&gt; &quot;rs201487625&quot;, &quot;rs28874340&quot;, &quot;rs367910327&quot;...
+## $ TYPED                 &lt;lgl&gt; FALSE, FALSE, FALSE, TRUE, FALSE, FALSE
+## $ CHR                   &lt;int&gt; 14, 14, 14, 14, 14, 14
+## $ POS                   &lt;int&gt; 19258506, 19266184, 19277567, 19327823, 20...
+## $ REF                   &lt;chr&gt; &quot;A&quot;, &quot;A&quot;, &quot;T&quot;, &quot;T&quot;, &quot;A&quot;, &quot;G&quot;
+## $ ALT                   &lt;chr&gt; &quot;G&quot;, &quot;G&quot;, &quot;C&quot;, &quot;C&quot;, &quot;G&quot;, &quot;A&quot;
+## $ RefPanelAF            &lt;dbl&gt; 0.75337200, 0.77717900, 0.70170900, 0.7745...
+## $ SAMP_FREQ_ALT         &lt;dbl&gt; 0.7861, 0.8064, 0.7379, 0.8063, 0.0059, 0....
+## $ SAMP_MAF              &lt;dbl&gt; 0.2139, 0.1936, 0.2621, 0.1937, 0.0059, 0....
+## $ INFO                  &lt;dbl&gt; 0.925998, 0.990349, 0.845283, 1.000000, 0....
+## $ PVALUE_INTER.TERM     &lt;dbl&gt; 0.4592886, 0.1828051, 0.2540931, 0.2064032...
+## $ PVALUE_SNP            &lt;dbl&gt; 0.32881093, 0.10458687, 0.04505057, 0.1005...
+## $ PVALUE_age            &lt;dbl&gt; 1.796981e-25, 9.876198e-25, 2.870381e-24, ...
+## $ PVALUE_SexFemale      &lt;dbl&gt; 0.7852510, 0.6145777, 0.5665199, 0.6037010...
+## $ PVALUE_DrugTxYes      &lt;dbl&gt; 0.536674773, 0.939937438, 0.931704452, 0.9...
+## $ HR_INTER.TERM         &lt;dbl&gt; 1.331283e+00, 1.674438e+00, 1.552078e+00, ...
+## $ HR_SNP                &lt;dbl&gt; 7.248586e-01, 5.797955e-01, 5.133373e-01, ...
+## $ HR_age                &lt;dbl&gt; 1.172180, 1.177842, 1.182726, 1.178085, 1....
+## $ HR_SexFemale          &lt;dbl&gt; 1.060547, 1.114869, 1.131633, 1.119068, 1....
+## $ HR_DrugTxYes          &lt;dbl&gt; 1.4845985, 0.9499045, 1.0564296, 0.9915043...
+## $ HR_lowerCI_INTER.TERM &lt;dbl&gt; 0.6239217, 0.7843206, 0.7291380, 0.7636851...
+## $ HR_lowerCI_SNP        &lt;dbl&gt; 0.3799807, 0.3001913, 0.2674175, 0.3016735...
+## $ HR_lowerCI_age        &lt;dbl&gt; 1.137705, 1.141608, 1.145063, 1.141787, 1....
+## $ HR_lowerCI_SexFemale  &lt;dbl&gt; 0.6948495, 0.7301485, 0.7414118, 0.7317808...
+## $ HR_lowerCI_DrugTxYes  &lt;dbl&gt; 0.4238523, 0.2495055, 0.3010226, 0.2614824...
+## $ HR_upperCI_INTER.TERM &lt;dbl&gt; 2.840604, 3.574739, 3.303828, 3.482617, In...
+## $ HR_upperCI_SNP        &lt;dbl&gt; 1.3827545, 1.1198286, 0.9854075, 1.1114652...
+## $ HR_upperCI_age        &lt;dbl&gt; 1.207700, 1.215226, 1.221628, 1.215537, 1....
+## $ HR_upperCI_SexFemale  &lt;dbl&gt; 1.618709, 1.702302, 1.727237, 1.711322, 1....
+## $ HR_upperCI_DrugTxYes  &lt;dbl&gt; 5.200002, 3.616427, 3.707508, 3.759644, 3....
+## $ COEF_INTER.TERM       &lt;dbl&gt; 0.2861432, 0.5154773, 0.4395947, 0.4890921...
+## $ COEF_SNP              &lt;dbl&gt; -0.3217787, -0.5450799, -0.6668221, -0.546...
+## $ COEF_age              &lt;dbl&gt; 0.1588653, 0.1636840, 0.1678221, 0.1638903...
+## $ COEF_SexFemale        &lt;dbl&gt; 0.05878457, 0.10873710, 0.12366189, 0.1124...
+## $ COEF_DrugTxYes        &lt;dbl&gt; 0.395144393, -0.051393842, 0.054894930, -0...
+## $ SE.COEF_INTER.TERM    &lt;dbl&gt; 0.3866702, 0.3869463, 0.3854526, 0.3870877...
+## $ SE.COEF_SNP           &lt;dbl&gt; 0.3295185, 0.3358447, 0.3327153, 0.3326758...
+## $ SE.COEF_age           &lt;dbl&gt; 0.01523066, 0.01594200, 0.01651141, 0.0159...
+## $ SE.COEF_SexFemale     &lt;dbl&gt; 0.2157370, 0.2159411, 0.2157454, 0.2167195...
+## $ SE.COEF_DrugTxYes     &lt;dbl&gt; 0.6395483, 0.6820819, 0.6405434, 0.6800287...
+## $ Z_INTER.TERM          &lt;dbl&gt; 0.740018710, 1.332167615, 1.140463901, 1.2...
+## $ Z_SNP                 &lt;dbl&gt; -0.976511754, -1.623011856, -2.004181967, ...
+## $ Z_age                 &lt;dbl&gt; 10.43063, 10.26747, 10.16400, 10.26413, 10...
+## $ Z_SexFemale           &lt;dbl&gt; 0.2724825, 0.5035499, 0.5731844, 0.5190857...
+## $ Z_DrugTxYes           &lt;dbl&gt; 0.61784916, -0.07534849, 0.08570057, -0.01...
+## $ N                     &lt;int&gt; 253, 253, 253, 253, 253, 253
+## $ NEVENT                &lt;int&gt; 100, 100, 100, 100, 100, 100</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Column</th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">RSID</td>
+<td align="left">SNP ID</td>
+</tr>
+<tr class="even">
+<td align="left">TYPED</td>
+<td align="left">Imputation status: TRUE (SNP IS TYPED)/FALSE (SNP IS IMPUTED)`</td>
+</tr>
+<tr class="odd">
+<td align="left">CHR</td>
+<td align="left">Chromosome number</td>
+</tr>
+<tr class="even">
+<td align="left">POS</td>
+<td align="left">Genomic Position (BP)</td>
+</tr>
+<tr class="odd">
+<td align="left">REF</td>
+<td align="left">Reference Allele</td>
+</tr>
+<tr class="even">
+<td align="left">ALT</td>
+<td align="left">Alternate Allele</td>
+</tr>
+<tr class="odd">
+<td align="left">RefPanelAF</td>
+<td align="left">Reference Panel Allele Frequency</td>
+</tr>
+<tr class="even">
+<td align="left">SAMP_FREQ_ALT</td>
+<td align="left">Frequency of Alternate Allele</td>
+</tr>
+<tr class="odd">
+<td align="left">SAMP_MAF</td>
+<td align="left">Minor allele frequency in sample being tested</td>
+</tr>
+<tr class="even">
+<td align="left">INFO</td>
+<td align="left">Imputation INFO score</td>
+</tr>
+<tr class="odd">
+<td align="left">PVALUE_INTER.TERM</td>
+<td align="left">P-value of interaction term (SNP*DrugTxYes)</td>
+</tr>
+<tr class="even">
+<td align="left">PVALUE_SNP</td>
+<td align="left">P-value of SNP alone</td>
+</tr>
+<tr class="odd">
+<td align="left">PVALUE_age</td>
+<td align="left">P-value of age alone</td>
+</tr>
+<tr class="even">
+<td align="left">PVALUE_SexFemale</td>
+<td align="left">P-value of SexFemale alone</td>
+</tr>
+<tr class="odd">
+<td align="left">PVALUE_DrugTxYes</td>
+<td align="left">P-value of DrugTxYes alone</td>
+</tr>
+<tr class="even">
+<td align="left">HR_INTER.TERM</td>
+<td align="left">HR of interaction term (SNP*DrugTxYes)</td>
+</tr>
+<tr class="odd">
+<td align="left">HR_SNP</td>
+<td align="left">HR of SNP alone</td>
+</tr>
+<tr class="even">
+<td align="left">HR_age</td>
+<td align="left">HR of age alone</td>
+</tr>
+<tr class="odd">
+<td align="left">HR_SexFemale</td>
+<td align="left">HR of SexFemale alone</td>
+</tr>
+<tr class="even">
+<td align="left">HR_DrugTxYes</td>
+<td align="left">HR of DrugTxYes alone</td>
+</tr>
+<tr class="odd">
+<td align="left">HR_lowerCI_INTER.TERM</td>
+<td align="left">Lower 95% CI HR of interaction term (SNP*DrugTxYes)</td>
+</tr>
+<tr class="even">
+<td align="left">HR_lowerCI_SNP</td>
+<td align="left">Lower 95% CI HR of SNP alone</td>
+</tr>
+<tr class="odd">
+<td align="left">HR_lowerCI_age</td>
+<td align="left">Lower 95% CI HR of age alone</td>
+</tr>
+<tr class="even">
+<td align="left">HR_lowerCI_SexFemale</td>
+<td align="left">Lower 95% CI HR of SexFemale alone</td>
+</tr>
+<tr class="odd">
+<td align="left">HR_lowerCI_DrugTxYes</td>
+<td align="left">Lower 95% CI HR of DrugTxYes alone</td>
+</tr>
+<tr class="even">
+<td align="left">HR_upperCI_INTER.TERM</td>
+<td align="left">Upper 95% CI HR of interaction term (SNP*DrugTxYes)</td>
+</tr>
+<tr class="odd">
+<td align="left">HR_upperCI_SNP</td>
+<td align="left">Upper 95% CI HR of SNP alone</td>
+</tr>
+<tr class="even">
+<td align="left">HR_upperCI_age</td>
+<td align="left">Upper 95% CI HR of age alone</td>
+</tr>
+<tr class="odd">
+<td align="left">HR_upperCI_SexFemale</td>
+<td align="left">Upper 95% CI HR of SexFemale alone</td>
+</tr>
+<tr class="even">
+<td align="left">HR_upperCI_DrugTxYes</td>
+<td align="left">Upper 95% CI HR of DrugTxYes alone</td>
+</tr>
+<tr class="odd">
+<td align="left">COEF_INERM.TERM</td>
+<td align="left">Coefficient Estimate of interaction term (SNP*DrugTxYes)</td>
+</tr>
+<tr class="even">
+<td align="left">COEF_SNP</td>
+<td align="left">Coefficient Estimate of SNP alone</td>
+</tr>
+<tr class="odd">
+<td align="left">COEF_age</td>
+<td align="left">Coefficient Estimate of age alone</td>
+</tr>
+<tr class="even">
+<td align="left">COEF_SexFemale</td>
+<td align="left">Coefficient Estimate of SexFemale alone</td>
+</tr>
+<tr class="odd">
+<td align="left">COEF_DrugTxYes</td>
+<td align="left">Coefficient Estimate of DrugTxYes alone</td>
+</tr>
+<tr class="even">
+<td align="left">SE.COEF_INTER.TERM</td>
+<td align="left">Standard error of Coefficient Estimate of interaction term (SNP*DrugTxYes)</td>
+</tr>
+<tr class="odd">
+<td align="left">SE.COEF_SNP</td>
+<td align="left">Standard error of Coefficient Estimate of SNP alone</td>
+</tr>
+<tr class="even">
+<td align="left">SE.COEF_age</td>
+<td align="left">Standard error of Coefficient Estimate of age alone</td>
+</tr>
+<tr class="odd">
+<td align="left">SE.COEF_SexFemale</td>
+<td align="left">Standard error of Coefficient Estimate of SexFemale alone</td>
+</tr>
+<tr class="even">
+<td align="left">SE.COEF_DrugTxYes</td>
+<td align="left">Standard error of Coefficient Estimate of DrugTxYes alone</td>
+</tr>
+<tr class="odd">
+<td align="left">Z_INTER.TERM</td>
+<td align="left">Z statistic of interaction term (SNP*DrugTxYes)</td>
+</tr>
+<tr class="even">
+<td align="left">Z_SNP</td>
+<td align="left">Z statistic of SNP alone</td>
+</tr>
+<tr class="odd">
+<td align="left">Z_age</td>
+<td align="left">Z statistic of age alone</td>
+</tr>
+<tr class="even">
+<td align="left">Z_SexFemale</td>
+<td align="left">Z statistic of SexFemale alone</td>
+</tr>
+<tr class="odd">
+<td align="left">Z_DrugTxYes</td>
+<td align="left">Z statistic of DrugTxYes alone</td>
+</tr>
+<tr class="even">
+<td align="left">N</td>
+<td align="left">Number of individuals in sample being tested</td>
+</tr>
+<tr class="odd">
+<td align="left">NEVENT</td>
+<td align="left">Number of events that occurred in sample being tested</td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
 </div>
 <div id="impute2-imputation" class="section level1">
@@ -336,7 +1241,6 @@ head(sample.ids)</code></pre>
 sample.file &lt;- system.file(package=&quot;gwasurvivr&quot;,
                            &quot;extdata&quot;, 
                            &quot;impute_example.impute2_sample&quot;)
-chr &lt;- 14
 covariate.file &lt;- system.file(package=&quot;gwasurvivr&quot;, 
                        &quot;extdata&quot;,
                        &quot;simulated_pheno.txt&quot;)
@@ -345,129 +1249,2004 @@ covariate.file &lt;- covariate.file %&gt;%
         mutate(SexFemale=case_when(sex==&quot;female&quot;~1L,
                                    sex==&quot;male&quot;~0L)) %&gt;%
         dplyr::select(-ID_1)
-covariate.file %&gt;% head</code></pre>
+covariate.file %&gt;%
+    head()</code></pre>
 <pre><code>## # A tibble: 6 x 8
-##   ID_2  event  time   age bmiOVWT sex    group        SexFemale
-##   &lt;chr&gt; &lt;int&gt; &lt;dbl&gt; &lt;dbl&gt;   &lt;int&gt; &lt;chr&gt;  &lt;chr&gt;            &lt;int&gt;
-## 1 SAMP1     0 12.0   33.9       0 male   control              0
-## 2 SAMP2     1  7.61  58.7       1 male   experimental         0
-## 3 SAMP3     0 12.0   39.4       0 female control              1
-## 4 SAMP4     0  4.30  38.8       0 male   control              0
-## 5 SAMP5     0 12.0   43.6       0 male   experimental         0
-## 6 SAMP6     1  2.60  57.7       0 male   control              0</code></pre>
+##   ID_2  event  time   age DrugTxYes sex    group        SexFemale
+##   &lt;chr&gt; &lt;int&gt; &lt;dbl&gt; &lt;dbl&gt;     &lt;int&gt; &lt;chr&gt;  &lt;chr&gt;            &lt;int&gt;
+## 1 SAMP1     0 12.0   33.9         0 male   control              0
+## 2 SAMP2     1  7.61  58.7         1 male   experimental         0
+## 3 SAMP3     0 12.0   39.4         0 female control              1
+## 4 SAMP4     0  4.30  38.8         0 male   control              0
+## 5 SAMP5     0 12.0   43.6         0 male   experimental         0
+## 6 SAMP6     1  2.60  57.7         0 male   control              0</code></pre>
 <pre class="r"><code>sample.ids &lt;- covariate.file %&gt;%
         filter(group==&quot;experimental&quot;) %$%
         ID_2 </code></pre>
-<p>Now we can run survival</p>
+<p>Now we can run survival.</p>
+</div>
+<div id="description-of-output-columns" class="section level2">
+<h2><span class="header-section-number">4.3</span> Description of output columns</h2>
+<div id="single-snp-analysis-1" class="section level3">
+<h3><span class="header-section-number">4.3.1</span> Single SNP analysis</h3>
+<p><code>print.cov=&quot;only&quot;</code></p>
 <pre class="r"><code>impute2CoxSurv(impute.file=impute.file,
                sample.file=sample.file,
                chr=14,
                covariate.file=covariate.file,
+               id.column=&quot;ID_2&quot;,
                sample.ids=sample.ids,
                time.to.event=&quot;time&quot;,
                event=&quot;event&quot;,
-               covariates=c(&quot;age&quot;, &quot;SexFemale&quot;, &quot;bmiOVWT&quot;),
-               out.file=&quot;impute_example&quot;,
+               covariates=c(&quot;age&quot;, &quot;SexFemale&quot;, &quot;DrugTxYes&quot;),
+               inter.term=NULL,
+               print.covs=&quot;only&quot;,
+               out.file=&quot;impute_example_only&quot;,
+               chunk.size=10000,
                maf.filter=0.01,
                info.filter=0.7,
                flip.dosage=TRUE,
-               verbose=TRUE)</code></pre>
-<pre><code>## Analysis started on 2018-03-26 at 18:17:23</code></pre>
-<pre><code>## Determining number of SNPs and samples...</code></pre>
-<pre><code>## Including all SNPs.</code></pre>
-<pre><code>## scan.df not given. Assigning scanIDs automatically.</code></pre>
-<pre><code>## Reading sample file...</code></pre>
-<pre><code>## Reading genotype file...</code></pre>
-<pre><code>## Block 1 of 2</code></pre>
-<pre><code>## Block 2 of 2</code></pre>
-<pre><code>## Writing annotation...</code></pre>
-<pre><code>## Compressing...</code></pre>
-<pre><code>## Clean up the fragments of GDS file:
-##     open the file '/private/var/folders/1w/bb5rrzjn4v9bvq_hlptzq4bc0000gn/T/RtmpeBM7Pt/ccae66ad2bb8.gds' (13.9M)
-##     # of fragments: 30
-##     save to '/private/var/folders/1w/bb5rrzjn4v9bvq_hlptzq4bc0000gn/T/RtmpeBM7Pt/ccae66ad2bb8.gds.tmp'
-##     rename '/private/var/folders/1w/bb5rrzjn4v9bvq_hlptzq4bc0000gn/T/RtmpeBM7Pt/ccae66ad2bb8.gds.tmp' (230.5K, reduced: 13.6M)
-##     # of fragments: 14</code></pre>
-<pre><code>## 5888 SNPs were removed from the analysis for not meeting the given MAF &lt; 0.01</code></pre>
-<pre><code>## List of removed SNPs are saved to impute_example.snps_removed</code></pre>
-<pre><code>## Covariates included in the models are: age, SexFemale, bmiOVWT</code></pre>
-<pre><code>## 253 samples are included in the analysis</code></pre>
-<pre><code>## Analysis completed on 2018-03-26 at 18:17:40</code></pre>
-</div>
-<div id="peek-at-results-1" class="section level2">
-<h2><span class="header-section-number">4.3</span> Peek at results</h2>
-<pre class="r"><code>impute2_res &lt;- read_tsv(&quot;impute_example.coxph&quot;)
-dim(impute2_res)</code></pre>
-<pre><code>## [1] 782  17</code></pre>
-<pre class="r"><code>impute2_res %&gt;%
-        select(RSID, TYPED, PVALUE, COEF, HR) %&gt;%
-        arrange(PVALUE) %&gt;%
-        head() %&gt;%
-        kable() </code></pre>
+               verbose=FALSE,
+               clusterObj=NULL)</code></pre>
+<pre class="r"><code>impute2_res_only &lt;- read_tsv(&quot;impute_example_only.coxph&quot;)
+impute2_res_only %&gt;%
+    head() %&gt;% 
+    glimpse()</code></pre>
+<pre><code>## Observations: 6
+## Variables: 18
+## $ RSID        &lt;chr&gt; &quot;rs201487625&quot;, &quot;rs28881575&quot;, &quot;rs28874340&quot;, &quot;rs367910...
+## $ TYPED       &lt;chr&gt; &quot;---&quot;, &quot;---&quot;, &quot;---&quot;, &quot;---&quot;, &quot;---&quot;, &quot;rs28699618&quot;
+## $ CHR         &lt;int&gt; 14, 14, 14, 14, 14, 14
+## $ POS         &lt;int&gt; 19258506, 19264217, 19266184, 19277567, 19327682, 19...
+## $ A0          &lt;chr&gt; &quot;A&quot;, &quot;A&quot;, &quot;A&quot;, &quot;T&quot;, &quot;A&quot;, &quot;T&quot;
+## $ A1          &lt;chr&gt; &quot;G&quot;, &quot;G&quot;, &quot;G&quot;, &quot;C&quot;, &quot;G&quot;, &quot;C&quot;
+## $ exp_freq_A1 &lt;dbl&gt; 0.7861, 0.9822, 0.8064, 0.7379, 0.6135, 0.8063
+## $ SAMP_MAF    &lt;dbl&gt; 0.2139, 0.0178, 0.1936, 0.2621, 0.3865, 0.1937
+## $ INFO        &lt;dbl&gt; 1.000, 0.744, 1.000, 0.919, 0.801, 1.000
+## $ PVALUE      &lt;dbl&gt; 0.52214228, 0.38598100, 0.39747028, 0.05702106, 0.36...
+## $ HR          &lt;dbl&gt; 0.8965579, 2.0522850, 0.8640559, 0.7135934, 1.176295...
+## $ HR_lowerCI  &lt;dbl&gt; 0.6417414, 0.4039371, 0.6159546, 0.5041085, 0.825345...
+## $ HR_upperCI  &lt;dbl&gt; 1.252554, 10.427054, 1.212090, 1.010131, 1.676475, 1...
+## $ COEF        &lt;dbl&gt; -0.1091924, 0.7189538, -0.1461178, -0.3374419, 0.162...
+## $ SE.COEF     &lt;dbl&gt; 0.1706007, 0.8293112, 0.1726859, 0.1773071, 0.180777...
+## $ Z           &lt;dbl&gt; -0.6400466, 0.8669288, -0.8461478, -1.9031493, 0.898...
+## $ N           &lt;int&gt; 253, 253, 253, 253, 253, 253
+## $ NEVENT      &lt;int&gt; 100, 100, 100, 100, 100, 100</code></pre>
 <table>
 <thead>
 <tr class="header">
-<th align="left">RSID</th>
-<th align="left">TYPED</th>
-<th align="right">PVALUE</th>
-<th align="right">COEF</th>
-<th align="right">HR</th>
+<th align="left">Column</th>
+<th align="left">Description</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td align="left">rs56178399</td>
-<td align="left">—</td>
-<td align="right">0.0001774</td>
-<td align="right">1.646147</td>
-<td align="right">5.186955</td>
+<td align="left">RSID</td>
+<td align="left">SNP ID</td>
 </tr>
 <tr class="even">
-<td align="left">rs80175559</td>
-<td align="left">—</td>
-<td align="right">0.0002293</td>
-<td align="right">1.569031</td>
-<td align="right">4.801994</td>
+<td align="left">TYPED</td>
+<td align="left">Imputation status: Typed (RSID repeated)/Imputed <code>(---)</code></td>
 </tr>
 <tr class="odd">
-<td align="left">rs74833732</td>
-<td align="left">—</td>
-<td align="right">0.0008713</td>
-<td align="right">1.368206</td>
-<td align="right">3.928297</td>
+<td align="left">CHR</td>
+<td align="left">Chromosome number</td>
 </tr>
 <tr class="even">
-<td align="left">rs12586922</td>
-<td align="left">rs12586922</td>
-<td align="right">0.0009214</td>
-<td align="right">1.098080</td>
-<td align="right">2.998402</td>
+<td align="left">POS</td>
+<td align="left">Genomic Position (BP)</td>
 </tr>
 <tr class="odd">
-<td align="left">rs34610474</td>
-<td align="left">—</td>
-<td align="right">0.0009248</td>
-<td align="right">1.189763</td>
-<td align="right">3.286301</td>
+<td align="left">A0</td>
+<td align="left">Allele coded as 0</td>
 </tr>
 <tr class="even">
-<td align="left">rs4643237</td>
-<td align="left">—</td>
-<td align="right">0.0010024</td>
-<td align="right">1.130329</td>
-<td align="right">3.096675</td>
+<td align="left">A1</td>
+<td align="left">Allele coded as 1</td>
+</tr>
+<tr class="odd">
+<td align="left">exp_freq_A1</td>
+<td align="left">Expected allele frequency of Allele 1 within the sample being tested</td>
+</tr>
+<tr class="even">
+<td align="left">SAMP_MAF</td>
+<td align="left">Minor allele frequency (MAF) within the sample being tested</td>
+</tr>
+<tr class="odd">
+<td align="left">INFO</td>
+<td align="left">Imputation INFO score</td>
+</tr>
+<tr class="even">
+<td align="left">PVALUE</td>
+<td align="left">P-value</td>
+</tr>
+<tr class="odd">
+<td align="left">HR</td>
+<td align="left">Hazard Ratio (HR)</td>
+</tr>
+<tr class="even">
+<td align="left">HR_lowerCI</td>
+<td align="left">Lower bound 95% CI of HR</td>
+</tr>
+<tr class="odd">
+<td align="left">HR_upperCI</td>
+<td align="left">Upper bound 95% CI of HR</td>
+</tr>
+<tr class="even">
+<td align="left">COEF</td>
+<td align="left">Estimated coefficient of SNP</td>
+</tr>
+<tr class="odd">
+<td align="left">SE.COEF</td>
+<td align="left">Standard error of coefficient estimate</td>
+</tr>
+<tr class="even">
+<td align="left">Z</td>
+<td align="left">Z-statistic</td>
+</tr>
+<tr class="odd">
+<td align="left">N</td>
+<td align="left">Number of individuals in sample being tested</td>
+</tr>
+<tr class="even">
+<td align="left">NEVENT</td>
+<td align="left">Number of events that occurred in sample being tested</td>
 </tr>
 </tbody>
 </table>
-<p>The results look the same.</p>
+<p><code>print.cov=&quot;all&quot;</code></p>
+<pre class="r"><code>impute2CoxSurv(impute.file=impute.file,
+               sample.file=sample.file,
+               chr=14,
+               covariate.file=covariate.file,
+               id.column=&quot;ID_2&quot;,
+               sample.ids=sample.ids,
+               time.to.event=&quot;time&quot;,
+               event=&quot;event&quot;,
+               covariates=c(&quot;age&quot;, &quot;SexFemale&quot;, &quot;DrugTxYes&quot;),
+               inter.term=NULL,
+               print.covs=&quot;all&quot;,
+               out.file=&quot;impute_example_all&quot;,
+               chunk.size=10000,
+               maf.filter=0.01,
+               info.filter=0.7,
+               flip.dosage=TRUE,
+               verbose=FALSE,
+               clusterObj=NULL)</code></pre>
+<pre class="r"><code>impute2_res_all &lt;- read_tsv(&quot;impute_example_all.coxph&quot;)
+impute2_res_all %&gt;%
+    head() %&gt;% 
+    glimpse()</code></pre>
+<pre><code>## Observations: 6
+## Variables: 39
+## $ RSID                 &lt;chr&gt; &quot;rs201487625&quot;, &quot;rs28881575&quot;, &quot;rs28874340&quot;, ...
+## $ TYPED                &lt;chr&gt; &quot;---&quot;, &quot;---&quot;, &quot;---&quot;, &quot;---&quot;, &quot;---&quot;, &quot;rs28699...
+## $ CHR                  &lt;int&gt; 14, 14, 14, 14, 14, 14
+## $ POS                  &lt;int&gt; 19258506, 19264217, 19266184, 19277567, 193...
+## $ A0                   &lt;chr&gt; &quot;A&quot;, &quot;A&quot;, &quot;A&quot;, &quot;T&quot;, &quot;A&quot;, &quot;T&quot;
+## $ A1                   &lt;chr&gt; &quot;G&quot;, &quot;G&quot;, &quot;G&quot;, &quot;C&quot;, &quot;G&quot;, &quot;C&quot;
+## $ exp_freq_A1          &lt;dbl&gt; 0.7861, 0.9822, 0.8064, 0.7379, 0.6135, 0.8063
+## $ SAMP_MAF             &lt;dbl&gt; 0.2139, 0.0178, 0.1936, 0.2621, 0.3865, 0.1937
+## $ INFO                 &lt;dbl&gt; 1.000, 0.744, 1.000, 0.919, 0.801, 1.000
+## $ PVALUE_SNP           &lt;dbl&gt; 0.52214228, 0.38598100, 0.39747028, 0.05702...
+## $ PVALUE_age           &lt;dbl&gt; 1.932742e-25, 9.355795e-26, 3.270821e-25, 3...
+## $ PVALUE_SexFemale     &lt;dbl&gt; 0.7090943, 0.6633062, 0.6517581, 0.5864499,...
+## $ PVALUE_DrugTxYes     &lt;dbl&gt; 0.0010313638, 0.0006437567, 0.0017513191, 0...
+## $ HR_SNP               &lt;dbl&gt; 0.8965579, 2.0522850, 0.8640559, 0.7135934,...
+## $ HR_age               &lt;dbl&gt; 1.172425, 1.172816, 1.173876, 1.178022, 1.1...
+## $ HR_SexFemale         &lt;dbl&gt; 1.083151, 1.097723, 1.102061, 1.124347, 1.0...
+## $ HR_DrugTxYes         &lt;dbl&gt; 2.304006, 2.390406, 2.242604, 2.085507, 2.3...
+## $ HR_lowerCI_SNP       &lt;dbl&gt; 0.6417414, 0.4039371, 0.6159546, 0.5041085,...
+## $ HR_lowerCI_age       &lt;dbl&gt; 1.137876, 1.138408, 1.138853, 1.142053, 1.1...
+## $ HR_lowerCI_SexFemale &lt;dbl&gt; 0.7119432, 0.7214239, 0.7226279, 0.7370634,...
+## $ HR_lowerCI_DrugTxYes &lt;dbl&gt; 1.399582, 1.449077, 1.352302, 1.247214, 1.4...
+## $ HR_upperCI_SNP       &lt;dbl&gt; 1.252554, 10.427054, 1.212090, 1.010131, 1....
+## $ HR_upperCI_age       &lt;dbl&gt; 1.208023, 1.208265, 1.209975, 1.215123, 1.2...
+## $ HR_upperCI_SexFemale &lt;dbl&gt; 1.647905, 1.670302, 1.680725, 1.715126, 1.6...
+## $ HR_upperCI_DrugTxYes &lt;dbl&gt; 3.792879, 3.943227, 3.719046, 3.487244, 3.8...
+## $ COEF_SNP             &lt;dbl&gt; -0.1091924, 0.7189538, -0.1461178, -0.33744...
+## $ COEF_age             &lt;dbl&gt; 0.1590742, 0.1594081, 0.1603107, 0.1638367,...
+## $ COEF_SexFemale       &lt;dbl&gt; 0.07987393, 0.09323804, 0.09718212, 0.11720...
+## $ COEF_DrugTxYes       &lt;dbl&gt; 0.8346493, 0.8714632, 0.8076377, 0.7350120,...
+## $ SE.COEF_SNP          &lt;dbl&gt; 0.1706007, 0.8293112, 0.1726859, 0.1773071,...
+## $ SE.COEF_age          &lt;dbl&gt; 0.01526081, 0.01519263, 0.01545377, 0.01582...
+## $ SE.COEF_SexFemale    &lt;dbl&gt; 0.2140975, 0.2141665, 0.2153281, 0.2154511,...
+## $ SE.COEF_DrugTxYes    &lt;dbl&gt; 0.2543245, 0.2553757, 0.2580763, 0.2622958,...
+## $ Z_SNP                &lt;dbl&gt; -0.6400466, 0.8669288, -0.8461478, -1.90314...
+## $ Z_age                &lt;dbl&gt; 10.42371, 10.49246, 10.37357, 10.35576, 10....
+## $ Z_SexFemale          &lt;dbl&gt; 0.3730728, 0.4353530, 0.4513212, 0.5439878,...
+## $ Z_DrugTxYes          &lt;dbl&gt; 3.281828, 3.412476, 3.129453, 2.802225, 3.3...
+## $ N                    &lt;int&gt; 253, 253, 253, 253, 253, 253
+## $ NEVENT               &lt;int&gt; 100, 100, 100, 100, 100, 100</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Column</th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">RSID</td>
+<td align="left">SNP ID</td>
+</tr>
+<tr class="even">
+<td align="left">TYPED</td>
+<td align="left">Imputation status: Typed (RSID repeated)/Imputed <code>(---)</code></td>
+</tr>
+<tr class="odd">
+<td align="left">CHR</td>
+<td align="left">Chromosome number</td>
+</tr>
+<tr class="even">
+<td align="left">POS</td>
+<td align="left">Genomic Position (BP)</td>
+</tr>
+<tr class="odd">
+<td align="left">A0</td>
+<td align="left">Allele coded as 0</td>
+</tr>
+<tr class="even">
+<td align="left">A1</td>
+<td align="left">Allele coded as 1</td>
+</tr>
+<tr class="odd">
+<td align="left">exp_freq_A1</td>
+<td align="left">Expected allele frequency of Allele 1 within the sample being tested</td>
+</tr>
+<tr class="even">
+<td align="left">SAMP_MAF</td>
+<td align="left">Minor allele frequency (MAF) within the sample being tested</td>
+</tr>
+<tr class="odd">
+<td align="left">INFO</td>
+<td align="left">Imputation INFO score</td>
+</tr>
+<tr class="even">
+<td align="left">PVALUE_SNP</td>
+<td align="left">P-value of SNP alone</td>
+</tr>
+<tr class="odd">
+<td align="left">PVALUE_age</td>
+<td align="left">P-value of age alone</td>
+</tr>
+<tr class="even">
+<td align="left">PVALUE_SexFemale</td>
+<td align="left">P-value of SexFemale alone</td>
+</tr>
+<tr class="odd">
+<td align="left">PVALUE_DrugTxYes</td>
+<td align="left">P-value of DrugTxYes alone</td>
+</tr>
+<tr class="even">
+<td align="left">HR_SNP</td>
+<td align="left">HR of SNP alone</td>
+</tr>
+<tr class="odd">
+<td align="left">HR_age</td>
+<td align="left">HR of age alone</td>
+</tr>
+<tr class="even">
+<td align="left">HR_SexFemale</td>
+<td align="left">HR of SexFemale alone</td>
+</tr>
+<tr class="odd">
+<td align="left">HR_DrugTxYes</td>
+<td align="left">HR of DrugTxYes alone</td>
+</tr>
+<tr class="even">
+<td align="left">HR_lowerCI_SNP</td>
+<td align="left">Lower 95% CI HR of SNP alone</td>
+</tr>
+<tr class="odd">
+<td align="left">HR_lowerCI_age</td>
+<td align="left">Lower 95% CI HR of age alone</td>
+</tr>
+<tr class="even">
+<td align="left">HR_lowerCI_SexFemale</td>
+<td align="left">Lower 95% CI HR of SexFemale alone</td>
+</tr>
+<tr class="odd">
+<td align="left">HR_lowerCI_DrugTxYes</td>
+<td align="left">Lower 95% CI HR of DrugTxYes alone</td>
+</tr>
+<tr class="even">
+<td align="left">HR_upperCI_SNP</td>
+<td align="left">Upper 95% CI HR of SNP alone</td>
+</tr>
+<tr class="odd">
+<td align="left">HR_upperCI_age</td>
+<td align="left">Upper 95% CI HR of age alone</td>
+</tr>
+<tr class="even">
+<td align="left">HR_upperCI_SexFemale</td>
+<td align="left">Upper 95% CI HR of SexFemale alone</td>
+</tr>
+<tr class="odd">
+<td align="left">HR_upperCI_DrugTxYes</td>
+<td align="left">Upper 95% CI HR of DrugTxYes alone</td>
+</tr>
+<tr class="even">
+<td align="left">COEF_SNP</td>
+<td align="left">Coefficient Estimate of SNP alone</td>
+</tr>
+<tr class="odd">
+<td align="left">COEF_age</td>
+<td align="left">Coefficient Estimate of age alone</td>
+</tr>
+<tr class="even">
+<td align="left">COEF_SexFemale</td>
+<td align="left">Coefficient Estimate of SexFemale alone</td>
+</tr>
+<tr class="odd">
+<td align="left">COEF_DrugTxYes</td>
+<td align="left">Coefficient Estimate of DrugTxYes alone</td>
+</tr>
+<tr class="even">
+<td align="left">SE.COEF_SNP</td>
+<td align="left">Standard error of Coefficient Estimate of SNP alone</td>
+</tr>
+<tr class="odd">
+<td align="left">SE.COEF_age</td>
+<td align="left">Standard error of Coefficient Estimate of age alone</td>
+</tr>
+<tr class="even">
+<td align="left">SE.COEF_SexFemale</td>
+<td align="left">Standard error of Coefficient Estimate of SexFemale alone</td>
+</tr>
+<tr class="odd">
+<td align="left">SE.COEF_DrugTxYes</td>
+<td align="left">Standard error of Coefficient Estimate of DrugTxYes alone</td>
+</tr>
+<tr class="even">
+<td align="left">Z_SNP</td>
+<td align="left">Z statistic of SNP alone</td>
+</tr>
+<tr class="odd">
+<td align="left">Z_age</td>
+<td align="left">Z statistic of age alone</td>
+</tr>
+<tr class="even">
+<td align="left">Z_SexFemale</td>
+<td align="left">Z statistic of SexFemale alone</td>
+</tr>
+<tr class="odd">
+<td align="left">Z_DrugTxYes</td>
+<td align="left">Z statistic of DrugTxYes alone</td>
+</tr>
+<tr class="even">
+<td align="left">N</td>
+<td align="left">Number of individuals in sample being tested</td>
+</tr>
+<tr class="odd">
+<td align="left">NEVENT</td>
+<td align="left">Number of events that occurred in sample being tested</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="snp-with-covariate-interaction-1" class="section level3">
+<h3><span class="header-section-number">4.3.2</span> SNP with covariate interaction</h3>
+<p><code>print.cov=&quot;only&quot;</code></p>
+<pre class="r"><code>impute2CoxSurv(impute.file=impute.file,
+               sample.file=sample.file,
+               chr=14,
+               covariate.file=covariate.file,
+               id.column=&quot;ID_2&quot;,
+               sample.ids=sample.ids,
+               time.to.event=&quot;time&quot;,
+               event=&quot;event&quot;,
+               covariates=c(&quot;age&quot;, &quot;SexFemale&quot;, &quot;DrugTxYes&quot;),
+               inter.term=&quot;DrugTxYes&quot;,
+               print.covs=&quot;only&quot;,
+               out.file=&quot;intx_only&quot;,
+               chunk.size=10000,
+               maf.filter=0.01,
+               info.filter=0.7,
+               flip.dosage=TRUE,
+               verbose=TRUE,
+               clusterObj=NULL)</code></pre>
+<pre><code>## Covariates included in the models are: age, DrugTxYes, SexFemale</code></pre>
+<pre><code>## Models will include interaction term: SNP*DrugTxYes</code></pre>
+<pre><code>## 253 samples are included in the analysis</code></pre>
+<pre><code>## Analysis started on 2018-04-25 at 21:46:21</code></pre>
+<pre><code>## 6477 SNPs were removed from the analysis for not meeting
+## the given threshold criteria or for having MAF = 0</code></pre>
+<pre><code>## List of removed SNPs are saved to /var/folders/1w/bb5rrzjn4v9bvq_hlptzq4bc0000gn/T//RtmpnOlrn1/intx_onlyf5e11071851e.snps_removed</code></pre>
+<pre><code>## 778 SNPs were included in the analysis</code></pre>
+<pre><code>## The Cox model results output was saved to /var/folders/1w/bb5rrzjn4v9bvq_hlptzq4bc0000gn/T//RtmpnOlrn1/intx_onlyf5e11071851e.coxph</code></pre>
+<pre><code>## Analysis completed on 2018-04-25 at 21:46:40</code></pre>
+<pre class="r"><code>intx_only &lt;- read_tsv(&quot;intx_only.coxph&quot;)
+intx_only %&gt;%
+    head() %&gt;% 
+    glimpse()</code></pre>
+<pre><code>## Observations: 6
+## Variables: 18
+## $ RSID        &lt;chr&gt; &quot;rs201487625&quot;, &quot;rs28881575&quot;, &quot;rs28874340&quot;, &quot;rs367910...
+## $ TYPED       &lt;chr&gt; &quot;---&quot;, &quot;---&quot;, &quot;---&quot;, &quot;---&quot;, &quot;---&quot;, &quot;rs28699618&quot;
+## $ CHR         &lt;int&gt; 14, 14, 14, 14, 14, 14
+## $ POS         &lt;int&gt; 19258506, 19264217, 19266184, 19277567, 19327682, 19...
+## $ A0          &lt;chr&gt; &quot;A&quot;, &quot;A&quot;, &quot;A&quot;, &quot;T&quot;, &quot;A&quot;, &quot;T&quot;
+## $ A1          &lt;chr&gt; &quot;G&quot;, &quot;G&quot;, &quot;G&quot;, &quot;C&quot;, &quot;G&quot;, &quot;C&quot;
+## $ exp_freq_A1 &lt;dbl&gt; 0.7861, 0.9822, 0.8064, 0.7379, 0.6135, 0.8063
+## $ SAMP_MAF    &lt;dbl&gt; 0.2139, 0.0178, 0.1936, 0.2621, 0.3865, 0.1937
+## $ INFO        &lt;dbl&gt; 1.000, 0.744, 1.000, 0.919, 0.801, 1.000
+## $ PVALUE      &lt;dbl&gt; 0.45928865, 0.02343794, 0.18280512, 0.25409309, 0.91...
+## $ HR          &lt;dbl&gt; 1.331283, 41.248105, 1.674438, 1.552078, 1.044339, 1...
+## $ HR_lowerCI  &lt;dbl&gt; 0.6239217, 1.6530237, 0.7843206, 0.7291380, 0.460211...
+## $ HR_upperCI  &lt;dbl&gt; 2.840604, 1029.269064, 3.574739, 3.303828, 2.369874,...
+## $ COEF        &lt;dbl&gt; 0.28614319, 3.71960518, 0.51547731, 0.43959473, 0.04...
+## $ SE.COEF     &lt;dbl&gt; 0.3866702, 1.6413260, 0.3869463, 0.3854526, 0.418088...
+## $ Z           &lt;dbl&gt; 0.7400187, 2.2662196, 1.3321676, 1.1404639, 0.103767...
+## $ N           &lt;int&gt; 253, 253, 253, 253, 253, 253
+## $ NEVENT      &lt;int&gt; 100, 100, 100, 100, 100, 100</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Column</th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">RSID</td>
+<td align="left">SNP ID</td>
+</tr>
+<tr class="even">
+<td align="left">TYPED</td>
+<td align="left">Imputation status: Typed (RSID repeated)/Imputed <code>(---)</code></td>
+</tr>
+<tr class="odd">
+<td align="left">CHR</td>
+<td align="left">Chromosome number</td>
+</tr>
+<tr class="even">
+<td align="left">POS</td>
+<td align="left">Genomic Position (BP)</td>
+</tr>
+<tr class="odd">
+<td align="left">A0</td>
+<td align="left">Allele coded as 0</td>
+</tr>
+<tr class="even">
+<td align="left">A1</td>
+<td align="left">Allele coded as 1</td>
+</tr>
+<tr class="odd">
+<td align="left">exp_freq_A1</td>
+<td align="left">Expected allele frequency of Allele 1 within the sample being tested</td>
+</tr>
+<tr class="even">
+<td align="left">SAMP_MAF</td>
+<td align="left">Minor allele frequency (MAF) within the sample being tested</td>
+</tr>
+<tr class="odd">
+<td align="left">INFO</td>
+<td align="left">Imputation INFO score</td>
+</tr>
+<tr class="even">
+<td align="left">PVALUE</td>
+<td align="left">P-value of Interaction term (SNP*DrugTxYes)</td>
+</tr>
+<tr class="odd">
+<td align="left">HR</td>
+<td align="left">Hazard Ratio (HR) of Interaction term (SNP*DrugTxYes)</td>
+</tr>
+<tr class="even">
+<td align="left">HR_lowerCI</td>
+<td align="left">Lower bound 95% CI of HR of Interaction term (SNP*DrugTxYes)</td>
+</tr>
+<tr class="odd">
+<td align="left">HR_upperCI</td>
+<td align="left">Upper bound 95% CI of HR of Interaction term (SNP*DrugTxYes)</td>
+</tr>
+<tr class="even">
+<td align="left">COEF</td>
+<td align="left">Estimated coefficient of SNP of Interaction term (SNP*DrugTxYes)</td>
+</tr>
+<tr class="odd">
+<td align="left">SE.COEF</td>
+<td align="left">Standard error of coefficient estimate of Interaction term (SNP*DrugTxYes)</td>
+</tr>
+<tr class="even">
+<td align="left">Z</td>
+<td align="left">Z-statistic of Interaction term (SNP*DrugTxYes)</td>
+</tr>
+<tr class="odd">
+<td align="left">N</td>
+<td align="left">Number of individuals in sample being tested</td>
+</tr>
+<tr class="even">
+<td align="left">NEVENT</td>
+<td align="left">Number of events that occurred in sample being tested</td>
+</tr>
+</tbody>
+</table>
+<p><code>print.cov=&quot;some&quot;</code></p>
+<pre class="r"><code>impute2CoxSurv(impute.file=impute.file,
+               sample.file=sample.file,
+               chr=14,
+               covariate.file=covariate.file,
+               id.column=&quot;ID_2&quot;,
+               sample.ids=sample.ids,
+               time.to.event=&quot;time&quot;,
+               event=&quot;event&quot;,
+               covariates=c(&quot;age&quot;, &quot;SexFemale&quot;, &quot;DrugTxYes&quot;),
+               inter.term=&quot;DrugTxYes&quot;,
+               print.covs=&quot;some&quot;,
+               out.file=&quot;intx_some&quot;,
+               chunk.size=10000,
+               maf.filter=0.01,
+               info.filter=0.7,
+               flip.dosage=TRUE,
+               verbose=FALSE,
+               clusterObj=NULL)</code></pre>
+<pre class="r"><code>intx_some &lt;- read_tsv(&quot;intx_some.coxph&quot;)
+intx_some %&gt;%
+    head() %&gt;% 
+    glimpse()</code></pre>
+<pre><code>## Observations: 6
+## Variables: 32
+## $ RSID                  &lt;chr&gt; &quot;rs201487625&quot;, &quot;rs28881575&quot;, &quot;rs28874340&quot;,...
+## $ TYPED                 &lt;chr&gt; &quot;---&quot;, &quot;---&quot;, &quot;---&quot;, &quot;---&quot;, &quot;---&quot;, &quot;rs2869...
+## $ CHR                   &lt;int&gt; 14, 14, 14, 14, 14, 14
+## $ POS                   &lt;int&gt; 19258506, 19264217, 19266184, 19277567, 19...
+## $ A0                    &lt;chr&gt; &quot;A&quot;, &quot;A&quot;, &quot;A&quot;, &quot;T&quot;, &quot;A&quot;, &quot;T&quot;
+## $ A1                    &lt;chr&gt; &quot;G&quot;, &quot;G&quot;, &quot;G&quot;, &quot;C&quot;, &quot;G&quot;, &quot;C&quot;
+## $ exp_freq_A1           &lt;dbl&gt; 0.7861, 0.9822, 0.8064, 0.7379, 0.6135, 0....
+## $ SAMP_MAF              &lt;dbl&gt; 0.2139, 0.0178, 0.1936, 0.2621, 0.3865, 0....
+## $ INFO                  &lt;dbl&gt; 1.000, 0.744, 1.000, 0.919, 0.801, 1.000
+## $ PVALUE_INTER.TERM     &lt;dbl&gt; 0.45928865, 0.02343794, 0.18280512, 0.2540...
+## $ PVALUE_SNP            &lt;dbl&gt; 0.32881094, 0.06724645, 0.10458687, 0.0450...
+## $ PVALUE_DrugTxYes      &lt;dbl&gt; 0.53667476, 0.04535891, 0.93993745, 0.9317...
+## $ HR_INTER.TERM         &lt;dbl&gt; 1.331283, 41.248105, 1.674438, 1.552078, 1...
+## $ HR_SNP                &lt;dbl&gt; 0.7248586, 0.1470012, 0.5797955, 0.5133373...
+## $ HR_DrugTxYes          &lt;dbl&gt; 1.484598557, 0.001501892, 0.949904491, 1.0...
+## $ HR_lowerCI_INTER.TERM &lt;dbl&gt; 0.6239217, 1.6530237, 0.7843206, 0.7291380...
+## $ HR_lowerCI_SNP        &lt;dbl&gt; 0.37998067, 0.01885823, 0.30019126, 0.2674...
+## $ HR_lowerCI_DrugTxYes  &lt;dbl&gt; 4.238523e-01, 2.579626e-06, 2.495055e-01, ...
+## $ HR_upperCI_INTER.TERM &lt;dbl&gt; 2.840604, 1029.269064, 3.574739, 3.303828,...
+## $ HR_upperCI_SNP        &lt;dbl&gt; 1.3827546, 1.1458841, 1.1198286, 0.9854075...
+## $ HR_upperCI_DrugTxYes  &lt;dbl&gt; 5.2000025, 0.8744211, 3.6164274, 3.7075080...
+## $ COEF_INTER.TERM       &lt;dbl&gt; 0.28614319, 3.71960518, 0.51547731, 0.4395...
+## $ COEF_SNP              &lt;dbl&gt; -0.3217787, -1.9173148, -0.5450799, -0.666...
+## $ COEF_DrugTxYes        &lt;dbl&gt; 0.395144404, -6.501029731, -0.051393835, 0...
+## $ SE.COEF_INTER.TERM    &lt;dbl&gt; 0.3866702, 1.6413260, 0.3869463, 0.3854526...
+## $ SE.COEF_SNP           &lt;dbl&gt; 0.3295185, 1.0476996, 0.3358447, 0.3327153...
+## $ SE.COEF_DrugTxYes     &lt;dbl&gt; 0.6395483, 3.2483860, 0.6820819, 0.6405434...
+## $ Z_INTER.TERM          &lt;dbl&gt; 0.7400187, 2.2662196, 1.3321676, 1.1404639...
+## $ Z_SNP                 &lt;dbl&gt; -0.9765117, -1.8300234, -1.6230119, -2.004...
+## $ Z_DrugTxYes           &lt;dbl&gt; 0.61784918, -2.00131075, -0.07534848, 0.08...
+## $ N                     &lt;int&gt; 253, 253, 253, 253, 253, 253
+## $ NEVENT                &lt;int&gt; 100, 100, 100, 100, 100, 100</code></pre>
+<pre><code>## Warning in cbind(cols, desc): number of rows of result is not a multiple of
+## vector length (arg 1)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Column</th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">RSID</td>
+<td align="left">SNP ID</td>
+</tr>
+<tr class="even">
+<td align="left">TYPED</td>
+<td align="left">Imputation status: Typed (RSID repeated)/Imputed <code>(---)</code></td>
+</tr>
+<tr class="odd">
+<td align="left">CHR</td>
+<td align="left">Chromosome number</td>
+</tr>
+<tr class="even">
+<td align="left">POS</td>
+<td align="left">Genomic Position (BP)</td>
+</tr>
+<tr class="odd">
+<td align="left">A0</td>
+<td align="left">Allele coded as 0</td>
+</tr>
+<tr class="even">
+<td align="left">A1</td>
+<td align="left">Allele coded as 1</td>
+</tr>
+<tr class="odd">
+<td align="left">exp_freq_A1</td>
+<td align="left">Expected allele frequency of Allele 1 within the sample being tested</td>
+</tr>
+<tr class="even">
+<td align="left">SAMP_MAF</td>
+<td align="left">Minor allele frequency (MAF) within the sample being tested</td>
+</tr>
+<tr class="odd">
+<td align="left">INFO</td>
+<td align="left">Imputation INFO score</td>
+</tr>
+<tr class="even">
+<td align="left">PVALUE_INTER.TERM</td>
+<td align="left">P-value of interaction term (SNP*DrugTxYes)</td>
+</tr>
+<tr class="odd">
+<td align="left">PVALUE_SNP</td>
+<td align="left">P-value of SNP alone</td>
+</tr>
+<tr class="even">
+<td align="left">PVALUE_DrugTxYes</td>
+<td align="left">P-value of DrugTxYes alone</td>
+</tr>
+<tr class="odd">
+<td align="left">HR_INTER.TERM</td>
+<td align="left">HR of interaction term (SNP*DrugTxYes)</td>
+</tr>
+<tr class="even">
+<td align="left">HR_SNP</td>
+<td align="left">HR of SNP alone</td>
+</tr>
+<tr class="odd">
+<td align="left">HR_DrugTxYes</td>
+<td align="left">HR of DrugTxYes alone</td>
+</tr>
+<tr class="even">
+<td align="left">HR_lowerCI_INTER.TERM</td>
+<td align="left">Lower 95% CI HR of interaction term (SNP*DrugTxYes)</td>
+</tr>
+<tr class="odd">
+<td align="left">HR_lowerCI_SNP</td>
+<td align="left">Lower 95% CI HR of SNP alone</td>
+</tr>
+<tr class="even">
+<td align="left">HR_lowerCI_DrugTxYes</td>
+<td align="left">Lower 95% CI HR of DrugTxYes alone</td>
+</tr>
+<tr class="odd">
+<td align="left">HR_upperCI_INTER.TERM</td>
+<td align="left">Upper 95% CI HR of interaction term (SNP*DrugTxYes)</td>
+</tr>
+<tr class="even">
+<td align="left">HR_upperCI_SNP</td>
+<td align="left">Upper 95% CI HR of SNP alone</td>
+</tr>
+<tr class="odd">
+<td align="left">HR_upperCI_DrugTxYes</td>
+<td align="left">Upper 95% CI HR of DrugTxYes alone</td>
+</tr>
+<tr class="even">
+<td align="left">COEF_INERM.TERM</td>
+<td align="left">Coefficient Estimate of interaction term (SNP*DrugTxYes)</td>
+</tr>
+<tr class="odd">
+<td align="left">COEF_SNP</td>
+<td align="left">Coefficient Estimate of SNP alone</td>
+</tr>
+<tr class="even">
+<td align="left">COEF_DrugTxYes</td>
+<td align="left">Coefficient Estimate of DrugTxYes alone</td>
+</tr>
+<tr class="odd">
+<td align="left">SE.COEF_INTER.TERM</td>
+<td align="left">Standard Error of Coefficent of interaction term (SNP*DrugTxYes)</td>
+</tr>
+<tr class="even">
+<td align="left">SE.COEF_SNP</td>
+<td align="left">Standard Error of Coefficent of SNP alone</td>
+</tr>
+<tr class="odd">
+<td align="left">SE.COEF_DrugTxYes</td>
+<td align="left">Standard Error of Coefficent of DrugTxYes alone</td>
+</tr>
+<tr class="even">
+<td align="left">Z_INTER.TERM</td>
+<td align="left">Z statistic of interaction term (SNP*DrugTxYes)</td>
+</tr>
+<tr class="odd">
+<td align="left">Z_SNP</td>
+<td align="left">Z statistic of SNP alone</td>
+</tr>
+<tr class="even">
+<td align="left">Z_DrugTxYes</td>
+<td align="left">Z statistic of DrugTxYes alone</td>
+</tr>
+<tr class="odd">
+<td align="left">NEVENT</td>
+<td align="left">Number of individuals in sample being tested</td>
+</tr>
+<tr class="even">
+<td align="left">RSID</td>
+<td align="left">Number of events that occurred in sample being tested</td>
+</tr>
+</tbody>
+</table>
+<p><code>print.cov=&quot;all&quot;</code></p>
+<pre class="r"><code>impute2CoxSurv(impute.file=impute.file,
+               sample.file=sample.file,
+               chr=14,
+               covariate.file=covariate.file,
+               id.column=&quot;ID_2&quot;,
+               sample.ids=sample.ids,
+               time.to.event=&quot;time&quot;,
+               event=&quot;event&quot;,
+               covariates=c(&quot;age&quot;, &quot;SexFemale&quot;, &quot;DrugTxYes&quot;),
+               inter.term=&quot;DrugTxYes&quot;,
+               print.covs=&quot;all&quot;,
+               out.file=&quot;intx_all&quot;,
+               chunk.size=10000,
+               maf.filter=0.01,
+               info.filter=0.7,
+               flip.dosage=TRUE,
+               verbose=FALSE,
+               clusterObj=NULL)</code></pre>
+<pre class="r"><code>intx_all &lt;- read_tsv(&quot;intx_all.coxph&quot;)
+intx_all %&gt;%
+    head() %&gt;% 
+    glimpse()</code></pre>
+<pre><code>## Observations: 6
+## Variables: 46
+## $ RSID                  &lt;chr&gt; &quot;rs201487625&quot;, &quot;rs28881575&quot;, &quot;rs28874340&quot;,...
+## $ TYPED                 &lt;chr&gt; &quot;---&quot;, &quot;---&quot;, &quot;---&quot;, &quot;---&quot;, &quot;---&quot;, &quot;rs2869...
+## $ CHR                   &lt;int&gt; 14, 14, 14, 14, 14, 14
+## $ POS                   &lt;int&gt; 19258506, 19264217, 19266184, 19277567, 19...
+## $ A0                    &lt;chr&gt; &quot;A&quot;, &quot;A&quot;, &quot;A&quot;, &quot;T&quot;, &quot;A&quot;, &quot;T&quot;
+## $ A1                    &lt;chr&gt; &quot;G&quot;, &quot;G&quot;, &quot;G&quot;, &quot;C&quot;, &quot;G&quot;, &quot;C&quot;
+## $ exp_freq_A1           &lt;dbl&gt; 0.7861, 0.9822, 0.8064, 0.7379, 0.6135, 0....
+## $ SAMP_MAF              &lt;dbl&gt; 0.2139, 0.0178, 0.1936, 0.2621, 0.3865, 0....
+## $ INFO                  &lt;dbl&gt; 1.000, 0.744, 1.000, 0.919, 0.801, 1.000
+## $ PVALUE_INTER.TERM     &lt;dbl&gt; 0.45928865, 0.02343794, 0.18280512, 0.2540...
+## $ PVALUE_SNP            &lt;dbl&gt; 0.32881094, 0.06724645, 0.10458687, 0.0450...
+## $ PVALUE_age            &lt;dbl&gt; 1.796981e-25, 3.414429e-26, 9.876198e-25, ...
+## $ PVALUE_SexFemale      &lt;dbl&gt; 0.7852510, 0.7784468, 0.6145777, 0.5665199...
+## $ PVALUE_DrugTxYes      &lt;dbl&gt; 0.53667476, 0.04535891, 0.93993745, 0.9317...
+## $ HR_INTER.TERM         &lt;dbl&gt; 1.331283, 41.248105, 1.674438, 1.552078, 1...
+## $ HR_SNP                &lt;dbl&gt; 0.7248586, 0.1470012, 0.5797955, 0.5133373...
+## $ HR_age                &lt;dbl&gt; 1.172180, 1.178197, 1.177842, 1.182726, 1....
+## $ HR_SexFemale          &lt;dbl&gt; 1.060547, 1.062682, 1.114869, 1.131633, 1....
+## $ HR_DrugTxYes          &lt;dbl&gt; 1.484598557, 0.001501892, 0.949904491, 1.0...
+## $ HR_lowerCI_INTER.TERM &lt;dbl&gt; 0.6239217, 1.6530237, 0.7843206, 0.7291380...
+## $ HR_lowerCI_SNP        &lt;dbl&gt; 0.37998067, 0.01885823, 0.30019126, 0.2674...
+## $ HR_lowerCI_age        &lt;dbl&gt; 1.137705, 1.142967, 1.141608, 1.145063, 1....
+## $ HR_lowerCI_SexFemale  &lt;dbl&gt; 0.6948495, 0.6957663, 0.7301485, 0.7414118...
+## $ HR_lowerCI_DrugTxYes  &lt;dbl&gt; 4.238523e-01, 2.579626e-06, 2.495055e-01, ...
+## $ HR_upperCI_INTER.TERM &lt;dbl&gt; 2.840604, 1029.269064, 3.574739, 3.303828,...
+## $ HR_upperCI_SNP        &lt;dbl&gt; 1.3827546, 1.1458841, 1.1198286, 0.9854075...
+## $ HR_upperCI_age        &lt;dbl&gt; 1.207700, 1.214514, 1.215226, 1.221628, 1....
+## $ HR_upperCI_SexFemale  &lt;dbl&gt; 1.618709, 1.623092, 1.702302, 1.727237, 1....
+## $ HR_upperCI_DrugTxYes  &lt;dbl&gt; 5.2000025, 0.8744211, 3.6164274, 3.7075080...
+## $ COEF_INTER.TERM       &lt;dbl&gt; 0.28614319, 3.71960518, 0.51547731, 0.4395...
+## $ COEF_SNP              &lt;dbl&gt; -0.3217787, -1.9173148, -0.5450799, -0.666...
+## $ COEF_age              &lt;dbl&gt; 0.1588653, 0.1639857, 0.1636840, 0.1678221...
+## $ COEF_SexFemale        &lt;dbl&gt; 0.05878457, 0.06079565, 0.10873710, 0.1236...
+## $ COEF_DrugTxYes        &lt;dbl&gt; 0.395144404, -6.501029731, -0.051393835, 0...
+## $ SE.COEF_INTER.TERM    &lt;dbl&gt; 0.3866702, 1.6413260, 0.3869463, 0.3854526...
+## $ SE.COEF_SNP           &lt;dbl&gt; 0.3295185, 1.0476996, 0.3358447, 0.3327153...
+## $ SE.COEF_age           &lt;dbl&gt; 0.01523066, 0.01548897, 0.01594200, 0.0165...
+## $ SE.COEF_SexFemale     &lt;dbl&gt; 0.2157370, 0.2160904, 0.2159411, 0.2157454...
+## $ SE.COEF_DrugTxYes     &lt;dbl&gt; 0.6395483, 3.2483860, 0.6820819, 0.6405434...
+## $ Z_INTER.TERM          &lt;dbl&gt; 0.7400187, 2.2662196, 1.3321676, 1.1404639...
+## $ Z_SNP                 &lt;dbl&gt; -0.9765117, -1.8300234, -1.6230119, -2.004...
+## $ Z_age                 &lt;dbl&gt; 10.43063, 10.58726, 10.26747, 10.16400, 10...
+## $ Z_SexFemale           &lt;dbl&gt; 0.2724825, 0.2813436, 0.5035499, 0.5731844...
+## $ Z_DrugTxYes           &lt;dbl&gt; 0.61784918, -2.00131075, -0.07534848, 0.08...
+## $ N                     &lt;int&gt; 253, 253, 253, 253, 253, 253
+## $ NEVENT                &lt;int&gt; 100, 100, 100, 100, 100, 100</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Column</th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">RSID</td>
+<td align="left">SNP ID</td>
+</tr>
+<tr class="even">
+<td align="left">TYPED</td>
+<td align="left">Imputation status: Typed (RSID repeated)/Imputed <code>(---)</code></td>
+</tr>
+<tr class="odd">
+<td align="left">CHR</td>
+<td align="left">Chromosome number</td>
+</tr>
+<tr class="even">
+<td align="left">POS</td>
+<td align="left">Genomic Position (BP)</td>
+</tr>
+<tr class="odd">
+<td align="left">A0</td>
+<td align="left">Allele coded as 0</td>
+</tr>
+<tr class="even">
+<td align="left">A1</td>
+<td align="left">Allele coded as 1</td>
+</tr>
+<tr class="odd">
+<td align="left">exp_freq_A1</td>
+<td align="left">Expected allele frequency of Allele 1 within the sample being tested</td>
+</tr>
+<tr class="even">
+<td align="left">SAMP_MAF</td>
+<td align="left">Minor allele frequency (MAF) within the sample being tested</td>
+</tr>
+<tr class="odd">
+<td align="left">INFO</td>
+<td align="left">Imputation INFO score</td>
+</tr>
+<tr class="even">
+<td align="left">PVALUE_INTER.TERM</td>
+<td align="left">P-value of interaction term (SNP*DrugTxYes)</td>
+</tr>
+<tr class="odd">
+<td align="left">PVALUE_SNP</td>
+<td align="left">P-value of SNP alone</td>
+</tr>
+<tr class="even">
+<td align="left">PVALUE_age</td>
+<td align="left">P-value of age alone</td>
+</tr>
+<tr class="odd">
+<td align="left">PVALUE_SexFemale</td>
+<td align="left">P-value of SexFemale alone</td>
+</tr>
+<tr class="even">
+<td align="left">PVALUE_DrugTxYes</td>
+<td align="left">P-value of DrugTxYes alone</td>
+</tr>
+<tr class="odd">
+<td align="left">HR_INTER.TERM</td>
+<td align="left">HR of interaction term (SNP*DrugTxYes)</td>
+</tr>
+<tr class="even">
+<td align="left">HR_SNP</td>
+<td align="left">HR of SNP alone</td>
+</tr>
+<tr class="odd">
+<td align="left">HR_age</td>
+<td align="left">HR of age alone</td>
+</tr>
+<tr class="even">
+<td align="left">HR_SexFemale</td>
+<td align="left">HR of SexFemale alone</td>
+</tr>
+<tr class="odd">
+<td align="left">HR_DrugTxYes</td>
+<td align="left">HR of DrugTxYes alone</td>
+</tr>
+<tr class="even">
+<td align="left">HR_lowerCI_INTER.TERM</td>
+<td align="left">Lower 95% CI HR of interaction term (SNP*DrugTxYes)</td>
+</tr>
+<tr class="odd">
+<td align="left">HR_lowerCI_SNP</td>
+<td align="left">Lower 95% CI HR of SNP alone</td>
+</tr>
+<tr class="even">
+<td align="left">HR_lowerCI_age</td>
+<td align="left">Lower 95% CI HR of age alone</td>
+</tr>
+<tr class="odd">
+<td align="left">HR_lowerCI_SexFemale</td>
+<td align="left">Lower 95% CI HR of SexFemale alone</td>
+</tr>
+<tr class="even">
+<td align="left">HR_lowerCI_DrugTxYes</td>
+<td align="left">Lower 95% CI HR of DrugTxYes alone</td>
+</tr>
+<tr class="odd">
+<td align="left">HR_upperCI_INTER.TERM</td>
+<td align="left">Upper 95% CI HR of interaction term (SNP*DrugTxYes)</td>
+</tr>
+<tr class="even">
+<td align="left">HR_upperCI_SNP</td>
+<td align="left">Upper 95% CI HR of SNP alone</td>
+</tr>
+<tr class="odd">
+<td align="left">HR_upperCI_age</td>
+<td align="left">Upper 95% CI HR of age alone</td>
+</tr>
+<tr class="even">
+<td align="left">HR_upperCI_SexFemale</td>
+<td align="left">Upper 95% CI HR of SexFemale alone</td>
+</tr>
+<tr class="odd">
+<td align="left">HR_upperCI_DrugTxYes</td>
+<td align="left">Upper 95% CI HR of DrugTxYes alone</td>
+</tr>
+<tr class="even">
+<td align="left">COEF_INERM.TERM</td>
+<td align="left">Coefficient Estimate of interaction term (SNP*DrugTxYes)</td>
+</tr>
+<tr class="odd">
+<td align="left">COEF_SNP</td>
+<td align="left">Coefficient Estimate of SNP alone</td>
+</tr>
+<tr class="even">
+<td align="left">COEF_age</td>
+<td align="left">Coefficient Estimate of age alone</td>
+</tr>
+<tr class="odd">
+<td align="left">COEF_SexFemale</td>
+<td align="left">Coefficient Estimate of SexFemale alone</td>
+</tr>
+<tr class="even">
+<td align="left">COEF_DrugTxYes</td>
+<td align="left">Coefficient Estimate of DrugTxYes alone</td>
+</tr>
+<tr class="odd">
+<td align="left">SE.COEF_INTER.TERM</td>
+<td align="left">Standard error of Coefficient Estimate of interaction term (SNP*DrugTxYes)</td>
+</tr>
+<tr class="even">
+<td align="left">SE.COEF_SNP</td>
+<td align="left">Standard error of Coefficient Estimate of SNP alone</td>
+</tr>
+<tr class="odd">
+<td align="left">SE.COEF_age</td>
+<td align="left">Standard error of Coefficient Estimate of age alone</td>
+</tr>
+<tr class="even">
+<td align="left">SE.COEF_SexFemale</td>
+<td align="left">Standard error of Coefficient Estimate of SexFemale alone</td>
+</tr>
+<tr class="odd">
+<td align="left">SE.COEF_DrugTxYes</td>
+<td align="left">Standard error of Coefficient Estimate of DrugTxYes alone</td>
+</tr>
+<tr class="even">
+<td align="left">Z_INTER.TERM</td>
+<td align="left">Z statistic of interaction term (SNP*DrugTxYes)</td>
+</tr>
+<tr class="odd">
+<td align="left">Z_SNP</td>
+<td align="left">Z statistic of SNP alone</td>
+</tr>
+<tr class="even">
+<td align="left">Z_age</td>
+<td align="left">Z statistic of age alone</td>
+</tr>
+<tr class="odd">
+<td align="left">Z_SexFemale</td>
+<td align="left">Z statistic of SexFemale alone</td>
+</tr>
+<tr class="even">
+<td align="left">Z_DrugTxYes</td>
+<td align="left">Z statistic of DrugTxYes alone</td>
+</tr>
+<tr class="odd">
+<td align="left">N</td>
+<td align="left">Number of individuals in sample being tested</td>
+</tr>
+<tr class="even">
+<td align="left">NEVENT</td>
+<td align="left">Number of events that occurred in sample being tested</td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
 </div>
 <div id="michigan-imputation-server" class="section level1">
 <h1><span class="header-section-number">5</span> Michigan Imputation Server</h1>
-<p><a href="https://imputationserver.sph.umich.edu/index.html">Michigan Imputation Server</a> outputs gunzipped variant call format files (<code>.vcf.gz</code>). These files are typically stored in full chromosome chunks. Imputation is done using the Minimac3 imputation engine. Pre-phasing is done using either HAPI-UR, SHAPEIT, or EAGLE (default is EAGLE2).</p>
+<p><a href="https://imputationserver.sph.umich.edu/index.html">Michigan Imputation Server</a> outputs Blocked GNU Zip Format VCF files (<code>.vcf.gz</code>). These files are typically stored in full chromosome chunks. Imputation is done using the Minimac3 imputation engine. Pre-phasing is done using either HAPI-UR, SHAPEIT, or EAGLE (default is EAGLE2).</p>
 <div id="r-session-example-2" class="section level2">
 <h2><span class="header-section-number">5.1</span> R Session Example</h2>
-<p>The michigan example will be added soon!</p>
+<pre class="r"><code>vcf.file &lt;- system.file(package=&quot;gwasurvivr&quot;,
+                        &quot;extdata&quot;, 
+                        &quot;michigan.chr14.dose.vcf.gz&quot;)
+pheno.fl &lt;- system.file(package=&quot;gwasurvivr&quot;,
+                        &quot;extdata&quot;, 
+                        &quot;simulated_pheno.txt&quot;)
+pheno.file &lt;- read.table(pheno.fl, sep=&quot; &quot;, header=TRUE, stringsAsFactors = FALSE)
+head(pheno.file)</code></pre>
+<pre><code>##   ID_1  ID_2 event  time   age DrugTxYes    sex        group
+## 1    1 SAMP1     0 12.00 33.93         0   male      control
+## 2    2 SAMP2     1  7.61 58.71         1   male experimental
+## 3    3 SAMP3     0 12.00 39.38         0 female      control
+## 4    4 SAMP4     0  4.30 38.85         0   male      control
+## 5    5 SAMP5     0 12.00 43.58         0   male experimental
+## 6    6 SAMP6     1  2.60 57.74         0   male      control</code></pre>
+<pre class="r"><code># recode sex column and remove first column 
+pheno.file &lt;- pheno.file %&gt;%
+        mutate(SexFemale=case_when(sex==&quot;female&quot;~1L,
+                                   sex==&quot;male&quot;~0L)) %&gt;%
+        dplyr::select(-ID_1)
+
+# select only experimental group sample.ids
+sample.ids &lt;- pheno.file %&gt;%
+        filter(group==&quot;experimental&quot;) %$%
+        ID_2 
+head(sample.ids)</code></pre>
+<pre><code>## [1] &quot;SAMP2&quot;  &quot;SAMP5&quot;  &quot;SAMP7&quot;  &quot;SAMP9&quot;  &quot;SAMP11&quot; &quot;SAMP12&quot;</code></pre>
+<div id="single-snp-analysis-2" class="section level3">
+<h3><span class="header-section-number">5.1.1</span> Single SNP analysis</h3>
+<p><code>print.covs=&quot;only&quot;</code></p>
+<pre class="r"><code>michiganCoxSurv(vcf.file=vcf.file,
+                covariate.file=pheno.file,
+                id.column=&quot;ID_2&quot;,
+                sample.ids=sample.ids,
+                time.to.event=&quot;time&quot;,
+                event=&quot;event&quot;,
+                covariates=c(&quot;age&quot;, &quot;SexFemale&quot;, &quot;DrugTxYes&quot;),
+                inter.term=NULL,
+                print.covs=&quot;only&quot;,
+                out.file=&quot;michigan_only&quot;,
+                info.filter=0.7,
+                maf.filter=0.005,
+                chunk.size=10000,
+                verbose=TRUE,
+                clusterObj=NULL)</code></pre>
+<pre><code>## Analysis started on 2018-04-25 at 21:47:18</code></pre>
+<pre><code>## Covariates included in the models are: age, DrugTxYes, SexFemale</code></pre>
+<pre><code>## 253 samples are included in the analysis</code></pre>
+<pre><code>## Analyzing chunk 0-10000</code></pre>
+<pre><code>## Analyzing chunk 10000-20000</code></pre>
+<pre><code>## Analysis completed on 2018-04-25 at 21:47:45</code></pre>
+<pre><code>## 6406 SNPs were removed from the analysis for not meeting the threshold criteria.</code></pre>
+<pre><code>## List of removed SNPs can be found in /var/folders/1w/bb5rrzjn4v9bvq_hlptzq4bc0000gn/T//RtmpnOlrn1/michigan_onlyf5e14f1fe251.snps_removed</code></pre>
+<pre><code>## 849 SNPs were analyzed in total</code></pre>
+<pre><code>## The survival output can be found at/var/folders/1w/bb5rrzjn4v9bvq_hlptzq4bc0000gn/T//RtmpnOlrn1/michigan_onlyf5e14f1fe251.coxph</code></pre>
+<pre class="r"><code>michigan_only &lt;- read_tsv(&quot;michigan_only.coxph&quot;)</code></pre>
+<pre class="r"><code>michigan_only %&gt;% 
+    head() %&gt;%
+    glimpse()</code></pre>
+<pre><code>## Observations: 6
+## Variables: 21
+## $ RSID          &lt;chr&gt; &quot;rs201487625&quot;, &quot;rs28874340&quot;, &quot;rs367910327&quot;, &quot;rs286...
+## $ TYPED         &lt;lgl&gt; FALSE, FALSE, FALSE, TRUE, FALSE, FALSE
+## $ CHR           &lt;int&gt; 14, 14, 14, 14, 14, 14
+## $ POS           &lt;int&gt; 19258506, 19266184, 19277567, 19327823, 20260443, ...
+## $ REF           &lt;chr&gt; &quot;A&quot;, &quot;A&quot;, &quot;T&quot;, &quot;T&quot;, &quot;A&quot;, &quot;G&quot;
+## $ ALT           &lt;chr&gt; &quot;G&quot;, &quot;G&quot;, &quot;C&quot;, &quot;C&quot;, &quot;G&quot;, &quot;A&quot;
+## $ AF            &lt;dbl&gt; 0.75337200, 0.77717900, 0.70170900, 0.77453000, 0....
+## $ MAF           &lt;dbl&gt; 0.24662800, 0.22282100, 0.29829100, 0.22547000, 0....
+## $ SAMP_FREQ_ALT &lt;dbl&gt; 0.7861, 0.8064, 0.7379, 0.8063, 0.0059, 0.0309
+## $ SAMP_MAF      &lt;dbl&gt; 0.2139, 0.1936, 0.2621, 0.1937, 0.0059, 0.0309
+## $ INFO          &lt;dbl&gt; 0.925998, 0.990349, 0.845283, 1.000000, 0.846617, ...
+## $ ER2           &lt;dbl&gt; NA, NA, NA, 0.9976747, NA, NA
+## $ PVALUE        &lt;dbl&gt; 0.52214228, 0.39747029, 0.05702106, 0.32056499, 0....
+## $ HR            &lt;dbl&gt; 0.8965579, 0.8640559, 0.7135934, 0.8380038, 4.0610...
+## $ HR_lowerCI    &lt;dbl&gt; 0.6417414, 0.6159546, 0.5041085, 0.5912797, 0.5355...
+## $ HR_upperCI    &lt;dbl&gt; 1.252554, 1.212090, 1.010131, 1.187679, 30.796401,...
+## $ COEF          &lt;dbl&gt; -0.1091924, -0.1461178, -0.3374419, -0.1767327, 1....
+## $ SE.COEF       &lt;dbl&gt; 0.1706007, 0.1726859, 0.1773071, 0.1779252, 1.0336...
+## $ Z             &lt;dbl&gt; -0.6400466, -0.8461478, -1.9031493, -0.9932975, 1....
+## $ N             &lt;int&gt; 253, 253, 253, 253, 253, 253
+## $ NEVENT        &lt;int&gt; 100, 100, 100, 100, 100, 100</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Column</th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">RSID</td>
+<td align="left">SNP ID</td>
+</tr>
+<tr class="even">
+<td align="left">TYPED</td>
+<td align="left">Imputation status: TRUE (SNP IS TYPED)/FALSE (SNP IS IMPUTED)`</td>
+</tr>
+<tr class="odd">
+<td align="left">CHR</td>
+<td align="left">Chromosome number</td>
+</tr>
+<tr class="even">
+<td align="left">POS</td>
+<td align="left">Genomic Position (BP)</td>
+</tr>
+<tr class="odd">
+<td align="left">REF</td>
+<td align="left">Reference Allele</td>
+</tr>
+<tr class="even">
+<td align="left">ALT</td>
+<td align="left">Alternate Allele</td>
+</tr>
+<tr class="odd">
+<td align="left">AF</td>
+<td align="left">Minimac3 output Alternate Allele Frequency</td>
+</tr>
+<tr class="even">
+<td align="left">MAF</td>
+<td align="left">Minimac3 output of Minor Allele Frequency</td>
+</tr>
+<tr class="odd">
+<td align="left">SAMP_FREQ_ALT</td>
+<td align="left">Alternate allele frequency in sample being tested</td>
+</tr>
+<tr class="even">
+<td align="left">SAMP_MAF</td>
+<td align="left">Minor allele frequency in sample being tested</td>
+</tr>
+<tr class="odd">
+<td align="left">INFO</td>
+<td align="left">Imputation INFO score (minimac3 R2)</td>
+</tr>
+<tr class="even">
+<td align="left">ER2</td>
+<td align="left">Minimac3 ouput empirical R2</td>
+</tr>
+<tr class="odd">
+<td align="left">PVALUE</td>
+<td align="left">P-value</td>
+</tr>
+<tr class="even">
+<td align="left">HR</td>
+<td align="left">Hazard Ratio (HR)</td>
+</tr>
+<tr class="odd">
+<td align="left">HR_lowerCI</td>
+<td align="left">Lower bound 95% CI of HR</td>
+</tr>
+<tr class="even">
+<td align="left">HR_upperCI</td>
+<td align="left">Upper bound 95% CI of HR</td>
+</tr>
+<tr class="odd">
+<td align="left">COEF</td>
+<td align="left">Estimated coefficient of SNP</td>
+</tr>
+<tr class="even">
+<td align="left">SE.COEF</td>
+<td align="left">Standard error of coefficient estimate</td>
+</tr>
+<tr class="odd">
+<td align="left">Z</td>
+<td align="left">Z-statistic</td>
+</tr>
+<tr class="even">
+<td align="left">N</td>
+<td align="left">Number of individuals in sample being tested</td>
+</tr>
+<tr class="odd">
+<td align="left">NEVENT</td>
+<td align="left">Number of events that occurred in sample being tested</td>
+</tr>
+</tbody>
+</table>
+<p><code>print.covs=&quot;all&quot;</code></p>
+<pre class="r"><code>michiganCoxSurv(vcf.file=vcf.file,
+                covariate.file=pheno.file,
+                id.column=&quot;ID_2&quot;,
+                sample.ids=sample.ids,
+                time.to.event=&quot;time&quot;,
+                event=&quot;event&quot;,
+                covariates=c(&quot;age&quot;, &quot;SexFemale&quot;, &quot;DrugTxYes&quot;),
+                inter.term=NULL,
+                print.covs=&quot;all&quot;,
+                out.file=&quot;michigan_all&quot;,
+                info.filter=0.7,
+                maf.filter=0.005,
+                chunk.size=10000,
+                verbose=FALSE,
+                clusterObj=NULL)</code></pre>
+<pre class="r"><code>michigan_all &lt;- read_tsv(&quot;michigan_all.coxph&quot;)</code></pre>
+<pre class="r"><code>michigan_all %&gt;% 
+    head() %&gt;%
+    glimpse()</code></pre>
+<pre><code>## Observations: 6
+## Variables: 42
+## $ RSID                 &lt;chr&gt; &quot;rs201487625&quot;, &quot;rs28874340&quot;, &quot;rs367910327&quot;,...
+## $ TYPED                &lt;lgl&gt; FALSE, FALSE, FALSE, TRUE, FALSE, FALSE
+## $ CHR                  &lt;int&gt; 14, 14, 14, 14, 14, 14
+## $ POS                  &lt;int&gt; 19258506, 19266184, 19277567, 19327823, 202...
+## $ REF                  &lt;chr&gt; &quot;A&quot;, &quot;A&quot;, &quot;T&quot;, &quot;T&quot;, &quot;A&quot;, &quot;G&quot;
+## $ ALT                  &lt;chr&gt; &quot;G&quot;, &quot;G&quot;, &quot;C&quot;, &quot;C&quot;, &quot;G&quot;, &quot;A&quot;
+## $ AF                   &lt;dbl&gt; 0.75337200, 0.77717900, 0.70170900, 0.77453...
+## $ MAF                  &lt;dbl&gt; 0.24662800, 0.22282100, 0.29829100, 0.22547...
+## $ SAMP_FREQ_ALT        &lt;dbl&gt; 0.7861, 0.8064, 0.7379, 0.8063, 0.0059, 0.0309
+## $ SAMP_MAF             &lt;dbl&gt; 0.2139, 0.1936, 0.2621, 0.1937, 0.0059, 0.0309
+## $ INFO                 &lt;dbl&gt; 0.925998, 0.990349, 0.845283, 1.000000, 0.8...
+## $ ER2                  &lt;dbl&gt; NA, NA, NA, 0.9976747, NA, NA
+## $ PVALUE_SNP           &lt;dbl&gt; 0.52214228, 0.39747029, 0.05702106, 0.32056...
+## $ PVALUE_age           &lt;dbl&gt; 1.932742e-25, 3.270821e-25, 3.940344e-25, 3...
+## $ PVALUE_SexFemale     &lt;dbl&gt; 0.7090943, 0.6517581, 0.5864499, 0.6178515,...
+## $ PVALUE_DrugTxYes     &lt;dbl&gt; 0.001031364, 0.001751319, 0.005075145, 0.00...
+## $ HR_SNP               &lt;dbl&gt; 0.8965579, 0.8640559, 0.7135934, 0.8380038,...
+## $ HR_age               &lt;dbl&gt; 1.172425, 1.173876, 1.178022, 1.174485, 1.1...
+## $ HR_SexFemale         &lt;dbl&gt; 1.083151, 1.102061, 1.124347, 1.114039, 1.0...
+## $ HR_DrugTxYes         &lt;dbl&gt; 2.304006, 2.242604, 2.085507, 2.230348, 2.2...
+## $ HR_lowerCI_SNP       &lt;dbl&gt; 0.6417414, 0.6159546, 0.5041085, 0.5912797,...
+## $ HR_lowerCI_age       &lt;dbl&gt; 1.137876, 1.138853, 1.142053, 1.139295, 1.1...
+## $ HR_lowerCI_SexFemale &lt;dbl&gt; 0.7119432, 0.7226279, 0.7370634, 0.7288601,...
+## $ HR_lowerCI_DrugTxYes &lt;dbl&gt; 1.399582, 1.352302, 1.247214, 1.345339, 1.3...
+## $ HR_upperCI_SNP       &lt;dbl&gt; 1.252554, 1.212090, 1.010131, 1.187679, 30....
+## $ HR_upperCI_age       &lt;dbl&gt; 1.208023, 1.209975, 1.215123, 1.210761, 1.2...
+## $ HR_upperCI_SexFemale &lt;dbl&gt; 1.647905, 1.680725, 1.715126, 1.702774, 1.6...
+## $ HR_upperCI_DrugTxYes &lt;dbl&gt; 3.792879, 3.719046, 3.487244, 3.697543, 3.7...
+## $ COEF_SNP             &lt;dbl&gt; -0.1091924, -0.1461178, -0.3374419, -0.1767...
+## $ COEF_age             &lt;dbl&gt; 0.1590742, 0.1603107, 0.1638367, 0.1608294,...
+## $ COEF_SexFemale       &lt;dbl&gt; 0.07987393, 0.09718212, 0.11720273, 0.10799...
+## $ COEF_DrugTxYes       &lt;dbl&gt; 0.8346493, 0.8076377, 0.7350120, 0.8021575,...
+## $ SE.COEF_SNP          &lt;dbl&gt; 0.1706007, 0.1726859, 0.1773071, 0.1779252,...
+## $ SE.COEF_age          &lt;dbl&gt; 0.01526081, 0.01545377, 0.01582083, 0.01552...
+## $ SE.COEF_SexFemale    &lt;dbl&gt; 0.2140975, 0.2153281, 0.2154511, 0.2164622,...
+## $ SE.COEF_DrugTxYes    &lt;dbl&gt; 0.2543245, 0.2580763, 0.2622958, 0.2579139,...
+## $ Z_SNP                &lt;dbl&gt; -0.6400466, -0.8461478, -1.9031493, -0.9932...
+## $ Z_age                &lt;dbl&gt; 10.42371, 10.37357, 10.35576, 10.36243, 10....
+## $ Z_SexFemale          &lt;dbl&gt; 0.3730728, 0.4513212, 0.5439878, 0.4988976,...
+## $ Z_DrugTxYes          &lt;dbl&gt; 3.281828, 3.129453, 2.802225, 3.110176, 3.2...
+## $ N                    &lt;int&gt; 253, 253, 253, 253, 253, 253
+## $ NEVENT               &lt;int&gt; 100, 100, 100, 100, 100, 100</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Column</th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">RSID</td>
+<td align="left">SNP ID</td>
+</tr>
+<tr class="even">
+<td align="left">TYPED</td>
+<td align="left">Imputation status: TRUE (SNP IS TYPED)/FALSE (SNP IS IMPUTED)`</td>
+</tr>
+<tr class="odd">
+<td align="left">CHR</td>
+<td align="left">Chromosome number</td>
+</tr>
+<tr class="even">
+<td align="left">POS</td>
+<td align="left">Genomic Position (BP)</td>
+</tr>
+<tr class="odd">
+<td align="left">REF</td>
+<td align="left">Reference Allele</td>
+</tr>
+<tr class="even">
+<td align="left">ALT</td>
+<td align="left">Alternate Allele</td>
+</tr>
+<tr class="odd">
+<td align="left">AF</td>
+<td align="left">Minimac3 output Alternate Allele Frequency</td>
+</tr>
+<tr class="even">
+<td align="left">MAF</td>
+<td align="left">Minimac3 output of Minor Allele Frequency</td>
+</tr>
+<tr class="odd">
+<td align="left">SAMP_FREQ_ALT</td>
+<td align="left">Alternate allele frequency in sample being tested</td>
+</tr>
+<tr class="even">
+<td align="left">SAMP_MAF</td>
+<td align="left">Minor allele frequency in sample being tested</td>
+</tr>
+<tr class="odd">
+<td align="left">INFO</td>
+<td align="left">Imputation INFO score (minimac3 R2)</td>
+</tr>
+<tr class="even">
+<td align="left">ER2</td>
+<td align="left">Minimac3 ouput empirical R2</td>
+</tr>
+<tr class="odd">
+<td align="left">PVALUE_SNP</td>
+<td align="left">P-value of SNP alone</td>
+</tr>
+<tr class="even">
+<td align="left">PVALUE_age</td>
+<td align="left">P-value of age alone</td>
+</tr>
+<tr class="odd">
+<td align="left">PVALUE_SexFemale</td>
+<td align="left">P-value of SexFemale alone</td>
+</tr>
+<tr class="even">
+<td align="left">PVALUE_DrugTxYes</td>
+<td align="left">P-value of DrugTxYes alone</td>
+</tr>
+<tr class="odd">
+<td align="left">HR_SNP</td>
+<td align="left">HR of SNP alone</td>
+</tr>
+<tr class="even">
+<td align="left">HR_age</td>
+<td align="left">HR of age alone</td>
+</tr>
+<tr class="odd">
+<td align="left">HR_SexFemale</td>
+<td align="left">HR of SexFemale alone</td>
+</tr>
+<tr class="even">
+<td align="left">HR_DrugTxYes</td>
+<td align="left">HR of DrugTxYes alone</td>
+</tr>
+<tr class="odd">
+<td align="left">HR_lowerCI_SNP</td>
+<td align="left">Lower 95% CI HR of SNP alone</td>
+</tr>
+<tr class="even">
+<td align="left">HR_lowerCI_age</td>
+<td align="left">Lower 95% CI HR of age alone</td>
+</tr>
+<tr class="odd">
+<td align="left">HR_lowerCI_SexFemale</td>
+<td align="left">Lower 95% CI HR of SexFemale alone</td>
+</tr>
+<tr class="even">
+<td align="left">HR_lowerCI_DrugTxYes</td>
+<td align="left">Lower 95% CI HR of DrugTxYes alone</td>
+</tr>
+<tr class="odd">
+<td align="left">HR_upperCI_SNP</td>
+<td align="left">Upper 95% CI HR of SNP alone</td>
+</tr>
+<tr class="even">
+<td align="left">HR_upperCI_age</td>
+<td align="left">Upper 95% CI HR of age alone</td>
+</tr>
+<tr class="odd">
+<td align="left">HR_upperCI_SexFemale</td>
+<td align="left">Upper 95% CI HR of SexFemale alone</td>
+</tr>
+<tr class="even">
+<td align="left">HR_upperCI_DrugTxYes</td>
+<td align="left">Upper 95% CI HR of DrugTxYes alone</td>
+</tr>
+<tr class="odd">
+<td align="left">COEF_SNP</td>
+<td align="left">Coefficient Estimate of SNP alone</td>
+</tr>
+<tr class="even">
+<td align="left">COEF_age</td>
+<td align="left">Coefficient Estimate of age alone</td>
+</tr>
+<tr class="odd">
+<td align="left">COEF_SexFemale</td>
+<td align="left">Coefficient Estimate of SexFemale alone</td>
+</tr>
+<tr class="even">
+<td align="left">COEF_DrugTxYes</td>
+<td align="left">Coefficient Estimate of DrugTxYes alone</td>
+</tr>
+<tr class="odd">
+<td align="left">SE.COEF_SNP</td>
+<td align="left">Standard error of Coefficient Estimate of SNP alone</td>
+</tr>
+<tr class="even">
+<td align="left">SE.COEF_age</td>
+<td align="left">Standard error of Coefficient Estimate of age alone</td>
+</tr>
+<tr class="odd">
+<td align="left">SE.COEF_SexFemale</td>
+<td align="left">Standard error of Coefficient Estimate of SexFemale alone</td>
+</tr>
+<tr class="even">
+<td align="left">SE.COEF_DrugTxYes</td>
+<td align="left">Standard error of Coefficient Estimate of DrugTxYes alone</td>
+</tr>
+<tr class="odd">
+<td align="left">Z_SNP</td>
+<td align="left">Z statistic of SNP alone</td>
+</tr>
+<tr class="even">
+<td align="left">Z_age</td>
+<td align="left">Z statistic of age alone</td>
+</tr>
+<tr class="odd">
+<td align="left">Z_SexFemale</td>
+<td align="left">Z statistic of SexFemale alone</td>
+</tr>
+<tr class="even">
+<td align="left">Z_DrugTxYes</td>
+<td align="left">Z statistic of DrugTxYes alone</td>
+</tr>
+<tr class="odd">
+<td align="left">N</td>
+<td align="left">Number of individuals in sample being tested</td>
+</tr>
+<tr class="even">
+<td align="left">NEVENT</td>
+<td align="left">Number of events that occurred in sample being tested</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="snp-with-covariate-interaction-2" class="section level3">
+<h3><span class="header-section-number">5.1.2</span> SNP with covariate interaction</h3>
+<p><code>print.covs=&quot;only&quot;</code></p>
+<pre class="r"><code>michiganCoxSurv(vcf.file=vcf.file,
+                covariate.file=pheno.file,
+                id.column=&quot;ID_2&quot;,
+                sample.ids=sample.ids,
+                time.to.event=&quot;time&quot;,
+                event=&quot;event&quot;,
+                covariates=c(&quot;age&quot;, &quot;SexFemale&quot;, &quot;DrugTxYes&quot;),
+                inter.term=&quot;DrugTxYes&quot;,
+                print.covs=&quot;only&quot;,
+                out.file=&quot;michigan_intx_only&quot;,
+                info.filter=0.7,
+                maf.filter=0.005,
+                chunk.size=10000,
+                verbose=FALSE,
+                clusterObj=NULL)</code></pre>
+<pre class="r"><code>michigan_intx_only &lt;- read_tsv(&quot;michigan_intx_only.coxph&quot;)</code></pre>
+<pre class="r"><code>michigan_intx_only %&gt;% 
+    head() %&gt;%
+    glimpse()</code></pre>
+<pre><code>## Observations: 6
+## Variables: 21
+## $ RSID          &lt;chr&gt; &quot;rs201487625&quot;, &quot;rs28874340&quot;, &quot;rs367910327&quot;, &quot;rs286...
+## $ TYPED         &lt;lgl&gt; FALSE, FALSE, FALSE, TRUE, FALSE, FALSE
+## $ CHR           &lt;int&gt; 14, 14, 14, 14, 14, 14
+## $ POS           &lt;int&gt; 19258506, 19266184, 19277567, 19327823, 20260443, ...
+## $ REF           &lt;chr&gt; &quot;A&quot;, &quot;A&quot;, &quot;T&quot;, &quot;T&quot;, &quot;A&quot;, &quot;G&quot;
+## $ ALT           &lt;chr&gt; &quot;G&quot;, &quot;G&quot;, &quot;C&quot;, &quot;C&quot;, &quot;G&quot;, &quot;A&quot;
+## $ AF            &lt;dbl&gt; 0.75337200, 0.77717900, 0.70170900, 0.77453000, 0....
+## $ MAF           &lt;dbl&gt; 0.24662800, 0.22282100, 0.29829100, 0.22547000, 0....
+## $ SAMP_FREQ_ALT &lt;dbl&gt; 0.7861, 0.8064, 0.7379, 0.8063, 0.0059, 0.0309
+## $ SAMP_MAF      &lt;dbl&gt; 0.2139, 0.1936, 0.2621, 0.1937, 0.0059, 0.0309
+## $ INFO          &lt;dbl&gt; 0.925998, 0.990349, 0.845283, 1.000000, 0.846617, ...
+## $ ER2           &lt;dbl&gt; NA, NA, NA, 0.9976747, NA, NA
+## $ PVALUE        &lt;dbl&gt; 0.4592886, 0.1828051, 0.2540931, 0.2064032, 0.9965...
+## $ HR            &lt;dbl&gt; 1.331283e+00, 1.674438e+00, 1.552078e+00, 1.630835...
+## $ HR_lowerCI    &lt;dbl&gt; 0.6239217, 0.7843206, 0.7291380, 0.7636851, 0.0000...
+## $ HR_upperCI    &lt;dbl&gt; 2.840604, 3.574739, 3.303828, 3.482617, Inf, 10.68...
+## $ COEF          &lt;dbl&gt; 0.2861432, 0.5154773, 0.4395947, 0.4890921, 13.978...
+## $ SE.COEF       &lt;dbl&gt; 0.3866702, 0.3869463, 0.3854526, 0.3870877, 3197.8...
+## $ Z             &lt;dbl&gt; 0.740018710, 1.332167615, 1.140463901, 1.263517569...
+## $ N             &lt;int&gt; 253, 253, 253, 253, 253, 253
+## $ NEVENT        &lt;int&gt; 100, 100, 100, 100, 100, 100</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Column</th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">RSID</td>
+<td align="left">SNP ID</td>
+</tr>
+<tr class="even">
+<td align="left">TYPED</td>
+<td align="left">Imputation status: TRUE (SNP IS TYPED)/FALSE (SNP IS IMPUTED)`</td>
+</tr>
+<tr class="odd">
+<td align="left">CHR</td>
+<td align="left">Chromosome number</td>
+</tr>
+<tr class="even">
+<td align="left">POS</td>
+<td align="left">Genomic Position (BP)</td>
+</tr>
+<tr class="odd">
+<td align="left">REF</td>
+<td align="left">Reference Allele</td>
+</tr>
+<tr class="even">
+<td align="left">ALT</td>
+<td align="left">Alternate Allele</td>
+</tr>
+<tr class="odd">
+<td align="left">AF</td>
+<td align="left">Minimac3 output Alternate Allele Frequency</td>
+</tr>
+<tr class="even">
+<td align="left">MAF</td>
+<td align="left">Minimac3 output of Minor Allele Frequency</td>
+</tr>
+<tr class="odd">
+<td align="left">SAMP_FREQ_ALT</td>
+<td align="left">Alternate allele frequency in sample being tested</td>
+</tr>
+<tr class="even">
+<td align="left">SAMP_MAF</td>
+<td align="left">Minor allele frequency in sample being tested</td>
+</tr>
+<tr class="odd">
+<td align="left">INFO</td>
+<td align="left">Imputation INFO score (minimac3 R2)</td>
+</tr>
+<tr class="even">
+<td align="left">ER2</td>
+<td align="left">Minimac3 ouput empirical R2</td>
+</tr>
+<tr class="odd">
+<td align="left">PVALUE</td>
+<td align="left">P-value of interaction term (SNP*DrugTxYes)</td>
+</tr>
+<tr class="even">
+<td align="left">HR</td>
+<td align="left">Hazard Ratio (HR) of interaction term (SNP*DrugTxYes)</td>
+</tr>
+<tr class="odd">
+<td align="left">HR_lowerCI</td>
+<td align="left">Lower bound 95% CI of HR of interaction term (SNP*DrugTxYes)</td>
+</tr>
+<tr class="even">
+<td align="left">HR_upperCI</td>
+<td align="left">Upper bound 95% CI of HR of interaction term (SNP*DrugTxYes)</td>
+</tr>
+<tr class="odd">
+<td align="left">COEF</td>
+<td align="left">Estimated coefficient of SNP of interaction term (SNP*DrugTxYes)</td>
+</tr>
+<tr class="even">
+<td align="left">SE.COEF</td>
+<td align="left">Standard error of coefficient estimate of interaction term (SNP*DrugTxYes)</td>
+</tr>
+<tr class="odd">
+<td align="left">Z</td>
+<td align="left">Z-statistic of interaction term (SNP*DrugTxYes)</td>
+</tr>
+<tr class="even">
+<td align="left">N</td>
+<td align="left">Number of individuals in sample being tested</td>
+</tr>
+<tr class="odd">
+<td align="left">NEVENT</td>
+<td align="left">Number of events that occurred in sample being tested</td>
+</tr>
+</tbody>
+</table>
+<p><code>print.covs=&quot;some&quot;</code></p>
+<pre class="r"><code>michiganCoxSurv(vcf.file=vcf.file,
+                covariate.file=pheno.file,
+                id.column=&quot;ID_2&quot;,
+                sample.ids=sample.ids,
+                time.to.event=&quot;time&quot;,
+                event=&quot;event&quot;,
+                covariates=c(&quot;age&quot;, &quot;SexFemale&quot;, &quot;DrugTxYes&quot;),
+                inter.term=&quot;DrugTxYes&quot;,
+                print.covs=&quot;some&quot;,
+                out.file=&quot;michigan_intx_some&quot;,
+                info.filter=0.7,
+                maf.filter=0.005,
+                chunk.size=10000,
+                verbose=FALSE,
+                clusterObj=NULL)</code></pre>
+<pre class="r"><code>michigan_intx_some &lt;- read_tsv(&quot;michigan_intx_some.coxph&quot;)</code></pre>
+<pre class="r"><code>michigan_intx_some %&gt;% 
+    head() %&gt;%
+    glimpse()</code></pre>
+<pre><code>## Observations: 6
+## Variables: 35
+## $ RSID                  &lt;chr&gt; &quot;rs201487625&quot;, &quot;rs28874340&quot;, &quot;rs367910327&quot;...
+## $ TYPED                 &lt;lgl&gt; FALSE, FALSE, FALSE, TRUE, FALSE, FALSE
+## $ CHR                   &lt;int&gt; 14, 14, 14, 14, 14, 14
+## $ POS                   &lt;int&gt; 19258506, 19266184, 19277567, 19327823, 20...
+## $ REF                   &lt;chr&gt; &quot;A&quot;, &quot;A&quot;, &quot;T&quot;, &quot;T&quot;, &quot;A&quot;, &quot;G&quot;
+## $ ALT                   &lt;chr&gt; &quot;G&quot;, &quot;G&quot;, &quot;C&quot;, &quot;C&quot;, &quot;G&quot;, &quot;A&quot;
+## $ AF                    &lt;dbl&gt; 0.75337200, 0.77717900, 0.70170900, 0.7745...
+## $ MAF                   &lt;dbl&gt; 0.24662800, 0.22282100, 0.29829100, 0.2254...
+## $ SAMP_FREQ_ALT         &lt;dbl&gt; 0.7861, 0.8064, 0.7379, 0.8063, 0.0059, 0....
+## $ SAMP_MAF              &lt;dbl&gt; 0.2139, 0.1936, 0.2621, 0.1937, 0.0059, 0....
+## $ INFO                  &lt;dbl&gt; 0.925998, 0.990349, 0.845283, 1.000000, 0....
+## $ ER2                   &lt;dbl&gt; NA, NA, NA, 0.9976747, NA, NA
+## $ PVALUE_INTER.TERM     &lt;dbl&gt; 0.4592886, 0.1828051, 0.2540931, 0.2064032...
+## $ PVALUE_SNP            &lt;dbl&gt; 0.32881093, 0.10458687, 0.04505057, 0.1005...
+## $ PVALUE_DrugTxYes      &lt;dbl&gt; 0.536674773, 0.939937438, 0.931704452, 0.9...
+## $ HR_INTER.TERM         &lt;dbl&gt; 1.331283e+00, 1.674438e+00, 1.552078e+00, ...
+## $ HR_SNP                &lt;dbl&gt; 7.248586e-01, 5.797955e-01, 5.133373e-01, ...
+## $ HR_DrugTxYes          &lt;dbl&gt; 1.4845985, 0.9499045, 1.0564296, 0.9915043...
+## $ HR_lowerCI_INTER.TERM &lt;dbl&gt; 0.6239217, 0.7843206, 0.7291380, 0.7636851...
+## $ HR_lowerCI_SNP        &lt;dbl&gt; 0.3799807, 0.3001913, 0.2674175, 0.3016735...
+## $ HR_lowerCI_DrugTxYes  &lt;dbl&gt; 0.4238523, 0.2495055, 0.3010226, 0.2614824...
+## $ HR_upperCI_INTER.TERM &lt;dbl&gt; 2.840604, 3.574739, 3.303828, 3.482617, In...
+## $ HR_upperCI_SNP        &lt;dbl&gt; 1.3827545, 1.1198286, 0.9854075, 1.1114652...
+## $ HR_upperCI_DrugTxYes  &lt;dbl&gt; 5.200002, 3.616427, 3.707508, 3.759644, 3....
+## $ COEF_INTER.TERM       &lt;dbl&gt; 0.2861432, 0.5154773, 0.4395947, 0.4890921...
+## $ COEF_SNP              &lt;dbl&gt; -0.3217787, -0.5450799, -0.6668221, -0.546...
+## $ COEF_DrugTxYes        &lt;dbl&gt; 0.395144393, -0.051393842, 0.054894930, -0...
+## $ SE.COEF_INTER.TERM    &lt;dbl&gt; 0.3866702, 0.3869463, 0.3854526, 0.3870877...
+## $ SE.COEF_SNP           &lt;dbl&gt; 0.3295185, 0.3358447, 0.3327153, 0.3326758...
+## $ SE.COEF_DrugTxYes     &lt;dbl&gt; 0.6395483, 0.6820819, 0.6405434, 0.6800287...
+## $ Z_INTER.TERM          &lt;dbl&gt; 0.740018710, 1.332167615, 1.140463901, 1.2...
+## $ Z_SNP                 &lt;dbl&gt; -0.976511754, -1.623011856, -2.004181967, ...
+## $ Z_DrugTxYes           &lt;dbl&gt; 0.61784916, -0.07534849, 0.08570057, -0.01...
+## $ N                     &lt;int&gt; 253, 253, 253, 253, 253, 253
+## $ NEVENT                &lt;int&gt; 100, 100, 100, 100, 100, 100</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Column</th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">RSID</td>
+<td align="left">SNP ID</td>
+</tr>
+<tr class="even">
+<td align="left">TYPED</td>
+<td align="left">Imputation status: TRUE (SNP IS TYPED)/FALSE (SNP IS IMPUTED)`</td>
+</tr>
+<tr class="odd">
+<td align="left">CHR</td>
+<td align="left">Chromosome number</td>
+</tr>
+<tr class="even">
+<td align="left">POS</td>
+<td align="left">Genomic Position (BP)</td>
+</tr>
+<tr class="odd">
+<td align="left">REF</td>
+<td align="left">Reference Allele</td>
+</tr>
+<tr class="even">
+<td align="left">ALT</td>
+<td align="left">Alternate Allele</td>
+</tr>
+<tr class="odd">
+<td align="left">AF</td>
+<td align="left">Minimac3 output Alternate Allele Frequency</td>
+</tr>
+<tr class="even">
+<td align="left">MAF</td>
+<td align="left">Minimac3 output of Minor Allele Frequency</td>
+</tr>
+<tr class="odd">
+<td align="left">SAMP_FREQ_ALT</td>
+<td align="left">Alternate allele frequency in sample being tested</td>
+</tr>
+<tr class="even">
+<td align="left">SAMP_MAF</td>
+<td align="left">Minor allele frequency in sample being tested</td>
+</tr>
+<tr class="odd">
+<td align="left">INFO</td>
+<td align="left">Imputation INFO score (minimac3 R2)</td>
+</tr>
+<tr class="even">
+<td align="left">ER2</td>
+<td align="left">Minimac3 ouput empirical R2</td>
+</tr>
+<tr class="odd">
+<td align="left">PVALUE_INTER.TERM</td>
+<td align="left">P-value of interaction term (SNP*DrugTxYes)</td>
+</tr>
+<tr class="even">
+<td align="left">PVALUE_SNP</td>
+<td align="left">P-value of SNP alone</td>
+</tr>
+<tr class="odd">
+<td align="left">PVALUE_DrugTxYes</td>
+<td align="left">P-value of DrugTxYes alone</td>
+</tr>
+<tr class="even">
+<td align="left">HR_INTER.TERM</td>
+<td align="left">HR of interaction term (SNP*DrugTxYes)</td>
+</tr>
+<tr class="odd">
+<td align="left">HR_SNP</td>
+<td align="left">HR of SNP alone</td>
+</tr>
+<tr class="even">
+<td align="left">HR_DrugTxYes</td>
+<td align="left">HR of DrugTxYes alone</td>
+</tr>
+<tr class="odd">
+<td align="left">HR_lowerCI_INTER.TERM</td>
+<td align="left">Lower 95% CI HR of interaction term (SNP*DrugTxYes)</td>
+</tr>
+<tr class="even">
+<td align="left">HR_lowerCI_SNP</td>
+<td align="left">Lower 95% CI HR of SNP alone</td>
+</tr>
+<tr class="odd">
+<td align="left">HR_lowerCI_DrugTxYes</td>
+<td align="left">Lower 95% CI HR of DrugTxYes alone</td>
+</tr>
+<tr class="even">
+<td align="left">HR_upperCI_INTER.TERM</td>
+<td align="left">Upper 95% CI HR of interaction term (SNP*DrugTxYes)</td>
+</tr>
+<tr class="odd">
+<td align="left">HR_upperCI_SNP</td>
+<td align="left">Upper 95% CI HR of SNP alone</td>
+</tr>
+<tr class="even">
+<td align="left">HR_upperCI_DrugTxYes</td>
+<td align="left">Upper 95% CI HR of DrugTxYes alone</td>
+</tr>
+<tr class="odd">
+<td align="left">COEF_INERM.TERM</td>
+<td align="left">Coefficient Estimate of interaction term (SNP*DrugTxYes)</td>
+</tr>
+<tr class="even">
+<td align="left">COEF_SNP</td>
+<td align="left">Coefficient Estimate of SNP alone</td>
+</tr>
+<tr class="odd">
+<td align="left">COEF_DrugTxYes</td>
+<td align="left">Coefficient Estimate of DrugTxYes alone</td>
+</tr>
+<tr class="even">
+<td align="left">SE.COEF_INTER.TERM</td>
+<td align="left">Standard Error of Coefficent of interaction term (SNP*DrugTxYes)</td>
+</tr>
+<tr class="odd">
+<td align="left">SE.COEF_SNP</td>
+<td align="left">Standard Error of Coefficent of SNP alone</td>
+</tr>
+<tr class="even">
+<td align="left">SE.COEF_DrugTxYes</td>
+<td align="left">Standard Error of Coefficent of DrugTxYes alone</td>
+</tr>
+<tr class="odd">
+<td align="left">Z_INTER.TERM</td>
+<td align="left">Z statistic of interaction term (SNP*DrugTxYes)</td>
+</tr>
+<tr class="even">
+<td align="left">Z_SNP</td>
+<td align="left">Z statistic of SNP alone</td>
+</tr>
+<tr class="odd">
+<td align="left">Z_DrugTxYes</td>
+<td align="left">Z statistic of DrugTxYes alone</td>
+</tr>
+<tr class="even">
+<td align="left">N</td>
+<td align="left">Number of individuals in sample being tested</td>
+</tr>
+<tr class="odd">
+<td align="left">NEVENT</td>
+<td align="left">Number of events that occurred in sample being tested</td>
+</tr>
+</tbody>
+</table>
+<p><code>print.covs=&quot;all&quot;</code></p>
+<pre class="r"><code>michiganCoxSurv(vcf.file=vcf.file,
+                covariate.file=pheno.file,
+                id.column=&quot;ID_2&quot;,
+                sample.ids=sample.ids,
+                time.to.event=&quot;time&quot;,
+                event=&quot;event&quot;,
+                covariates=c(&quot;age&quot;, &quot;SexFemale&quot;, &quot;DrugTxYes&quot;),
+                inter.term=&quot;DrugTxYes&quot;,
+                print.covs=&quot;only&quot;,
+                out.file=&quot;michigan_intx_all&quot;,
+                info.filter=0.7,
+                maf.filter=0.005,
+                chunk.size=10000,
+                verbose=FALSE,
+                clusterObj=NULL)</code></pre>
+<pre class="r"><code>michigan_intx_all &lt;- read_tsv(&quot;michigan_intx_all.coxph&quot;)</code></pre>
+<pre class="r"><code>michigan_intx_all %&gt;% 
+    head() %&gt;%
+    glimpse()</code></pre>
+<pre><code>## Observations: 6
+## Variables: 21
+## $ RSID          &lt;chr&gt; &quot;rs201487625&quot;, &quot;rs28874340&quot;, &quot;rs367910327&quot;, &quot;rs286...
+## $ TYPED         &lt;lgl&gt; FALSE, FALSE, FALSE, TRUE, FALSE, FALSE
+## $ CHR           &lt;int&gt; 14, 14, 14, 14, 14, 14
+## $ POS           &lt;int&gt; 19258506, 19266184, 19277567, 19327823, 20260443, ...
+## $ REF           &lt;chr&gt; &quot;A&quot;, &quot;A&quot;, &quot;T&quot;, &quot;T&quot;, &quot;A&quot;, &quot;G&quot;
+## $ ALT           &lt;chr&gt; &quot;G&quot;, &quot;G&quot;, &quot;C&quot;, &quot;C&quot;, &quot;G&quot;, &quot;A&quot;
+## $ AF            &lt;dbl&gt; 0.75337200, 0.77717900, 0.70170900, 0.77453000, 0....
+## $ MAF           &lt;dbl&gt; 0.24662800, 0.22282100, 0.29829100, 0.22547000, 0....
+## $ SAMP_FREQ_ALT &lt;dbl&gt; 0.7861, 0.8064, 0.7379, 0.8063, 0.0059, 0.0309
+## $ SAMP_MAF      &lt;dbl&gt; 0.2139, 0.1936, 0.2621, 0.1937, 0.0059, 0.0309
+## $ INFO          &lt;dbl&gt; 0.925998, 0.990349, 0.845283, 1.000000, 0.846617, ...
+## $ ER2           &lt;dbl&gt; NA, NA, NA, 0.9976747, NA, NA
+## $ PVALUE        &lt;dbl&gt; 0.4592886, 0.1828051, 0.2540931, 0.2064032, 0.9965...
+## $ HR            &lt;dbl&gt; 1.331283e+00, 1.674438e+00, 1.552078e+00, 1.630835...
+## $ HR_lowerCI    &lt;dbl&gt; 0.6239217, 0.7843206, 0.7291380, 0.7636851, 0.0000...
+## $ HR_upperCI    &lt;dbl&gt; 2.840604, 3.574739, 3.303828, 3.482617, Inf, 10.68...
+## $ COEF          &lt;dbl&gt; 0.2861432, 0.5154773, 0.4395947, 0.4890921, 13.978...
+## $ SE.COEF       &lt;dbl&gt; 0.3866702, 0.3869463, 0.3854526, 0.3870877, 3197.8...
+## $ Z             &lt;dbl&gt; 0.740018710, 1.332167615, 1.140463901, 1.263517569...
+## $ N             &lt;int&gt; 253, 253, 253, 253, 253, 253
+## $ NEVENT        &lt;int&gt; 100, 100, 100, 100, 100, 100</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Column</th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">RSID</td>
+<td align="left">SNP ID</td>
+</tr>
+<tr class="even">
+<td align="left">TYPED</td>
+<td align="left">Imputation status: TRUE (SNP IS TYPED)/FALSE (SNP IS IMPUTED)`</td>
+</tr>
+<tr class="odd">
+<td align="left">CHR</td>
+<td align="left">Chromosome number</td>
+</tr>
+<tr class="even">
+<td align="left">POS</td>
+<td align="left">Genomic Position (BP)</td>
+</tr>
+<tr class="odd">
+<td align="left">REF</td>
+<td align="left">Reference Allele</td>
+</tr>
+<tr class="even">
+<td align="left">ALT</td>
+<td align="left">Alternate Allele</td>
+</tr>
+<tr class="odd">
+<td align="left">AF</td>
+<td align="left">Minimac3 output Alternate Allele Frequency</td>
+</tr>
+<tr class="even">
+<td align="left">MAF</td>
+<td align="left">Minimac3 output of Minor Allele Frequency</td>
+</tr>
+<tr class="odd">
+<td align="left">SAMP_FREQ_ALT</td>
+<td align="left">Alternate allele frequency in sample being tested</td>
+</tr>
+<tr class="even">
+<td align="left">SAMP_MAF</td>
+<td align="left">Minor allele frequency in sample being tested</td>
+</tr>
+<tr class="odd">
+<td align="left">INFO</td>
+<td align="left">Imputation INFO score (minimac3 R2)</td>
+</tr>
+<tr class="even">
+<td align="left">ER2</td>
+<td align="left">Minimac3 ouput empirical R2</td>
+</tr>
+<tr class="odd">
+<td align="left">PVALUE_INTER.TERM</td>
+<td align="left">P-value of interaction term (SNP*DrugTxYes)</td>
+</tr>
+<tr class="even">
+<td align="left">PVALUE_SNP</td>
+<td align="left">P-value of SNP alone</td>
+</tr>
+<tr class="odd">
+<td align="left">PVALUE_age</td>
+<td align="left">P-value of age alone</td>
+</tr>
+<tr class="even">
+<td align="left">PVALUE_SexFemale</td>
+<td align="left">P-value of SexFemale alone</td>
+</tr>
+<tr class="odd">
+<td align="left">PVALUE_DrugTxYes</td>
+<td align="left">P-value of DrugTxYes alone</td>
+</tr>
+<tr class="even">
+<td align="left">HR_INTER.TERM</td>
+<td align="left">HR of interaction term (SNP*DrugTxYes)</td>
+</tr>
+<tr class="odd">
+<td align="left">HR_SNP</td>
+<td align="left">HR of SNP alone</td>
+</tr>
+<tr class="even">
+<td align="left">HR_age</td>
+<td align="left">HR of age alone</td>
+</tr>
+<tr class="odd">
+<td align="left">HR_SexFemale</td>
+<td align="left">HR of SexFemale alone</td>
+</tr>
+<tr class="even">
+<td align="left">HR_DrugTxYes</td>
+<td align="left">HR of DrugTxYes alone</td>
+</tr>
+<tr class="odd">
+<td align="left">HR_lowerCI_INTER.TERM</td>
+<td align="left">Lower 95% CI HR of interaction term (SNP*DrugTxYes)</td>
+</tr>
+<tr class="even">
+<td align="left">HR_lowerCI_SNP</td>
+<td align="left">Lower 95% CI HR of SNP alone</td>
+</tr>
+<tr class="odd">
+<td align="left">HR_lowerCI_age</td>
+<td align="left">Lower 95% CI HR of age alone</td>
+</tr>
+<tr class="even">
+<td align="left">HR_lowerCI_SexFemale</td>
+<td align="left">Lower 95% CI HR of SexFemale alone</td>
+</tr>
+<tr class="odd">
+<td align="left">HR_lowerCI_DrugTxYes</td>
+<td align="left">Lower 95% CI HR of DrugTxYes alone</td>
+</tr>
+<tr class="even">
+<td align="left">HR_upperCI_INTER.TERM</td>
+<td align="left">Upper 95% CI HR of interaction term (SNP*DrugTxYes)</td>
+</tr>
+<tr class="odd">
+<td align="left">HR_upperCI_SNP</td>
+<td align="left">Upper 95% CI HR of SNP alone</td>
+</tr>
+<tr class="even">
+<td align="left">HR_upperCI_age</td>
+<td align="left">Upper 95% CI HR of age alone</td>
+</tr>
+<tr class="odd">
+<td align="left">HR_upperCI_SexFemale</td>
+<td align="left">Upper 95% CI HR of SexFemale alone</td>
+</tr>
+<tr class="even">
+<td align="left">HR_upperCI_DrugTxYes</td>
+<td align="left">Upper 95% CI HR of DrugTxYes alone</td>
+</tr>
+<tr class="odd">
+<td align="left">COEF_INERM.TERM</td>
+<td align="left">Coefficient Estimate of interaction term (SNP*DrugTxYes)</td>
+</tr>
+<tr class="even">
+<td align="left">COEF_SNP</td>
+<td align="left">Coefficient Estimate of SNP alone</td>
+</tr>
+<tr class="odd">
+<td align="left">COEF_age</td>
+<td align="left">Coefficient Estimate of age alone</td>
+</tr>
+<tr class="even">
+<td align="left">COEF_SexFemale</td>
+<td align="left">Coefficient Estimate of SexFemale alone</td>
+</tr>
+<tr class="odd">
+<td align="left">COEF_DrugTxYes</td>
+<td align="left">Coefficient Estimate of DrugTxYes alone</td>
+</tr>
+<tr class="even">
+<td align="left">SE.COEF_INTER.TERM</td>
+<td align="left">Standard error of Coefficient Estimate of interaction term (SNP*DrugTxYes)</td>
+</tr>
+<tr class="odd">
+<td align="left">SE.COEF_SNP</td>
+<td align="left">Standard error of Coefficient Estimate of SNP alone</td>
+</tr>
+<tr class="even">
+<td align="left">SE.COEF_age</td>
+<td align="left">Standard error of Coefficient Estimate of age alone</td>
+</tr>
+<tr class="odd">
+<td align="left">SE.COEF_SexFemale</td>
+<td align="left">Standard error of Coefficient Estimate of SexFemale alone</td>
+</tr>
+<tr class="even">
+<td align="left">SE.COEF_DrugTxYes</td>
+<td align="left">Standard error of Coefficient Estimate of DrugTxYes alone</td>
+</tr>
+<tr class="odd">
+<td align="left">Z_INTER.TERM</td>
+<td align="left">Z statistic of interaction term (SNP*DrugTxYes)</td>
+</tr>
+<tr class="even">
+<td align="left">Z_SNP</td>
+<td align="left">Z statistic of SNP alone</td>
+</tr>
+<tr class="odd">
+<td align="left">Z_age</td>
+<td align="left">Z statistic of age alone</td>
+</tr>
+<tr class="even">
+<td align="left">Z_SexFemale</td>
+<td align="left">Z statistic of SexFemale alone</td>
+</tr>
+<tr class="odd">
+<td align="left">Z_DrugTxYes</td>
+<td align="left">Z statistic of DrugTxYes alone</td>
+</tr>
+<tr class="even">
+<td align="left">N</td>
+<td align="left">Number of individuals in sample being tested</td>
+</tr>
+<tr class="odd">
+<td align="left">NEVENT</td>
+<td align="left">Number of events that occurred in sample being tested</td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
 </div>
 <div id="batch-examples" class="section level1">
@@ -518,7 +3297,7 @@ R --script ${PATH}/survival/code/mysurvivalscript.R -q --args \
         pheno.file ${PATH}/phenotype_data/pheno.txt \
         time.to.event time \
         event event \
-        covariates age_SexFemale_bmiOVWT \
+        covariates age_SexFemale_DrugTxYes \
         sample.ids sample.ids \
         chunk.size 10000 \
         info.filter 0.7 \
@@ -553,15 +3332,16 @@ R --script ${PATH}/survival/code/mysurvivalscript.R -q --args \
 ## [1] stats     graphics  grDevices utils     datasets  methods   base     
 ## 
 ## other attached packages:
-##  [1] bindrcpp_0.2      magrittr_1.5      forcats_0.2.0     stringr_1.2.0    
-##  [5] dplyr_0.7.4       purrr_0.2.4       readr_1.1.1       tidyr_0.8.0      
-##  [9] tibble_1.4.2      ggplot2_2.2.1     tidyverse_1.2.1   gwasurvivr_0.99.0
-## [13] knitr_1.19        BiocStyle_2.4.1  
+##  [1] bindrcpp_0.2       magrittr_1.5       forcats_0.2.0     
+##  [4] stringr_1.2.0      dplyr_0.7.4        purrr_0.2.4       
+##  [7] readr_1.1.1        tidyr_0.8.0        tibble_1.4.2      
+## [10] ggplot2_2.2.1.9000 tidyverse_1.2.1    gwasurvivr_0.99.0 
+## [13] knitr_1.19         BiocStyle_2.4.1   
 ## 
 ## loaded via a namespace (and not attached):
 ##   [1] colorspace_1.3-2           rprojroot_1.2             
 ##   [3] DNAcopy_1.50.1             XVector_0.16.0            
-##   [5] GenomicRanges_1.28.4       GWASTools_1.22.0          
+##   [5] GenomicRanges_1.28.6       GWASTools_1.22.0          
 ##   [7] rstudioapi_0.7             mice_2.30                 
 ##   [9] MatrixModels_0.4-1         bit64_0.9-7               
 ##  [11] AnnotationDbi_1.38.2       lubridate_1.7.1           
@@ -570,46 +3350,47 @@ R --script ${PATH}/survival/code/mysurvivalscript.R -q --args \
 ##  [17] jsonlite_1.5               logistf_1.22              
 ##  [19] Rsamtools_1.28.0           broom_0.4.3               
 ##  [21] compiler_3.4.3             httr_1.3.1                
-##  [23] backports_1.1.0            assertthat_0.2.0          
-##  [25] Matrix_1.2-12              lazyeval_0.2.0            
+##  [23] backports_1.1.2            assertthat_0.2.0          
+##  [25] Matrix_1.2-12              lazyeval_0.2.1            
 ##  [27] cli_1.0.0                  htmltools_0.3.6           
 ##  [29] quantreg_5.33              tools_3.4.3               
 ##  [31] gtable_0.2.0               glue_1.2.0                
 ##  [33] GenomeInfoDbData_0.99.0    reshape2_1.4.3            
-##  [35] Rcpp_0.12.15               Biobase_2.36.2            
+##  [35] Rcpp_0.12.16               Biobase_2.36.2            
 ##  [37] cellranger_1.1.0           Biostrings_2.44.2         
 ##  [39] nlme_3.1-131               rtracklayer_1.36.4        
 ##  [41] psych_1.7.8                lmtest_0.9-35             
 ##  [43] rvest_0.3.2                XML_3.98-1.9              
 ##  [45] zlibbioc_1.22.0            MASS_7.3-47               
-##  [47] zoo_1.8-1                  scales_0.5.0              
+##  [47] zoo_1.8-1                  scales_0.5.0.9000         
 ##  [49] BSgenome_1.44.0            VariantAnnotation_1.22.3  
 ##  [51] hms_0.3                    gdsfmt_1.12.0             
-##  [53] parallel_3.4.3             SummarizedExperiment_1.6.3
+##  [53] parallel_3.4.3             SummarizedExperiment_1.6.5
 ##  [55] sandwich_2.4-0             SparseM_1.77              
 ##  [57] yaml_2.1.16                memoise_1.1.0             
 ##  [59] biomaRt_2.32.1             rpart_4.1-11              
 ##  [61] stringi_1.1.6              RSQLite_2.0               
-##  [63] highr_0.6                  S4Vectors_0.14.3          
-##  [65] GenomicFeatures_1.28.4     BiocGenerics_0.22.0       
-##  [67] BiocParallel_1.10.1        GenomeInfoDb_1.12.2       
-##  [69] rlang_0.1.6                pkgconfig_2.0.1           
+##  [63] highr_0.6                  S4Vectors_0.14.7          
+##  [65] GenomicFeatures_1.28.4     BiocGenerics_0.22.1       
+##  [67] BiocParallel_1.10.1        GenomeInfoDb_1.12.3       
+##  [69] rlang_0.2.0.9001           pkgconfig_2.0.1           
 ##  [71] matrixStats_0.53.1         bitops_1.0-6              
 ##  [73] evaluate_0.10.1            lattice_0.20-35           
 ##  [75] bindr_0.1                  GenomicAlignments_1.12.1  
 ##  [77] bit_1.1-12                 plyr_1.8.4                
 ##  [79] bookdown_0.5               R6_2.2.2                  
-##  [81] IRanges_2.10.2             DelayedArray_0.2.7        
+##  [81] IRanges_2.10.5             DelayedArray_0.2.7        
 ##  [83] DBI_0.7                    pillar_1.1.0              
 ##  [85] haven_1.1.0                foreign_0.8-69            
-##  [87] mgcv_1.8-22                GWASExactHW_1.01          
-##  [89] survival_2.41-3            RCurl_1.95-4.8            
-##  [91] nnet_7.3-12                modelr_0.1.1              
-##  [93] crayon_1.3.4               utf8_1.1.3                
-##  [95] rmarkdown_1.8              grid_3.4.3                
-##  [97] readxl_1.0.0               quantsmooth_1.42.0        
-##  [99] blob_1.1.0                 digest_0.6.13             
-## [101] stats4_3.4.3               munsell_0.4.3</code></pre>
+##  [87] withr_2.1.2                mgcv_1.8-22               
+##  [89] GWASExactHW_1.01           survival_2.41-3           
+##  [91] RCurl_1.95-4.10            nnet_7.3-12               
+##  [93] modelr_0.1.1               crayon_1.3.4              
+##  [95] utf8_1.1.3                 rmarkdown_1.8             
+##  [97] grid_3.4.3                 readxl_1.0.0              
+##  [99] quantsmooth_1.42.0         blob_1.1.0                
+## [101] digest_0.6.15              stats4_3.4.3              
+## [103] munsell_0.4.3</code></pre>
 </div>
 <div id="references" class="section level1">
 <h1><span class="header-section-number">8</span> References</h1>
