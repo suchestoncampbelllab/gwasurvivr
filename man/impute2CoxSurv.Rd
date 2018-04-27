@@ -79,7 +79,7 @@ family of functions that suits their need and platform.
 library(gwasurvivr)
 library(tidyverse)
 library(magrittr)
-impute.file <- system.file(package="gwasurvivr","extdata","impute_example.impute2")
+impute.file <- system.file(package="gwasurvivr","extdata","impute_example.impute2.gz")
 sample.file <- system.file(package="gwasurvivr",
                            "extdata", 
                           "impute_example.impute2_sample")

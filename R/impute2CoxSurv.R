@@ -51,7 +51,7 @@
 #' library(gwasurvivr)
 #' library(tidyverse)
 #' library(magrittr)
-#' impute.file <- system.file(package="gwasurvivr","extdata","impute_example.impute2")
+#' impute.file <- system.file(package="gwasurvivr","extdata","impute_example.impute2.gz")
 #' sample.file <- system.file(package="gwasurvivr",
 #'                            "extdata", 
 #'                           "impute_example.impute2_sample")
@@ -136,8 +136,7 @@ impute2CoxSurv <- function(impute.file,
         cl <- makeCluster(getOption("gwasurvivr.cores", detectCores()))
     }
     on.exit(stopCluster(cl), add=TRUE)
-    
-    
+
     
     ###################################
     ##### Genotype data wrangling ######
