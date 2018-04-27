@@ -784,7 +784,7 @@ First the user needs to find correct paths of the files and load up the covariat
 ```{r, message=FALSE}
 impute.file <- system.file(package="gwasurvivr",
                            "extdata",
-                           "impute_example.impute2")
+                           "impute_example.impute2.gz")
 sample.file <- system.file(package="gwasurvivr",
                            "extdata", 
                            "impute_example.impute2_sample")
