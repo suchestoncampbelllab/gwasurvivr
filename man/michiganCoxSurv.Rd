@@ -73,7 +73,7 @@ pheno.file <- read.table(pheno.fl, sep=" ", header=TRUE, stringsAsFactors = FALS
 library(tidyverse)
 library(magrittr)
 pheno.file <- pheno.file \%>\%  
-                    mutate(SexFemale=if_else(sex=="Female", 1L, 0L))
+                    mutate(SexFemale=if_else(sex=="female", 1L, 0L))
 sample.ids <- pheno.file \%>\%
                     filter(group=="experimental") \%$\%
                     ID_2 

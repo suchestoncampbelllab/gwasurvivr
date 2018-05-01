@@ -49,7 +49,7 @@
 #' library(tidyverse)
 #' library(magrittr)
 #' pheno.file <- pheno.file %>%  
-#'                     mutate(SexFemale=if_else(sex=="Female", 1L, 0L))
+#'                     mutate(SexFemale=if_else(sex=="female", 1L, 0L))
 #' sample.ids <- pheno.file %>%
 #'                     filter(group=="experimental") %$%
 #'                     ID_2 
@@ -99,8 +99,6 @@ sangerCoxSurv <- function(vcf.file,
     
     ################################################
     #### Phenotype data wrangling ################
-    covariate.file <- covariate.file[complete.cases(covariate.file),]
-    
     cox.params <- coxPheno(covariate.file, covariates, id.column, inter.term, time.to.event, event, sample.ids, verbose)
     ################################################
     
