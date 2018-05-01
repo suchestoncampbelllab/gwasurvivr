@@ -30,7 +30,7 @@ coxPheno <- function(pheno.file, covariates, id.column, inter.term, time.to.even
         ids <- pheno.file[[id.column]]
         
         ## covariates should be numeric!
-        pheno.file <- as.matrix(pheno.file[,c(time.to.event, event)])
+        pheno.file <- as.matrix(pheno.file[,c(time.to.event, event, ok.covs)])
         
         if (!is.numeric(pheno.file) ) {
             stop("Provided covariates must be numeric!\ne.g. categorical variables should be recoded as indicator or dummy variables.")
