@@ -26,7 +26,7 @@ survFit <- function(SNP, cox.params, print.covs){
             res <- cbind(coef=coef, serr=serr)
             return(res)
             
-            } else if(print.covs=="all"){
+        } else if(print.covs=="all"){
                 
             coef <- fit$coefficients
             serr <- sqrt(diag(fit$var))
@@ -36,5 +36,5 @@ survFit <- function(SNP, cox.params, print.covs){
             names(res) <- c(paste(toupper(res.names[[2]][1]), res.names[[1]], sep="_"),
                                paste(toupper(res.names[[2]][2]), res.names[[1]], sep="_"))
             return(res)
-            }
+        }
 }

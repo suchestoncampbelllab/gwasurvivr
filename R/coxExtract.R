@@ -20,7 +20,7 @@ coxExtract <- function(cox.out, snp, n.sample, n.event, print.covs="only"){
                             "Z",
                             "N", 
                             "NEVENT")
-        rownames(sres) <- NULL # remove rownames so we don't have a duplicated rownames issues
+        rownames(sres) <- NULL 
     } else {
         cox.cols <- colnames(cox.out)
         coefs <- cox.cols[grepl("COEF", cox.cols)]
@@ -57,7 +57,7 @@ coxExtract <- function(cox.out, snp, n.sample, n.event, print.covs="only"){
             upperCI <- setNames(upperCI, paste("HR_upperCI", cols, sep = "_"))
         }
         sres <- cbind(pval, hr, lowerCI, upperCI, cox.out, z, N=n.sample, NEVENT=n.event)
-        rownames(sres) <- NULL # remove rownames so we don't have a duplicated rownames issue
+        rownames(sres) <- NULL
     }
     data.frame(cbind(snp,sres))
 }

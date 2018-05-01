@@ -67,18 +67,13 @@ However, advanced users who wish to optimize it, can provide a cluster object ge
 family of functions that suits their need and platform.
 }
 \examples{
-library(gwasurvivr)
 vcf.file <- system.file(package="gwasurvivr","extdata", "michigan.chr14.dose.vcf.gz")
 pheno.fl <- system.file(package="gwasurvivr", "extdata", "simulated_pheno.txt")
 pheno.file <- read.table(pheno.fl, sep=" ", header=TRUE, stringsAsFactors = FALSE)
 library(tidyverse)
 library(magrittr)
 pheno.file <- pheno.file \%>\%  
-                    mutate(SexFemale=case_when(
-                                      sex=="female"~1L,
-                                      sex=="male"~0L)
-                          ) \%>\% 
-                    select(-ID_1)
+                    mutate(SexFemale=if_else(sex=="Female", 1L, 0L))
 sample.ids <- pheno.file \%>\%
                     filter(group=="experimental") \%$\%
                     ID_2 

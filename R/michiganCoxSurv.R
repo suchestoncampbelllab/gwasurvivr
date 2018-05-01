@@ -43,18 +43,13 @@
 #' Saves text file directly to disk that contains survival analysis results.
 #' 
 #' @examples 
-#' library(gwasurvivr)
 #' vcf.file <- system.file(package="gwasurvivr","extdata", "michigan.chr14.dose.vcf.gz")
 #' pheno.fl <- system.file(package="gwasurvivr", "extdata", "simulated_pheno.txt")
 #' pheno.file <- read.table(pheno.fl, sep=" ", header=TRUE, stringsAsFactors = FALSE)
 #' library(tidyverse)
 #' library(magrittr)
 #' pheno.file <- pheno.file %>%  
-#'                     mutate(SexFemale=case_when(
-#'                                       sex=="female"~1L,
-#'                                       sex=="male"~0L)
-#'                           ) %>% 
-#'                     select(-ID_1)
+#'                     mutate(SexFemale=if_else(sex=="Female", 1L, 0L))
 #' sample.ids <- pheno.file %>%
 #'                     filter(group=="experimental") %$%
 #'                     ID_2 
@@ -106,6 +101,8 @@ michiganCoxSurv <- function(vcf.file,
     
     ################################################
     #### Phenotype data wrangling ################
+    
+    covariate.file <- covariate.file[complete.cases(covariate.file),]
     
     cox.params <- coxPheno(covariate.file, covariates, id.column, inter.term, time.to.event, event, sample.ids, verbose)
     
@@ -213,6 +210,6 @@ michiganCoxSurv <- function(vcf.file,
     if(verbose) message(snps_removed, " SNPs were removed from the analysis for not meeting the threshold criteria.")
     if(verbose) message("List of removed SNPs can be found in ", paste0(out.file, ".snps_removed"))
     if(verbose) message(snps_analyzed, " SNPs were analyzed in total")
-    if(verbose) message("The survival output can be found at", paste0(out.file, ".coxph"))
+    if(verbose) message("The survival output can be found at ", paste0(out.file, ".coxph"))
     
 }

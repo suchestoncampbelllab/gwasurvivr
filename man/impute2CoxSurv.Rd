@@ -82,7 +82,7 @@ library(magrittr)
 impute.file <- system.file(package="gwasurvivr","extdata","impute_example.impute2.gz")
 sample.file <- system.file(package="gwasurvivr",
                            "extdata", 
-                          "impute_example.impute2_sample")
+                           "impute_example.impute2_sample")
 chr <- 14
 covariate.file <- system.file(package="gwasurvivr", 
                               "extdata",
