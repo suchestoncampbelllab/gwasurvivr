@@ -14,10 +14,11 @@ date: '`r format(Sys.Date(), "%B %d, %Y")`'
 output: 
   BiocStyle::html_document:
     toc_float: true
+  BiocStyle::pdf_document: default
 vignette: >
   %\VignetteIndexEntry{gwasurvivr Vignette}
-  %\VignetteEngine{rmarkdown::render}
   %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{rmarkdown::render}
 ---
 
   
