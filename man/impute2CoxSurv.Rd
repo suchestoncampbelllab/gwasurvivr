@@ -94,7 +94,6 @@ covariate.file \%>\% head
 sample.ids <- covariate.file \%>\%
    filter(group=="experimental") \%$\%
    ID_2 
-options("gwasurvivr.cores"=1)   
 impute2CoxSurv(impute.file=impute.file,
               sample.file=sample.file,
               chr=14,
