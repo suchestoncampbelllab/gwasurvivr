@@ -16,7 +16,7 @@ output:
 vignette: >
   %\VignetteIndexEntry{Vignette Title}
   %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}  }
+  %\VignetteEncoding{UTF-8}
 editor_options: 
   chunk_output_type: console
 ---
