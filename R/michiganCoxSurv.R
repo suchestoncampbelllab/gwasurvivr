@@ -63,7 +63,7 @@
 #'               inter.term=NULL,
 #'               print.covs="only",
 #'               out.file="michigan_example",
-#'               info.filter=0.7,
+#'               info.filter=0.3,
 #'               maf.filter=0.005,
 #'               chunk.size=10000,
 #'               verbose=TRUE,

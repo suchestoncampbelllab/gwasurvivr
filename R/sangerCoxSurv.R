@@ -63,9 +63,9 @@
 #'               inter.term=NULL,
 #'               print.covs="only",
 #'               out.file="sanger_example",
-#'               info.filter=0.7,
+#'               info.filter=0.3,
 #'               maf.filter=0.005,
-#'               chunk.size=10000,
+#'               chunk.size=500,
 #'               verbose=TRUE,
 #'               clusterObj=NULL)
 #' 

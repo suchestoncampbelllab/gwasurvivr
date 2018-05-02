@@ -26,7 +26,7 @@ BiocStyle::markdown()
 ```
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, cache=FALSE, eval = TRUE, error=TRUE)
+knitr::opts_chunk$set(echo = TRUE, cache=FALSE, eval = TRUE)
 library(knitr)
 ```
 
@@ -205,9 +205,9 @@ library(gwasurvivr)
 
 **1. Setting the number of cores to be used:**
 
-Linux/OS X users can run analyses on a prespecified number of cores by setting the option in the R session as shown below. This option should be defined in the R session before running any of the `gwasurvivr` functions. This option is not available to Windows users.   
+Linux/OS X users can run analyses on a prespecified number of cores by setting the option in the R session as shown below. This option should be defined in the R session before running any of the `gwasurvivr` functions. Here we decide to use 4 cores. This option is not available to Windows users.   
 
-```{r}
+```{r, eval=FALSE}
 options("gwasurvivr.cores"=4)
 ```
 

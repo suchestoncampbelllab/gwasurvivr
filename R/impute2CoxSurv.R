@@ -50,23 +50,23 @@
 #' @examples
 #' library(tidyverse)
 #' library(magrittr)
-#' impute.file <- system.file(package="gwasurvivr","extdata","impute_example.impute2.gz")
+#' impute.file <- system.file(package="gwasurvivr",
+#'                            "extdata",
+#'                            "impute_example.impute2.gz")
 #' sample.file <- system.file(package="gwasurvivr",
 #'                            "extdata", 
 #'                            "impute_example.impute2_sample")
-#' chr <- 14
 #' covariate.file <- system.file(package="gwasurvivr", 
 #'                               "extdata",
 #'                              "simulated_pheno.txt")
 #' covariate.file <- read_delim(covariate.file, delim=" ")
 #' covariate.file <- covariate.file %>% 
-#'    mutate(SexFemale=case_when(sex=="female"~1L,
-#'                               sex=="male"~0L)) %>%
-#'    select(-ID_1)
+#'    mutate(SexFemale=if_else(sex=="female", 1L, 0L))
 #' covariate.file %>% head
 #' sample.ids <- covariate.file %>%
 #'    filter(group=="experimental") %$%
 #'    ID_2 
+#'options("gwasurvivr.cores"=1)   
 #'impute2CoxSurv(impute.file=impute.file,
 #'               sample.file=sample.file,
 #'               chr=14,
@@ -79,9 +79,9 @@
 #'               inter.term=NULL,
 #'               print.covs="only",
 #'               out.file="impute_example",
-#'               chunk.size=10000,
-#'               maf.filter=0.01,
-#'               info.filter=0.7,
+#'               chunk.size=500,
+#'               maf.filter=0.005,
+#'               info.filter=0.3,
 #'               flip.dosage=TRUE,
 #'               verbose=TRUE,
 #'               clusterObj=NULL)  
