@@ -2046,16 +2046,16 @@ Next we run <code>michiganCoxSurv</code> with the default, <code>print.covs=&quo
                 chunk.size=10000,
                 verbose=TRUE,
                 clusterObj=NULL)</code></pre>
-<pre><code>## Analysis started on 2018-05-02 at 11:34:41</code></pre>
+<pre><code>## Analysis started on 2018-05-02 at 11:45:16</code></pre>
 <pre><code>## Covariates included in the models are: age, DrugTxYes, SexFemale</code></pre>
 <pre><code>## 253 samples are included in the analysis</code></pre>
 <pre><code>## Analyzing chunk 0-10000</code></pre>
 <pre><code>## Analyzing chunk 10000-20000</code></pre>
-<pre><code>## Analysis completed on 2018-05-02 at 11:34:56</code></pre>
+<pre><code>## Analysis completed on 2018-05-02 at 11:45:31</code></pre>
 <pre><code>## 3604 SNPs were removed from the analysis for not meeting the threshold criteria.</code></pre>
-<pre><code>## List of removed SNPs can be found in /var/folders/1w/bb5rrzjn4v9bvq_hlptzq4bc0000gn/T//Rtmpljqanh/michigan_only428a14631155.snps_removed</code></pre>
+<pre><code>## List of removed SNPs can be found in /var/folders/1w/bb5rrzjn4v9bvq_hlptzq4bc0000gn/T//RtmpLZLhTx/michigan_only43b6667b717e.snps_removed</code></pre>
 <pre><code>## 651 SNPs were analyzed in total</code></pre>
-<pre><code>## The survival output can be found at /var/folders/1w/bb5rrzjn4v9bvq_hlptzq4bc0000gn/T//Rtmpljqanh/michigan_only428a14631155.coxph</code></pre>
+<pre><code>## The survival output can be found at /var/folders/1w/bb5rrzjn4v9bvq_hlptzq4bc0000gn/T//RtmpLZLhTx/michigan_only43b6667b717e.coxph</code></pre>
 <p>Here we load the data and glimpse the first few values in each column outputted from the SNP*interaction survival analyses using <code>print.covs=&quot;only&quot;</code>.</p>
 <pre class="r"><code>michigan_only &lt;- read_tsv(&quot;michigan_only.coxph&quot;)</code></pre>
 <pre class="r"><code>michigan_only %&gt;% 
@@ -2200,16 +2200,16 @@ Next we run <code>sangerCoxSurv</code> with the default, <code>print.covs=&quot;
               chunk.size=10000,
               verbose=TRUE,
               clusterObj=NULL)</code></pre>
-<pre><code>## Analysis started on 2018-05-02 at 11:35:09</code></pre>
+<pre><code>## Analysis started on 2018-05-02 at 11:45:44</code></pre>
 <pre><code>## Covariates included in the models are: age, DrugTxYes, SexFemale</code></pre>
 <pre><code>## 253 samples are included in the analysis</code></pre>
 <pre><code>## Analyzing chunk 0-10000</code></pre>
 <pre><code>## Analyzing chunk 10000-20000</code></pre>
-<pre><code>## Analysis completed on 2018-05-02 at 11:35:21</code></pre>
+<pre><code>## Analysis completed on 2018-05-02 at 11:45:57</code></pre>
 <pre><code>## 3604 SNPs were removed from the analysis for not meeting the threshold criteria.</code></pre>
-<pre><code>## List of removed SNPs can be found in /var/folders/1w/bb5rrzjn4v9bvq_hlptzq4bc0000gn/T//Rtmpljqanh/sanger_only428a63d97330.snps_removed</code></pre>
+<pre><code>## List of removed SNPs can be found in /var/folders/1w/bb5rrzjn4v9bvq_hlptzq4bc0000gn/T//RtmpLZLhTx/sanger_only43b66fc3fefb.snps_removed</code></pre>
 <pre><code>## 651 SNPs were analyzed in total</code></pre>
-<pre><code>## The survival output can be found at/var/folders/1w/bb5rrzjn4v9bvq_hlptzq4bc0000gn/T//Rtmpljqanh/sanger_only428a63d97330.coxph</code></pre>
+<pre><code>## The survival output can be found at/var/folders/1w/bb5rrzjn4v9bvq_hlptzq4bc0000gn/T//RtmpLZLhTx/sanger_only43b66fc3fefb.coxph</code></pre>
 <div id="single-snp-analysis-1" class="section level3">
 <h3><span class="header-section-number">3.2.1</span> Single SNP analysis</h3>
 <p><code>print.covs=&quot;only&quot;</code></p>
@@ -2276,17 +2276,17 @@ In this example, <code>sangerCoxSurv</code> is used with <code>print.covs=&quot;
               chunk.size=10000,
               verbose=TRUE,
               clusterObj=NULL)</code></pre>
-<pre><code>## Analysis started on 2018-05-02 at 11:35:21</code></pre>
+<pre><code>## Analysis started on 2018-05-02 at 11:45:57</code></pre>
 <pre><code>## Covariates included in the models are: age, DrugTxYes, SexFemale</code></pre>
 <pre><code>## Models will include interaction term: SNP*DrugTxYes</code></pre>
 <pre><code>## 253 samples are included in the analysis</code></pre>
 <pre><code>## Analyzing chunk 0-10000</code></pre>
 <pre><code>## Analyzing chunk 10000-20000</code></pre>
-<pre><code>## Analysis completed on 2018-05-02 at 11:35:35</code></pre>
+<pre><code>## Analysis completed on 2018-05-02 at 11:46:09</code></pre>
 <pre><code>## 3604 SNPs were removed from the analysis for not meeting the threshold criteria.</code></pre>
-<pre><code>## List of removed SNPs can be found in /var/folders/1w/bb5rrzjn4v9bvq_hlptzq4bc0000gn/T//Rtmpljqanh/sanger_intx_only428a36f5c78e.snps_removed</code></pre>
+<pre><code>## List of removed SNPs can be found in /var/folders/1w/bb5rrzjn4v9bvq_hlptzq4bc0000gn/T//RtmpLZLhTx/sanger_intx_only43b63e9bce17.snps_removed</code></pre>
 <pre><code>## 651 SNPs were analyzed in total</code></pre>
-<pre><code>## The survival output can be found at/var/folders/1w/bb5rrzjn4v9bvq_hlptzq4bc0000gn/T//Rtmpljqanh/sanger_intx_only428a36f5c78e.coxph</code></pre>
+<pre><code>## The survival output can be found at/var/folders/1w/bb5rrzjn4v9bvq_hlptzq4bc0000gn/T//RtmpLZLhTx/sanger_intx_only43b63e9bce17.coxph</code></pre>
 <p>Here we load the data and glimpse the first few values in each column outputted from the SNP*interaction survival analyses using <code>print.covs=&quot;only&quot;</code></p>
 <pre class="r"><code>sanger_intx_only &lt;- read_tsv(&quot;sanger_intx_only.coxph&quot;)</code></pre>
 <pre class="r"><code>sanger_intx_only %&gt;% 
@@ -2533,7 +2533,7 @@ R --script ${PATH}/survival/code/mysurvivalscript.R -q --args \
 ##  [1] bindrcpp_0.2.2    magrittr_1.5      forcats_0.3.0     stringr_1.3.0    
 ##  [5] dplyr_0.7.4       purrr_0.2.4       readr_1.1.1       tidyr_0.8.0      
 ##  [9] tibble_1.4.2      ggplot2_2.2.1     tidyverse_1.2.1   gwasurvivr_0.99.0
-## [13] knitr_1.20        BiocStyle_2.7.9  
+## [13] knitr_1.20        BiocStyle_2.8.0  
 ## 
 ## loaded via a namespace (and not attached):
 ##   [1] colorspace_1.3-2            rprojroot_1.3-2            
@@ -2559,12 +2559,12 @@ R --script ${PATH}/survival/code/mysurvivalscript.R -q --args \
 ##  [41] psych_1.8.3.3               lmtest_0.9-36              
 ##  [43] xfun_0.1                    rvest_0.3.2                
 ##  [45] XML_3.98-1.11               zlibbioc_1.26.0            
-##  [47] MASS_7.3-49                 zoo_1.8-1                  
+##  [47] MASS_7.3-50                 zoo_1.8-1                  
 ##  [49] scales_0.5.0                BSgenome_1.48.0            
 ##  [51] VariantAnnotation_1.26.0    hms_0.4.2                  
 ##  [53] gdsfmt_1.16.0               parallel_3.5.0             
 ##  [55] SummarizedExperiment_1.10.0 sandwich_2.4-0             
-##  [57] SparseM_1.77                yaml_2.1.18                
+##  [57] SparseM_1.77                yaml_2.1.19                
 ##  [59] memoise_1.1.0               biomaRt_2.36.0             
 ##  [61] rpart_4.1-13                stringi_1.1.7              
 ##  [63] RSQLite_2.1.0               highr_0.6                  
@@ -2577,7 +2577,7 @@ R --script ${PATH}/survival/code/mysurvivalscript.R -q --args \
 ##  [77] GenomicAlignments_1.16.0    bit_1.1-12                 
 ##  [79] plyr_1.8.4                  bookdown_0.7               
 ##  [81] R6_2.2.2                    IRanges_2.14.0             
-##  [83] DelayedArray_0.6.0          DBI_0.8                    
+##  [83] DelayedArray_0.6.0          DBI_1.0.0                  
 ##  [85] pillar_1.2.2                haven_1.1.1                
 ##  [87] foreign_0.8-70              mgcv_1.8-23                
 ##  [89] GWASExactHW_1.01            survival_2.42-3            
