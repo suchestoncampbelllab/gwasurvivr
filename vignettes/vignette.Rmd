@@ -19,10 +19,6 @@ vignette: >
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
-
-<!--
-%% \VignetteEngine{knitr::knitr}
--->
   
 ```{r style, echo = FALSE, results = 'asis'}
 BiocStyle::markdown()
@@ -771,6 +767,7 @@ PATH=/path/to/dir/impute_chr
 R --script ${PATH}/survival/code/mysurvivalscript.R -q --args \
         vcf.file ${PATH}/chr14.vcf.gz \
         pheno.file ${PATH}/phenotype_data/pheno.txt \
+        covariates DrugTxYes_age_SexFemale\
         time.to.event time \
         event event \
         out.file ${PATH}/survival/results/sanger_example_output
