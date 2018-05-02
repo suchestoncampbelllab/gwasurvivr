@@ -18,7 +18,7 @@ output:
 vignette: >
   %\VignetteIndexEntry{gwasurvivr Vignette}
   %\VignetteEncoding{UTF-8}
-  %\VignetteEngine{rmarkdown::render}
+  %\VignetteEngine{knitr::rmarkdown}
 ---
 
   
@@ -206,10 +206,10 @@ library(gwasurvivr)
 
 **1. Setting the number of cores to be used:**
 
-Linux/OS X users can run analyses on a prespecified number of cores by setting the option in the R session as shown below. This option should be defined in the R session before running any of the `gwasurvivr` functions. Here we decide to use 4 cores. This option is not available to Windows users.   
+Linux/OS X users can run analyses on a prespecified number of cores by setting the option in the R session as shown below. This option should be defined in the R session before running any of the `gwasurvivr` functions. Here we decide to use 2 cores. This option is not available to Windows users.   
 
-```{r, eval=FALSE}
-options("gwasurvivr.cores"=4)
+```{r, eval=TRUE}
+options("gwasurvivr.cores"=2)
 ```
 
 **2. Providing a user defined cluster object**
