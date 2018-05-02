@@ -2046,16 +2046,16 @@ Next we run <code>michiganCoxSurv</code> with the default, <code>print.covs=&quo
                 chunk.size=10000,
                 verbose=TRUE,
                 clusterObj=NULL)</code></pre>
-<pre><code>## Analysis started on 2018-05-02 at 10:59:05</code></pre>
+<pre><code>## Analysis started on 2018-05-02 at 11:05:00</code></pre>
 <pre><code>## Covariates included in the models are: age, DrugTxYes, SexFemale</code></pre>
 <pre><code>## 253 samples are included in the analysis</code></pre>
 <pre><code>## Analyzing chunk 0-10000</code></pre>
 <pre><code>## Analyzing chunk 10000-20000</code></pre>
-<pre><code>## Analysis completed on 2018-05-02 at 10:59:20</code></pre>
+<pre><code>## Analysis completed on 2018-05-02 at 11:05:15</code></pre>
 <pre><code>## 3604 SNPs were removed from the analysis for not meeting the threshold criteria.</code></pre>
-<pre><code>## List of removed SNPs can be found in /var/folders/1w/bb5rrzjn4v9bvq_hlptzq4bc0000gn/T//RtmpSwllTA/michigan_only3e244e7b975d.snps_removed</code></pre>
+<pre><code>## List of removed SNPs can be found in /var/folders/1w/bb5rrzjn4v9bvq_hlptzq4bc0000gn/T//Rtmpa9vmk1/michigan_only3e865cbeb8e3.snps_removed</code></pre>
 <pre><code>## 651 SNPs were analyzed in total</code></pre>
-<pre><code>## The survival output can be found at /var/folders/1w/bb5rrzjn4v9bvq_hlptzq4bc0000gn/T//RtmpSwllTA/michigan_only3e244e7b975d.coxph</code></pre>
+<pre><code>## The survival output can be found at /var/folders/1w/bb5rrzjn4v9bvq_hlptzq4bc0000gn/T//Rtmpa9vmk1/michigan_only3e865cbeb8e3.coxph</code></pre>
 <p>Here we load the data and glimpse the first few values in each column outputted from the SNP*interaction survival analyses using <code>print.covs=&quot;only&quot;</code>.</p>
 <pre class="r"><code>michigan_only &lt;- read_tsv(&quot;michigan_only.coxph&quot;)</code></pre>
 <pre class="r"><code>michigan_only %&gt;% 
@@ -2200,16 +2200,16 @@ Next we run <code>sangerCoxSurv</code> with the default, <code>print.covs=&quot;
               chunk.size=10000,
               verbose=TRUE,
               clusterObj=NULL)</code></pre>
-<pre><code>## Analysis started on 2018-05-02 at 10:59:36</code></pre>
+<pre><code>## Analysis started on 2018-05-02 at 11:05:29</code></pre>
 <pre><code>## Covariates included in the models are: age, DrugTxYes, SexFemale</code></pre>
 <pre><code>## 253 samples are included in the analysis</code></pre>
 <pre><code>## Analyzing chunk 0-10000</code></pre>
 <pre><code>## Analyzing chunk 10000-20000</code></pre>
-<pre><code>## Analysis completed on 2018-05-02 at 10:59:48</code></pre>
+<pre><code>## Analysis completed on 2018-05-02 at 11:05:42</code></pre>
 <pre><code>## 3604 SNPs were removed from the analysis for not meeting the threshold criteria.</code></pre>
-<pre><code>## List of removed SNPs can be found in /var/folders/1w/bb5rrzjn4v9bvq_hlptzq4bc0000gn/T//RtmpSwllTA/sanger_only3e24558acaee.snps_removed</code></pre>
+<pre><code>## List of removed SNPs can be found in /var/folders/1w/bb5rrzjn4v9bvq_hlptzq4bc0000gn/T//Rtmpa9vmk1/sanger_only3e8617823f6b.snps_removed</code></pre>
 <pre><code>## 651 SNPs were analyzed in total</code></pre>
-<pre><code>## The survival output can be found at/var/folders/1w/bb5rrzjn4v9bvq_hlptzq4bc0000gn/T//RtmpSwllTA/sanger_only3e24558acaee.coxph</code></pre>
+<pre><code>## The survival output can be found at/var/folders/1w/bb5rrzjn4v9bvq_hlptzq4bc0000gn/T//Rtmpa9vmk1/sanger_only3e8617823f6b.coxph</code></pre>
 <div id="single-snp-analysis-1" class="section level3">
 <h3><span class="header-section-number">3.2.1</span> Single SNP analysis</h3>
 <p><code>print.covs=&quot;only&quot;</code></p>
@@ -2276,17 +2276,17 @@ In this example, <code>sangerCoxSurv</code> is used with <code>print.covs=&quot;
               chunk.size=10000,
               verbose=TRUE,
               clusterObj=NULL)</code></pre>
-<pre><code>## Analysis started on 2018-05-02 at 10:59:48</code></pre>
+<pre><code>## Analysis started on 2018-05-02 at 11:05:42</code></pre>
 <pre><code>## Covariates included in the models are: age, DrugTxYes, SexFemale</code></pre>
 <pre><code>## Models will include interaction term: SNP*DrugTxYes</code></pre>
 <pre><code>## 253 samples are included in the analysis</code></pre>
 <pre><code>## Analyzing chunk 0-10000</code></pre>
 <pre><code>## Analyzing chunk 10000-20000</code></pre>
-<pre><code>## Analysis completed on 2018-05-02 at 11:00:00</code></pre>
+<pre><code>## Analysis completed on 2018-05-02 at 11:05:55</code></pre>
 <pre><code>## 3604 SNPs were removed from the analysis for not meeting the threshold criteria.</code></pre>
-<pre><code>## List of removed SNPs can be found in /var/folders/1w/bb5rrzjn4v9bvq_hlptzq4bc0000gn/T//RtmpSwllTA/sanger_intx_only3e24618c270b.snps_removed</code></pre>
+<pre><code>## List of removed SNPs can be found in /var/folders/1w/bb5rrzjn4v9bvq_hlptzq4bc0000gn/T//Rtmpa9vmk1/sanger_intx_only3e867d6a69c0.snps_removed</code></pre>
 <pre><code>## 651 SNPs were analyzed in total</code></pre>
-<pre><code>## The survival output can be found at/var/folders/1w/bb5rrzjn4v9bvq_hlptzq4bc0000gn/T//RtmpSwllTA/sanger_intx_only3e24618c270b.coxph</code></pre>
+<pre><code>## The survival output can be found at/var/folders/1w/bb5rrzjn4v9bvq_hlptzq4bc0000gn/T//Rtmpa9vmk1/sanger_intx_only3e867d6a69c0.coxph</code></pre>
 <p>Here we load the data and glimpse the first few values in each column outputted from the SNP*interaction survival analyses using <code>print.covs=&quot;only&quot;</code></p>
 <pre class="r"><code>sanger_intx_only &lt;- read_tsv(&quot;sanger_intx_only.coxph&quot;)</code></pre>
 <pre class="r"><code>sanger_intx_only %&gt;% 
@@ -2457,13 +2457,13 @@ impute2_res_intx %&gt;%
 <pre class="r"><code>## mysurvivalscript.R
 library(gwasurvivr)
 library(batch)
+library(tidyverse)
 parseCommandArgs(evaluate=TRUE)
 
 options(&quot;gwasurvivr.cores&quot;=4)
-# recode sex column and remove first column
+# recode sex column
 pheno.file &lt;- pheno.file %&gt;%
-        mutate(SexFemale=case_when(sex==&quot;female&quot;~1L,
-                                   sex==&quot;male&quot;~0L))
+        mutate(SexFemale=if_else(sex==&quot;female&quot;, 1L, 0L))
 # select only experimental group
 sample.ids &lt;- pheno.file %&gt;%
         filter(group==&quot;experimental&quot;) %$%

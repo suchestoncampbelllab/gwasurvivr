@@ -207,7 +207,7 @@ library(gwasurvivr)
 
 Linux/OS X users can run analyses on a prespecified number of cores by setting the option in the R session as shown below. This option should be defined in the R session before running any of the `gwasurvivr` functions. This option is not available to Windows users.   
 
-```{r}
+```{r, eval=FALSE}
 options("gwasurvivr.cores"=4)
 ```
 
@@ -723,13 +723,13 @@ Batch jobs for multiple analyses and different subsets are easy to implement usi
 ## mysurvivalscript.R
 library(gwasurvivr)
 library(batch)
+library(tidyverse)
 parseCommandArgs(evaluate=TRUE)
 
 options("gwasurvivr.cores"=4)
-# recode sex column and remove first column
+# recode sex column
 pheno.file <- pheno.file %>%
-        mutate(SexFemale=case_when(sex=="female"~1L,
-                                   sex=="male"~0L))
+        mutate(SexFemale=if_else(sex=="female", 1L, 0L))
 # select only experimental group
 sample.ids <- pheno.file %>%
         filter(group=="experimental") %$%
