@@ -19,6 +19,7 @@ vignette: >
   %\VignetteEngine{rmarkdown::render}
   %\VignetteEncoding{UTF-8}
 ---
+
   
 ```{r style, echo = FALSE, results = 'asis'}
 BiocStyle::markdown()
