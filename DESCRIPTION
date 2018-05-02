@@ -6,7 +6,8 @@ Author: Abbas Rizvi, Ezgi Karaesmen, Martin Morgan, Lara Sucheston-Campbell
 Maintainer: Abbas Rizvi <aarizv@gmail.com>
 Description: gwasurvivr is a package to perform survival analysis using Cox proportional hazard models on imputed genetic data.
 VignetteBuilder:
-    knitr
+    knitr,
+    rmarkdown
 Imports:
     GWASTools,
     survival,
