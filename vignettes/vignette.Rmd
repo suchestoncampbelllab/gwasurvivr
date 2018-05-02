@@ -12,17 +12,17 @@ author:
 package: gwasurvivr
 date: '`r format(Sys.Date(), "%B %d, %Y")`'
 output: 
-  BiocStyle::html_document
+  BiocStyle::html_document:
+    toc_float: true
 vignette: >
   %\VignetteIndexEntry{Vignette Title}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
-editor_options: 
-  chunk_output_type: console
 ---
-  <!--
-  %% \VignetteEngine{knitr::knitr}
-  -->
+
+<!--
+%% \VignetteEngine{knitr::knitr}
+-->
   
 ```{r style, echo = FALSE, results = 'asis'}
 BiocStyle::markdown()
@@ -784,13 +784,13 @@ Exactly the same as for `sangerCoxSurv` but this time with the input arguments f
 ## Batch Example michiganCoxSurv
 Exactly the same as for `sangerCoxSurv` but this time with the input arguments for `michiganCoxSurv`. See `?michiganCoxSurv` for help
 
-# Session info
+# Session info {.unnumbered}
 Here is the output of `sessionInfo()` on the system that this document was compiled:
 ```{r, echo=FALSE}
 sessionInfo()
 ```
 
-# References
+# References {.unnumbered}
 1. Terry M. Therneau and Patricia M. Grambsch (2000). Modeling Survival Data: Extending the Cox Model. Springer, New York. ISBN 0-387-98784-3.  
 
 2. Martin Morgan, Valerie Obenchain, Jim Hester and Hervé Pagès (2017). SummarizedExperiment: SummarizedExperiment container. R package version 1.6.3.  
