@@ -11,15 +11,24 @@ author:
   affiliation: The Ohio State University, Columbus, OH
 package: gwasurvivr
 date: '`r format(Sys.Date(), "%B %d, %Y")`'
-output:
-        BiocStyle::html_document
+output: 
+  BiocStyle::html_document
 vignette: >
   %\VignetteIndexEntry{Vignette Title}
-  %\VignetteEncoding{UTF-8}          
   %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}  }
 editor_options: 
   chunk_output_type: console
 ---
+
+<!--
+%% \VignetteEngine{knitr::knitr}
+-->
+
+
+```{r style, echo = FALSE, results = 'asis'}
+BiocStyle::markdown()
+```
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, cache=FALSE, eval = TRUE)
@@ -40,7 +49,7 @@ All functions fit a Cox PH model to each SNP including other user defined covari
 
 All three functions require the following main arguments:
 
-* `vcf.file`: A character string giving the path to genotype data file
+* `vcf.file`: A character string giving the path to genotype data file (`impute.file` for IMPUTE2)
 * `covariate.file`: A data frame comprising sample IDs (that match to the genotype data), phenotype (time, event) and additional covariate data
 * `id.column`: A character string providing exact match to sample ID column in covariate.file
 * `time.to.event`: A character string that matches time column name in covariate.file
@@ -53,7 +62,7 @@ Further arguments can be passed depending on the user preference. For example, u
 **IMPORTANT: In the `covariate.file`, categorical variables need to be converted to indicator (dummy) variables and be of class `numeric`. Ordinal variables represented as characters, ie "low", "medium" and "high" should be converted to the appropriate numeric values as well.**
 
 ## Main output format
-The output for the 3 main functions in `gwasurvivr` are very similar but with subtle differences. In general the output includes the following main fields: RSID, TYPED, CHR, POS, REF, ALT, Allele Frequencies^\*, INFO^\*, PVALUES, HRs, HR confidence intervals, coefficient estimates, standard errors, Z-statistic, N, and NEVENT. Allele frequencies and INFO differ by the input imputation software. 
+The output for the 3 main functions in `gwasurvivr` are very similar but with subtle differences. In general the output includes the following main fields: RSID, TYPED, CHR, POS, REF, ALT, Allele Frequencies\*, INFO\*, PVALUES, HRs, HR confidence intervals, coefficient estimates, standard errors, Z-statistic, N, and NEVENT. Allele frequencies and INFO differ by the input imputation software. 
 
 **Note: Invoking the `inter.term` argument for any of the functions will make the PVALUE and HRs and HR confidence intervals represent the INTERACTION term and not the SNP alone.**
 
@@ -119,6 +128,7 @@ colnames(df) <- c("Column", "Description")
 kable(df)
 ```
 
+Please see [Minimac3 Info File](https://genome.sph.umich.edu/wiki/Minimac3_Info_File) for details on output
 
 2. `sangerCoxSurv`  
 
@@ -280,7 +290,7 @@ michiganCoxSurv(vcf.file=vcf.file,
                 inter.term=NULL,
                 print.covs="only",
                 out.file="michigan_only",
-                info.filter=0.7,
+                info.filter=0.3,
                 maf.filter=0.005,
                 chunk.size=10000,
                 verbose=TRUE,
@@ -299,7 +309,7 @@ michiganCoxSurv(vcf.file=vcf.file,
                 inter.term=NULL,
                 print.covs="only",
                 out.file=tempfile("michigan_only"),
-                info.filter=0.7,
+                info.filter=0.3,
                 maf.filter=0.005,
                 chunk.size=10000,
                 verbose=TRUE,
@@ -338,7 +348,7 @@ michiganCoxSurv(vcf.file=vcf.file,
                 inter.term="DrugTxYes",
                 print.covs="only",
                 out.file="michigan_intx_only",
-                info.filter=0.7,
+                info.filter=0.3,
                 maf.filter=0.005,
                 chunk.size=10000,
                 verbose=FALSE,
@@ -357,7 +367,7 @@ michiganCoxSurv(vcf.file=vcf.file,
                 inter.term="DrugTxYes",
                 print.covs="only",
                 out.file=tempfile("michigan_intx_only"),
-                info.filter=0.7,
+                info.filter=0.3,
                 maf.filter=0.005,
                 chunk.size=10000,
                 verbose=FALSE,
@@ -396,7 +406,8 @@ pheno.fl <- system.file(package="gwasurvivr",
 pheno.file <- read_delim(pheno.fl,
                          delim=" ",
                          col_names=TRUE)
-pheno.file %>% head()
+pheno.file %>%
+    head()
 ```
 
 In this example, we will select samples from the `experimental` group and will test survival only on these patients. The first column in the `pheno.file` are sample IDs (we will match on these). We include `age`, `DrugTxYes`, and `sex` in the survival model as covariates. 
@@ -404,8 +415,8 @@ In this example, we will select samples from the `experimental` group and will t
 ```{r}
 # create new sex variable where Females are 1 and males are 0
 pheno.file <- pheno.file %>%
-        mutate(SexFemale=case_when(sex=="female"~1L,
-                                   sex=="male"~0L))
+        mutate(SexFemale=if_else(sex=="female", 1L, 0L))
+
 # select only experimental group sample.ids
 sample.ids <- pheno.file %>%
         filter(group=="experimental") %$%
@@ -432,7 +443,7 @@ sangerCoxSurv(vcf.file=vcf.file,
               inter.term=NULL,
               print.covs="only",
               out.file="sanger_only",
-              info.filter=0.7,
+              info.filter=0.3,
               maf.filter=0.005,
               chunk.size=10000,
               verbose=TRUE,
@@ -451,7 +462,7 @@ sangerCoxSurv(vcf.file=vcf.file,
               inter.term=NULL,
               print.covs="only",
               out.file=tempfile("sanger_only"),
-              info.filter=0.7,
+              info.filter=0.3,
               maf.filter=0.005,
               chunk.size=10000,
               verbose=TRUE,
@@ -489,7 +500,7 @@ sangerCoxSurv(vcf.file=vcf.file,
               inter.term=NULL,
               print.covs="all",
               out.file="sanger_all",
-              info.filter=0.7,
+              info.filter=0.3,
               maf.filter=0.005,
               chunk.size=10000,
               verbose=FALSE,
@@ -512,7 +523,7 @@ sangerCoxSurv(vcf.file=vcf.file,
               inter.term="DrugTxYes",
               print.covs="only",
               out.file="sanger_intx_only",
-              info.filter=0.7,
+              info.filter=0.3,
               maf.filter=0.005,
               chunk.size=10000,
               verbose=TRUE,
@@ -531,7 +542,7 @@ sangerCoxSurv(vcf.file=vcf.file,
               inter.term="DrugTxYes",
               print.covs="only",
               out.file=tempfile("sanger_intx_only"),
-              info.filter=0.7,
+              info.filter=0.3,
               maf.filter=0.005,
               chunk.size=10000,
               verbose=TRUE,
@@ -557,15 +568,14 @@ sanger_intx_only %>%
 Column names with descriptions from the survival analyses of SNP*covariate and specifying `print.covs="only"`.
 
 ## IMPUTE2 Imputation
-### File structure
-IMPUTE2 outputs 6 files for each chromosome chunk imputed (usually 5 MB in size). Only 2 of these files are required for analyses using `gwasurvivr`:
+IMPUTE2 is a genotype imputation and haplotype phasing program (Howie et al 2009). IMPUTE2 outputs 6 files for each chromosome chunk imputed (usually 5 MB in size). Only 2 of these files are required for analyses using `gwasurvivr`:
 
   - Genotype file (`.impute`)  
   - Sample file (`.sample`)  
   
 [More information can be read about these formats](http://www.stats.ox.ac.uk/~marchini/software/gwas/file_format.html)
 
-Identify the correct file paths and load the covariate file. The covariate file needs to be a `data.frame`.
+We are going to load in and pre-process the genetic data and the phenotypic data (`covariate.file`).
 ```{r, message=FALSE}
 impute.file <- system.file(package="gwasurvivr",
                            "extdata",
@@ -577,10 +587,8 @@ covariate.file <- system.file(package="gwasurvivr",
                        "extdata",
                        "simulated_pheno.txt")
 covariate.file <- read_delim(covariate.file, delim=" ")
-covariate.file <- covariate.file %>% 
-        mutate(SexFemale=case_when(sex=="female"~1L,
-                                   sex=="male"~0L)) %>%
-        select(-ID_1)
+covariate.file <- covariate.file %>%
+        mutate(SexFemale=if_else(sex=="female", 1L, 0L))
 covariate.file %>%
     head()
 sample.ids <- covariate.file %>%
@@ -588,10 +596,10 @@ sample.ids <- covariate.file %>%
         ID_2 
 ```
 
-To perform survival analysis using IMPUTE2 the function arguments are the same, however the function now takes a chromosome arguement. This is needed to properly annotate the file output with the chromosome that these SNPs are in. This is purely an artifact of IMPUTE2 and how we leverage `GWASTools` in this function. 
+To perform survival analysis using IMPUTE2 the function arguments are very similarto  `michiganCoxSurv` and `sangerCoxSurv`, however the function now takes a chromosome arguement. This is needed to properly annotate the file output with the chromosome that these SNPs are in. This is purely an artifact of IMPUTE2 and how we leverage `GWASTools` in this function. 
 
 ### Single SNP analysis
-`print.cov="only"`
+First we will do the analysis with no interaction term, followed by doing the analysis with the interaction term. The recommended output setting for single SNP analysis is `print.cov="only"`.
 
 ```{r, eval=FALSE}
 impute2CoxSurv(impute.file=impute.file,
@@ -607,8 +615,8 @@ impute2CoxSurv(impute.file=impute.file,
                print.covs="only",
                out.file="impute_example_only",
                chunk.size=10000,
-               maf.filter=0.01,
-               info.filter=0.7,
+               maf.filter=0.005,
+               info.filter=0.3,
                flip.dosage=TRUE,
                verbose=FALSE,
                clusterObj=NULL)
@@ -628,13 +636,13 @@ impute2CoxSurv(impute.file=impute.file,
                print.covs="only",
                out.file=tempfile("impute_example_only"),
                chunk.size=10000,
-               maf.filter=0.01,
-               info.filter=0.7,
+               maf.filter=0.005,
+               info.filter=0.3,
                flip.dosage=TRUE,
                verbose=FALSE,
                clusterObj=NULL)
 ```
-Here we load the data and glimpse the first few values in each column outputted from the SNP*interaction survival analyses using `print.covs="only"`.
+Here we load the data and glimpse the first few values in each column output.
 
 ```{r, message=FALSE, eval=FALSE}
 impute2_res_only <- read_tsv("impute_example_only.coxph")
@@ -651,11 +659,8 @@ impute2_res_only %>%
     glimpse()
 ```
 
-Column names with descriptions for survival analyses of IMPUTE2 data specifying `print.covs="only"`.
-
-`print.cov="all"` We proceed demonstrating survival analyses with IMPUTE2 data as we did with Sanger data, here performing SNP analyses specifying full covariate output and then SNP*covariate interaction for `print.cov="only"`, `print.cov="some"`, `print.cov="none"`. 
-
 ### SNP covariate interaction
+Now we will perform a SNP*covariate interaction survival analysis using `impute2CoxSurv`.  
 ```{r, eval=FALSE}
 impute2CoxSurv(impute.file=impute.file,
                sample.file=sample.file,
@@ -671,7 +676,7 @@ impute2CoxSurv(impute.file=impute.file,
                out.file="impute_example_intx",
                chunk.size=10000,
                maf.filter=0.01,
-               info.filter=0.7,
+               info.filter=0.3,
                flip.dosage=TRUE,
                verbose=FALSE,
                clusterObj=NULL)
@@ -692,7 +697,7 @@ impute2CoxSurv(impute.file=impute.file,
                out.file=tempfile("impute_example_intx"),
                chunk.size=10000,
                maf.filter=0.01,
-               info.filter=0.7,
+               info.filter=0.3,
                flip.dosage=TRUE,
                verbose=FALSE,
                clusterObj=NULL)
@@ -751,7 +756,7 @@ sangerCoxSurv(vcf.file=vcf.file,
               inter.term=NULL,
               print.covs="only",
               out.file="sanger_only",
-              info.filter=0.7,
+              info.filter=0.3,
               maf.filter=0.005,
               chunk.size=10000,
               verbose=TRUE,
