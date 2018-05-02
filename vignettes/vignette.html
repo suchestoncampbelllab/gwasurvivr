@@ -2024,7 +2024,7 @@ sample.ids &lt;- pheno.file %&gt;%
 head(sample.ids)</code></pre>
 <pre><code>## [1] &quot;SAMP2&quot;  &quot;SAMP5&quot;  &quot;SAMP7&quot;  &quot;SAMP9&quot;  &quot;SAMP11&quot; &quot;SAMP12&quot;</code></pre>
 <p>In this example, we will select samples from the <code>experimental</code> group and will test survival only on these patients. The first column in the <code>pheno.file</code> are sample IDs (we will match on these). We include <code>age</code>, <code>DrugTxYes</code>, and <code>sex</code> in the survival model as covariates.</p>
-<p>We perform the analysis using the <code>experimental</code> group to demonstrate how one may want to prepare their data if not initially all samples are patients or cases (i.e. a case-control study and survival of cases is of interest). We also are showing how the IDs (<code>sample.ids</code>) need to be a vector of class <code>character</code>. The <code>chunk.size</code> refers to size of each data chunk read in and is defaulted to 10,000 rows, users can customize that to their needs. The larger the <code>chunk.size</code> the more memory (RAM) required to run the analysis. The recommended <code>chunk.size=10000</code> and probably should not exceed <code>chunk.size=100000</code>.</p>
+<p>We perform the analysis using the <code>experimental</code> group to demonstrate how one may want to prepare their data if not initially all samples are patients or cases (i.e. a case-control study and survival of cases is of interest). We also are showing how the IDs (<code>sample.ids</code>) need to be a vector of class <code>character</code>. The <code>chunk.size</code> refers to size of each data chunk read in and is defaulted to 10,000 rows, users can customize that to their needs. The larger the <code>chunk.size</code> the more memory (RAM) required to run the analysis. The recommended <code>chunk.size=500</code> and probably should not exceed <code>chunk.size=5000</code>.</p>
 <p>By default survival estimates and pvalues for the SNP adjusted for other covariates are outputted (<code>print.covs='only'</code>), however users can select <code>print.covs=all</code> to get the coefficient estimates for covariates included in the model. Depending on the number of covariates included this can add substantially to output file size.
 Next we run <code>michiganCoxSurv</code> with the default, <code>print.covs=&quot;only&quot;</code>, load the results into R and provide descriptions of output by column. We will then run the analysis again using <code>print.covs=&quot;all&quot;</code>. <code>verbose=TRUE</code> is used for these examples so the function display messages while running.</p>
 <p>Use <code>?michiganCoxSurv</code> for argument specific documentation.</p>
@@ -2043,19 +2043,19 @@ Next we run <code>michiganCoxSurv</code> with the default, <code>print.covs=&quo
                 out.file=&quot;michigan_only&quot;,
                 info.filter=0.3,
                 maf.filter=0.005,
-                chunk.size=10000,
+                chunk.size=500,
                 verbose=TRUE,
                 clusterObj=NULL)</code></pre>
-<pre><code>## Analysis started on 2018-05-02 at 11:51:12</code></pre>
+<pre><code>## Analysis started on 2018-05-02 at 13:44:48</code></pre>
 <pre><code>## Covariates included in the models are: age, DrugTxYes, SexFemale</code></pre>
 <pre><code>## 253 samples are included in the analysis</code></pre>
-<pre><code>## Analyzing chunk 0-10000</code></pre>
-<pre><code>## Analyzing chunk 10000-20000</code></pre>
-<pre><code>## Analysis completed on 2018-05-02 at 11:51:30</code></pre>
-<pre><code>## 3604 SNPs were removed from the analysis for not meeting the threshold criteria.</code></pre>
-<pre><code>## List of removed SNPs can be found in /var/folders/1w/bb5rrzjn4v9bvq_hlptzq4bc0000gn/T//RtmpNlEKjU/michigan_only442f64c2af33.snps_removed</code></pre>
-<pre><code>## 651 SNPs were analyzed in total</code></pre>
-<pre><code>## The survival output can be found at /var/folders/1w/bb5rrzjn4v9bvq_hlptzq4bc0000gn/T//RtmpNlEKjU/michigan_only442f64c2af33.coxph</code></pre>
+<pre><code>## Analyzing chunk 0-500</code></pre>
+<pre><code>## Analyzing chunk 500-1000</code></pre>
+<pre><code>## Analysis completed on 2018-05-02 at 13:44:51</code></pre>
+<pre><code>## 240 SNPs were removed from the analysis for not meeting the threshold criteria.</code></pre>
+<pre><code>## List of removed SNPs can be found in /var/folders/1w/bb5rrzjn4v9bvq_hlptzq4bc0000gn/T//RtmpQVBLSz/michigan_only466f50aeda0d.snps_removed</code></pre>
+<pre><code>## 260 SNPs were analyzed in total</code></pre>
+<pre><code>## The survival output can be found at /var/folders/1w/bb5rrzjn4v9bvq_hlptzq4bc0000gn/T//RtmpQVBLSz/michigan_only466f50aeda0d.coxph</code></pre>
 <p>Here we load the data and glimpse the first few values in each column outputted from the SNP*interaction survival analyses using <code>print.covs=&quot;only&quot;</code>.</p>
 <pre class="r"><code>michigan_only &lt;- read_tsv(&quot;michigan_only.coxph&quot;)</code></pre>
 <pre class="r"><code>michigan_only %&gt;% 
@@ -2101,7 +2101,7 @@ Next we run <code>michiganCoxSurv</code> with the default, <code>print.covs=&quo
                 out.file=&quot;michigan_intx_only&quot;,
                 info.filter=0.3,
                 maf.filter=0.005,
-                chunk.size=10000,
+                chunk.size=500,
                 verbose=FALSE,
                 clusterObj=NULL)</code></pre>
 <p>Here we load the data and glimpse the first few values in each column outputted from the SNP*interaction survival analyses using <code>print.covs=&quot;only&quot;</code></p>
@@ -2181,7 +2181,7 @@ sample.ids &lt;- pheno.file %&gt;%
 sample.ids %&gt;%
     head()</code></pre>
 <pre><code>## [1] &quot;SAMP2&quot;  &quot;SAMP5&quot;  &quot;SAMP7&quot;  &quot;SAMP9&quot;  &quot;SAMP11&quot; &quot;SAMP12&quot;</code></pre>
-<p>We perform the analysis using the <code>experimental</code> group to demonstrate how one may want to prepare their data if not initially all samples are patients or cases (i.e. a case-control study and survival of cases is of interest). We also are showing how the IDs (<code>sample.ids</code>) need to be a vector of class <code>character</code>. The <code>chunk.size</code> refers to size of each data chunk read in and is defaulted to 10,000 rows, users can customize that to their needs. The larger the <code>chunk.size</code> the more memory (RAM) required to run the analysis. The recommended <code>chunk.size=10000</code> and probably should not exceed <code>chunk.size=100000</code>.</p>
+<p>We perform the analysis using the <code>experimental</code> group to demonstrate how one may want to prepare their data if not initially all samples are patients or cases (i.e. a case-control study and survival of cases is of interest). We also are showing how the IDs (<code>sample.ids</code>) need to be a vector of class <code>character</code>. The <code>chunk.size</code> refers to size of each data chunk read in and is defaulted to 10,000 rows, users can customize that to their needs. The larger the <code>chunk.size</code> the more memory (RAM) required to run the analysis. The recommended <code>chunk.size=500</code> and probably should not exceed <code>chunk.size=5000</code>.</p>
 <p>By default survival estimates and pvalues for the SNP adjusted for other covariates are outputted (<code>print.covs='only'</code>), however users can select <code>print.covs=all</code> to get the coefficient estimates for covariates included in the model. Depending on the number of covariates included this can add substantially to output file size.
 Next we run <code>sangerCoxSurv</code> with the default, <code>print.covs=&quot;only&quot;</code>, load the results into R and provide descriptions of output by column. We will then run the analysis again using <code>print.covs=&quot;all&quot;</code>. <code>verbose=TRUE</code> is used for these examples so the function display messages while running.</p>
 <p>Use <code>?sangerCoxSurv</code> for argument specific documentation.</p>
@@ -2197,19 +2197,19 @@ Next we run <code>sangerCoxSurv</code> with the default, <code>print.covs=&quot;
               out.file=&quot;sanger_only&quot;,
               info.filter=0.3,
               maf.filter=0.005,
-              chunk.size=10000,
+              chunk.size=500,
               verbose=TRUE,
               clusterObj=NULL)</code></pre>
-<pre><code>## Analysis started on 2018-05-02 at 11:51:44</code></pre>
+<pre><code>## Analysis started on 2018-05-02 at 13:44:55</code></pre>
 <pre><code>## Covariates included in the models are: age, DrugTxYes, SexFemale</code></pre>
 <pre><code>## 253 samples are included in the analysis</code></pre>
-<pre><code>## Analyzing chunk 0-10000</code></pre>
-<pre><code>## Analyzing chunk 10000-20000</code></pre>
-<pre><code>## Analysis completed on 2018-05-02 at 11:52:01</code></pre>
-<pre><code>## 3604 SNPs were removed from the analysis for not meeting the threshold criteria.</code></pre>
-<pre><code>## List of removed SNPs can be found in /var/folders/1w/bb5rrzjn4v9bvq_hlptzq4bc0000gn/T//RtmpNlEKjU/sanger_only442f38bf12da.snps_removed</code></pre>
-<pre><code>## 651 SNPs were analyzed in total</code></pre>
-<pre><code>## The survival output can be found at/var/folders/1w/bb5rrzjn4v9bvq_hlptzq4bc0000gn/T//RtmpNlEKjU/sanger_only442f38bf12da.coxph</code></pre>
+<pre><code>## Analyzing chunk 0-500</code></pre>
+<pre><code>## Analyzing chunk 500-1000</code></pre>
+<pre><code>## Analysis completed on 2018-05-02 at 13:44:57</code></pre>
+<pre><code>## 240 SNPs were removed from the analysis for not meeting the threshold criteria.</code></pre>
+<pre><code>## List of removed SNPs can be found in /var/folders/1w/bb5rrzjn4v9bvq_hlptzq4bc0000gn/T//RtmpQVBLSz/sanger_only466f32bb36c.snps_removed</code></pre>
+<pre><code>## 260 SNPs were analyzed in total</code></pre>
+<pre><code>## The survival output can be found at/var/folders/1w/bb5rrzjn4v9bvq_hlptzq4bc0000gn/T//RtmpQVBLSz/sanger_only466f32bb36c.coxph</code></pre>
 <div id="single-snp-analysis-1" class="section level3">
 <h3><span class="header-section-number">3.2.1</span> Single SNP analysis</h3>
 <p><code>print.covs=&quot;only&quot;</code></p>
@@ -2253,7 +2253,7 @@ In this example, <code>sangerCoxSurv</code> is used with <code>print.covs=&quot;
               out.file=&quot;sanger_all&quot;,
               info.filter=0.3,
               maf.filter=0.005,
-              chunk.size=10000,
+              chunk.size=500,
               verbose=FALSE,
               clusterObj=NULL)</code></pre>
 </div>
@@ -2273,20 +2273,20 @@ In this example, <code>sangerCoxSurv</code> is used with <code>print.covs=&quot;
               out.file=&quot;sanger_intx_only&quot;,
               info.filter=0.3,
               maf.filter=0.005,
-              chunk.size=10000,
+              chunk.size=500,
               verbose=TRUE,
               clusterObj=NULL)</code></pre>
-<pre><code>## Analysis started on 2018-05-02 at 11:52:01</code></pre>
+<pre><code>## Analysis started on 2018-05-02 at 13:44:58</code></pre>
 <pre><code>## Covariates included in the models are: age, DrugTxYes, SexFemale</code></pre>
 <pre><code>## Models will include interaction term: SNP*DrugTxYes</code></pre>
 <pre><code>## 253 samples are included in the analysis</code></pre>
-<pre><code>## Analyzing chunk 0-10000</code></pre>
-<pre><code>## Analyzing chunk 10000-20000</code></pre>
-<pre><code>## Analysis completed on 2018-05-02 at 11:52:16</code></pre>
-<pre><code>## 3604 SNPs were removed from the analysis for not meeting the threshold criteria.</code></pre>
-<pre><code>## List of removed SNPs can be found in /var/folders/1w/bb5rrzjn4v9bvq_hlptzq4bc0000gn/T//RtmpNlEKjU/sanger_intx_only442f60dd3462.snps_removed</code></pre>
-<pre><code>## 651 SNPs were analyzed in total</code></pre>
-<pre><code>## The survival output can be found at/var/folders/1w/bb5rrzjn4v9bvq_hlptzq4bc0000gn/T//RtmpNlEKjU/sanger_intx_only442f60dd3462.coxph</code></pre>
+<pre><code>## Analyzing chunk 0-500</code></pre>
+<pre><code>## Analyzing chunk 500-1000</code></pre>
+<pre><code>## Analysis completed on 2018-05-02 at 13:45:02</code></pre>
+<pre><code>## 240 SNPs were removed from the analysis for not meeting the threshold criteria.</code></pre>
+<pre><code>## List of removed SNPs can be found in /var/folders/1w/bb5rrzjn4v9bvq_hlptzq4bc0000gn/T//RtmpQVBLSz/sanger_intx_only466f3627df17.snps_removed</code></pre>
+<pre><code>## 260 SNPs were analyzed in total</code></pre>
+<pre><code>## The survival output can be found at/var/folders/1w/bb5rrzjn4v9bvq_hlptzq4bc0000gn/T//RtmpQVBLSz/sanger_intx_only466f3627df17.coxph</code></pre>
 <p>Here we load the data and glimpse the first few values in each column outputted from the SNP*interaction survival analyses using <code>print.covs=&quot;only&quot;</code></p>
 <pre class="r"><code>sanger_intx_only &lt;- read_tsv(&quot;sanger_intx_only.coxph&quot;)</code></pre>
 <pre class="r"><code>sanger_intx_only %&gt;% 
@@ -2368,12 +2368,21 @@ covariate.file %&gt;%
                inter.term=NULL,
                print.covs=&quot;only&quot;,
                out.file=&quot;impute_example_only&quot;,
-               chunk.size=10000,
+               chunk.size=500,
                maf.filter=0.005,
                info.filter=0.3,
                flip.dosage=TRUE,
                verbose=FALSE,
                clusterObj=NULL)</code></pre>
+<pre><code>## Covariates included in the models are: age, DrugTxYes, SexFemale</code></pre>
+<pre><code>## 253 samples are included in the analysis</code></pre>
+<pre><code>## Analysis started on 2018-05-02 at 13:45:02</code></pre>
+<pre><code>## 238 SNPs were removed from the analysis for not meeting
+## the given threshold criteria or for having MAF = 0</code></pre>
+<pre><code>## List of removed SNPs are saved to /var/folders/1w/bb5rrzjn4v9bvq_hlptzq4bc0000gn/T//RtmpQVBLSz/impute_example_only466f7be0f078.snps_removed</code></pre>
+<pre><code>## 262 SNPs were included in the analysis</code></pre>
+<pre><code>## The Cox model results output was saved to /var/folders/1w/bb5rrzjn4v9bvq_hlptzq4bc0000gn/T//RtmpQVBLSz/impute_example_only466f7be0f078.coxph</code></pre>
+<pre><code>## Analysis completed on 2018-05-02 at 13:45:04</code></pre>
 <p>Here we load the data and glimpse the first few values in each column output.</p>
 <pre class="r"><code>impute2_res_only &lt;- read_tsv(&quot;impute_example_only.coxph&quot;)
 impute2_res_only %&gt;%
@@ -2415,7 +2424,7 @@ impute2_res_only %&gt;%
                inter.term=&quot;DrugTxYes&quot;,
                print.covs=&quot;only&quot;,
                out.file=&quot;impute_example_intx&quot;,
-               chunk.size=10000,
+               chunk.size=500,
                maf.filter=0.01,
                info.filter=0.3,
                flip.dosage=TRUE,
@@ -2487,7 +2496,7 @@ sangerCoxSurv(vcf.file=vcf.file,
               out.file=&quot;sanger_only&quot;,
               info.filter=0.3,
               maf.filter=0.005,
-              chunk.size=10000,
+              chunk.size=500,
               verbose=TRUE,
               clusterObj=NULL)</code></pre>
 <p>Now we can run a shell script. This can be used well with manifest files to set up multiple runs with different outcomes and different subsets of samples. We define a manifest file has columns that corresond to the functions that the user wants to pass and each row is a separate analysis that a user may want to run. The covariates are separated by an underscore (<code>&quot;_&quot;</code>). This is so it can be passed properly, and also why we used <code>str_split</code> to split the covariates.</p>

@@ -262,7 +262,7 @@ head(sample.ids)
 
 In this example, we will select samples from the `experimental` group and will test survival only on these patients. The first column in the `pheno.file` are sample IDs (we will match on these). We include `age`, `DrugTxYes`, and `sex` in the survival model as covariates. 
 
-We perform the analysis using the `experimental` group to demonstrate how one may want to prepare their data if not initially all samples are patients or cases (i.e. a case-control study and survival of cases is of interest). We also are showing how the IDs (`sample.ids`) need to be a vector of class `character`. The `chunk.size` refers to size of each data chunk read in and is defaulted to 10,000 rows, users can customize that to their needs. The larger the `chunk.size` the more memory (RAM) required to run the analysis. The recommended `chunk.size=10000` and probably should not exceed `chunk.size=100000`. 
+We perform the analysis using the `experimental` group to demonstrate how one may want to prepare their data if not initially all samples are patients or cases (i.e. a case-control study and survival of cases is of interest). We also are showing how the IDs (`sample.ids`) need to be a vector of class `character`. The `chunk.size` refers to size of each data chunk read in and is defaulted to 10,000 rows, users can customize that to their needs. The larger the `chunk.size` the more memory (RAM) required to run the analysis. The recommended `chunk.size=500` and probably should not exceed `chunk.size=5000`. 
 
 By default survival estimates and pvalues for the SNP adjusted for other covariates are outputted (`print.covs='only'`), however users can select `print.covs=all` to get the coefficient estimates for covariates included in the model. Depending on the number of covariates included this can add substantially to output file size. 
 Next we run `michiganCoxSurv` with the default, `print.covs="only"`, load the results into R and provide descriptions of output by column. We will then run the analysis again using `print.covs="all"`. `verbose=TRUE` is used for these examples so the function display messages while running.
@@ -287,7 +287,7 @@ michiganCoxSurv(vcf.file=vcf.file,
                 out.file="michigan_only",
                 info.filter=0.3,
                 maf.filter=0.005,
-                chunk.size=10000,
+                chunk.size=500,
                 verbose=TRUE,
                 clusterObj=NULL)
 ```
@@ -306,7 +306,7 @@ michiganCoxSurv(vcf.file=vcf.file,
                 out.file=tempfile("michigan_only"),
                 info.filter=0.3,
                 maf.filter=0.005,
-                chunk.size=10000,
+                chunk.size=500,
                 verbose=TRUE,
                 clusterObj=NULL)
 ```
@@ -345,7 +345,7 @@ michiganCoxSurv(vcf.file=vcf.file,
                 out.file="michigan_intx_only",
                 info.filter=0.3,
                 maf.filter=0.005,
-                chunk.size=10000,
+                chunk.size=500,
                 verbose=FALSE,
                 clusterObj=NULL)
 ```
@@ -364,7 +364,7 @@ michiganCoxSurv(vcf.file=vcf.file,
                 out.file=tempfile("michigan_intx_only"),
                 info.filter=0.3,
                 maf.filter=0.005,
-                chunk.size=10000,
+                chunk.size=500,
                 verbose=FALSE,
                 clusterObj=NULL)
 ```
@@ -420,7 +420,7 @@ sample.ids %>%
     head()
 ```
 
-We perform the analysis using the `experimental` group to demonstrate how one may want to prepare their data if not initially all samples are patients or cases (i.e. a case-control study and survival of cases is of interest). We also are showing how the IDs (`sample.ids`) need to be a vector of class `character`. The `chunk.size` refers to size of each data chunk read in and is defaulted to 10,000 rows, users can customize that to their needs. The larger the `chunk.size` the more memory (RAM) required to run the analysis. The recommended `chunk.size=10000` and probably should not exceed `chunk.size=100000`. 
+We perform the analysis using the `experimental` group to demonstrate how one may want to prepare their data if not initially all samples are patients or cases (i.e. a case-control study and survival of cases is of interest). We also are showing how the IDs (`sample.ids`) need to be a vector of class `character`. The `chunk.size` refers to size of each data chunk read in and is defaulted to 10,000 rows, users can customize that to their needs. The larger the `chunk.size` the more memory (RAM) required to run the analysis. The recommended `chunk.size=500` and probably should not exceed `chunk.size=5000`. 
 
 By default survival estimates and pvalues for the SNP adjusted for other covariates are outputted (`print.covs='only'`), however users can select `print.covs=all` to get the coefficient estimates for covariates included in the model. Depending on the number of covariates included this can add substantially to output file size. 
 Next we run `sangerCoxSurv` with the default, `print.covs="only"`, load the results into R and provide descriptions of output by column. We will then run the analysis again using `print.covs="all"`. `verbose=TRUE` is used for these examples so the function display messages while running.
@@ -440,7 +440,7 @@ sangerCoxSurv(vcf.file=vcf.file,
               out.file="sanger_only",
               info.filter=0.3,
               maf.filter=0.005,
-              chunk.size=10000,
+              chunk.size=500,
               verbose=TRUE,
               clusterObj=NULL)
 ```
@@ -459,7 +459,7 @@ sangerCoxSurv(vcf.file=vcf.file,
               out.file=tempfile("sanger_only"),
               info.filter=0.3,
               maf.filter=0.005,
-              chunk.size=10000,
+              chunk.size=500,
               verbose=TRUE,
               clusterObj=NULL)
 ```
@@ -497,7 +497,7 @@ sangerCoxSurv(vcf.file=vcf.file,
               out.file="sanger_all",
               info.filter=0.3,
               maf.filter=0.005,
-              chunk.size=10000,
+              chunk.size=500,
               verbose=FALSE,
               clusterObj=NULL)
 ```
@@ -520,7 +520,7 @@ sangerCoxSurv(vcf.file=vcf.file,
               out.file="sanger_intx_only",
               info.filter=0.3,
               maf.filter=0.005,
-              chunk.size=10000,
+              chunk.size=500,
               verbose=TRUE,
               clusterObj=NULL)
 ```
@@ -539,7 +539,7 @@ sangerCoxSurv(vcf.file=vcf.file,
               out.file=tempfile("sanger_intx_only"),
               info.filter=0.3,
               maf.filter=0.005,
-              chunk.size=10000,
+              chunk.size=500,
               verbose=TRUE,
               clusterObj=NULL)
 ```
@@ -609,7 +609,7 @@ impute2CoxSurv(impute.file=impute.file,
                inter.term=NULL,
                print.covs="only",
                out.file="impute_example_only",
-               chunk.size=10000,
+               chunk.size=500,
                maf.filter=0.005,
                info.filter=0.3,
                flip.dosage=TRUE,
@@ -630,11 +630,11 @@ impute2CoxSurv(impute.file=impute.file,
                inter.term=NULL,
                print.covs="only",
                out.file=tempfile("impute_example_only"),
-               chunk.size=10000,
+               chunk.size=500,
                maf.filter=0.005,
                info.filter=0.3,
                flip.dosage=TRUE,
-               verbose=FALSE,
+               verbose=TRUE,
                clusterObj=NULL)
 ```
 Here we load the data and glimpse the first few values in each column output.
@@ -669,7 +669,7 @@ impute2CoxSurv(impute.file=impute.file,
                inter.term="DrugTxYes",
                print.covs="only",
                out.file="impute_example_intx",
-               chunk.size=10000,
+               chunk.size=500,
                maf.filter=0.01,
                info.filter=0.3,
                flip.dosage=TRUE,
@@ -690,7 +690,7 @@ impute2CoxSurv(impute.file=impute.file,
                inter.term="DrugTxYes",
                print.covs="only",
                out.file=tempfile("impute_example_intx"),
-               chunk.size=10000,
+               chunk.size=500,
                maf.filter=0.01,
                info.filter=0.3,
                flip.dosage=TRUE,
@@ -753,7 +753,7 @@ sangerCoxSurv(vcf.file=vcf.file,
               out.file="sanger_only",
               info.filter=0.3,
               maf.filter=0.005,
-              chunk.size=10000,
+              chunk.size=500,
               verbose=TRUE,
               clusterObj=NULL)
 ```
