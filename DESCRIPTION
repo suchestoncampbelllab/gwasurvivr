@@ -4,7 +4,7 @@ Title: GWAS survival analysis
 Version: 0.99.0
 Author: Abbas Rizvi, Ezgi Karaesmen, Martin Morgan, Lara Sucheston-Campbell
 Maintainer: Abbas Rizvi <aarizv@gmail.com>
-Description: Conduct survival analysis of imputed GWAS data using R
+Description: gwasurvivr is a package to perform survival analysis using Cox proportional hazard models on imputed genetic data.
 VignetteBuilder:
     knitr
 Imports:
