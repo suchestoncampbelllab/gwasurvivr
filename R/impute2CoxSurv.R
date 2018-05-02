@@ -91,7 +91,7 @@
 #' @importFrom matrixStats rowMeans2 rowVars rowSds
 #' @importFrom SummarizedExperiment rowRanges
 #' @importFrom utils write.table
-#' @importFrom stats pnorm rnorm setNames
+#' @importFrom stats pnorm rnorm setNames complete.cases
 #' @import parallel
 #' @import GWASTools
 #'  

@@ -73,7 +73,7 @@
 #' @importFrom utils write.table
 #' @importFrom matrixStats rowMeans2
 #' @importFrom SummarizedExperiment rowRanges
-#' @importFrom stats pnorm
+#' @importFrom stats pnorm complete.cases
 #' @import parallel
 #' @import VariantAnnotation
 #' 

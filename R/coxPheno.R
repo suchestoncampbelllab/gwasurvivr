@@ -17,9 +17,9 @@ coxPheno <- function(pheno.file, covariates, id.column, inter.term, time.to.even
         # covariates are defined in pheno.file
         if(!is.null(inter.term)) {
             if(!inter.term %in% colnames(pheno.file)) stop("inter.term term is missing.")
-            covariates <- base::unique(covariates, inter.term)
+            covariates <- unique(covariates, inter.term)
         } 
-        if(!is.null(inter.term)) covariates <- base::unique(covariates, inter.term)
+        if(!is.null(inter.term)) covariates <- unique(covariates, inter.term)
         ok.covs <- colnames(pheno.file)[colnames(pheno.file) %in% covariates]
         if (verbose) message("Covariates included in the models are: ", paste(ok.covs, collapse=", "))
         if(!is.null(inter.term) & verbose) message("Models will include interaction term: SNP*",inter.term)
