@@ -48,7 +48,6 @@
 #' Saves text file directly to disk that contains survival analysis results.
 #'  
 #' @examples
-#' library(gwasurvivr)
 #' library(tidyverse)
 #' library(magrittr)
 #' impute.file <- system.file(package="gwasurvivr","extdata","impute_example.impute2.gz")
