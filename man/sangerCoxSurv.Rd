@@ -89,7 +89,7 @@ sangerCoxSurv(vcf.file=vcf.file,
               out.file="sanger_example",
               info.filter=0.3,
               maf.filter=0.005,
-              chunk.size=100,
+              chunk.size=50,
               verbose=TRUE,
               clusterObj=NULL)
 

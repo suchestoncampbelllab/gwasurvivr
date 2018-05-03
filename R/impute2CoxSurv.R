@@ -78,7 +78,7 @@
 #'               inter.term=NULL,
 #'               print.covs="only",
 #'               out.file="impute_example",
-#'               chunk.size=100,
+#'               chunk.size=50,
 #'               maf.filter=0.005,
 #'               info.filter=0.3,
 #'               flip.dosage=TRUE,
