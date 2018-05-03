@@ -89,7 +89,7 @@ michiganCoxSurv(vcf.file=vcf.file,
               out.file="michigan_example",
               info.filter=0.3,
               maf.filter=0.005,
-              chunk.size=10000,
+              chunk.size=100,
               verbose=TRUE,
               clusterObj=NULL)
 
