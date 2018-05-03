@@ -70,14 +70,8 @@ family of functions that suits their need and platform.
 vcf.file <- system.file(package="gwasurvivr","extdata", "sanger.pbwt_reference_impute.vcf.gz")
 pheno.fl <- system.file(package="gwasurvivr", "extdata", "simulated_pheno.txt")
 pheno.file <- read.table(pheno.fl, sep=" ", header=TRUE, stringsAsFactors = FALSE)
-library(dplyr)
-library(readr)
-library(magrittr)
-pheno.file <- pheno.file \%>\%  
-                    mutate(SexFemale=if_else(sex=="female", 1L, 0L))
-sample.ids <- pheno.file \%>\%
-                    filter(group=="experimental") \%$\%
-                    ID_2 
+pheno.file$SexFemale <- ifelse(pheno.file$sex=="female", 1L, 0L)
+sample.ids <- pheno.file[pheno.file$group=="experimental",]$ID_2
 sangerCoxSurv(vcf.file=vcf.file,
               covariate.file=pheno.file,
               id.column="ID_2",

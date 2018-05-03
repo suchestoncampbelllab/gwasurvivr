@@ -226,13 +226,6 @@ michiganCoxSurv(..., clusterObj=cl)
 ```
 
 # R Session Examples
-While we use `dplyr`, `readr` and `magrittr` packages in these example for data preparation/manipulation purposes, any of the data pre-processing steps can be done in base R.
-
-```{r, message=FALSE}
-library(dplyr)
-library(readr)
-library(magrittr)
-```
 
 ##  Michigan Imputation Server
 [Michigan Imputation Server](https://imputationserver.sph.umich.edu/index.html) pre-phases typed genotypes using HAPI-UR, SHAPEIT, or EAGLE (default is EAGLE2), imputes using Minimac3 imputation engine and outputs Blocked GNU Zip Format VCF files (`.vcf.gz`). Just as with Sanger these `.vcf.gz` files are used as input for `gwasurvivr`. The function, `michiganCoxSurv`  uses a modification of Cox proportional hazard regression from the R library `survival`.  Minimac uses slightly different metrics to assess imputation quality ($R^2$ versus info score) and complete details as to minimac output are available on the [Minimac3 Wikipage](https://genome.sph.umich.edu/wiki/Minimac3_Imputation_Cookbook).
@@ -248,17 +241,12 @@ vcf.file <- system.file(package="gwasurvivr",
 pheno.fl <- system.file(package="gwasurvivr",
                         "extdata", 
                         "simulated_pheno.txt")
-pheno.file <- read_delim(pheno.fl, delim=" ", col_names=TRUE)
-pheno.file %>%
-    head()
+pheno.file <- read.table(pheno.fl, sep=" ", header=TRUE, stringsAsFactors = FALSE)
+head(pheno.file)
 # recode sex column and remove first column 
-pheno.file <- pheno.file %>%
-        mutate(SexFemale=if_else(sex=="female", 1L, 0L))
-
+pheno.file$SexFemale <- ifelse(pheno.file$sex=="female", 1L, 0L)
 # select only experimental group sample.ids
-sample.ids <- pheno.file %>%
-        filter(group=="experimental") %$%
-        ID_2 
+sample.ids <- pheno.file[pheno.file$group=="experimental",]$ID_2
 head(sample.ids)
 ```
 
@@ -316,17 +304,15 @@ michiganCoxSurv(vcf.file=vcf.file,
 Here we load the data and glimpse the first few values in each column outputted from the SNP*interaction survival analyses using `print.covs="only"`.
 
 ```{r, message=FALSE, eval=FALSE}
-michigan_only <- read_tsv("michigan_only.coxph")
+michigan_only <- read.table("michigan_only.coxph", sep="\t", header=TRUE, stringsAsFactors = FALSE)
 ```
 
 ```{r, message=FALSE, echo=FALSE}
-michigan_only <- read_tsv(dir(tempdir(), pattern="^michigan_only.*\\.coxph$", full.names = TRUE))
+michigan_only <- read.table(dir(tempdir(), pattern="^michigan_only.*\\.coxph$", full.names = TRUE), sep="\t", header=TRUE, stringsAsFactors = FALSE)
 ```
 
 ```{r}
-michigan_only %>% 
-    head() %>%
-    glimpse()
+str(head(michigan_only))
 ```
 
 ### SNP with covariate interaction
@@ -374,17 +360,15 @@ michiganCoxSurv(vcf.file=vcf.file,
 Here we load the data and glimpse the first few values in each column outputted from the SNP*interaction survival analyses using `print.covs="only"`
 
 ```{r, message=FALSE, eval=FALSE}
-michigan_intx_only <- read_tsv("michigan_intx_only.coxph")
+michigan_intx_only <- read.table("michigan_intx_only.coxph", sep="\t", header=TRUE, stringsAsFactors = FALSE)
 ```
 
 ```{r, message=FALSE, echo=FALSE}
-michigan_intx_only <- read_tsv(dir(tempdir(), pattern="^michigan_intx_only.*\\.coxph$", full.names = TRUE))
+michigan_intx_only <- read.table(dir(tempdir(), pattern="^michigan_intx_only.*\\.coxph$", full.names = TRUE), sep="\t", header=TRUE, stringsAsFactors = FALSE)
 ```
 
 ```{r}
-michigan_intx_only %>% 
-    head() %>%
-    glimpse()
+str(head(michigan_intx_only))
 ```
 
 
@@ -393,6 +377,8 @@ michigan_intx_only %>%
 
 Samples can be selected for analyses by providing a vector of `sample.ids`. The output from Sanger imputation server returns the samples as `SAMP1, ..., SAMPN`, where `N` is the total number of samples. The sample order corresponds to the sample order in the vcf file you used for imputation. Note, sample order can also be found in the `.fam` file if genotyping data were initially in `.bed`, `.bim` and `.fam` (PLINK) format prior to conversion to VCF. If no sample list is specified all samples are included in the analyses.
 
+In this example, we will select samples from the `experimental` group and will test survival only on these patients. The first column in the `pheno.file` are sample IDs (we will match on these). We include `age`, `DrugTxYes`, and `sex` in the survival model as covariates. 
+
 ```{r, eval=TRUE}
 vcf.file <- system.file(package="gwasurvivr",
                         "extdata", 
@@ -400,26 +386,13 @@ vcf.file <- system.file(package="gwasurvivr",
 pheno.fl <- system.file(package="gwasurvivr",
                         "extdata", 
                         "simulated_pheno.txt")
-pheno.file <- read_delim(pheno.fl,
-                         delim=" ",
-                         col_names=TRUE)
-pheno.file %>%
-    head()
-```
-
-In this example, we will select samples from the `experimental` group and will test survival only on these patients. The first column in the `pheno.file` are sample IDs (we will match on these). We include `age`, `DrugTxYes`, and `sex` in the survival model as covariates. 
-
-```{r}
-# create new sex variable where Females are 1 and males are 0
-pheno.file <- pheno.file %>%
-        mutate(SexFemale=if_else(sex=="female", 1L, 0L))
-
+pheno.file <- read.table(pheno.fl, sep=" ", header=TRUE, stringsAsFactors = FALSE)
+head(pheno.file)
+# recode sex column and remove first column 
+pheno.file$SexFemale <- ifelse(pheno.file$sex=="female", 1L, 0L)
 # select only experimental group sample.ids
-sample.ids <- pheno.file %>%
-        filter(group=="experimental") %$%
-        ID_2 
-sample.ids %>%
-    head()
+sample.ids <- pheno.file[pheno.file$group=="experimental",]$ID_2
+head(sample.ids)
 ```
 
 We perform the analysis using the `experimental` group to demonstrate how one may want to prepare their data if not initially all samples are patients or cases (i.e. a case-control study and survival of cases is of interest). We also are showing how the IDs (`sample.ids`) need to be a vector of class `character`. The `chunk.size` refers to size of each data chunk read in and is defaulted to 10,000 rows, users can customize that to their needs. The larger the `chunk.size` the more memory (RAM) required to run the analysis. The recommended `chunk.size=500` and probably should not exceed `chunk.size=5000`. 
@@ -472,13 +445,11 @@ sangerCoxSurv(vcf.file=vcf.file,
 
 Here we load the data and glimpse the first few values in each column from the survival analyses.
 ```{r, message=FALSE, echo=FALSE}
-sanger_only <- read_tsv(dir(tempdir(), pattern="^sanger_only.*\\.coxph$", full.names = TRUE))
+sanger_only <- read.table(dir(tempdir(), pattern="^sanger_only.*\\.coxph$", full.names = TRUE), sep="\t", header=TRUE, stringsAsFactors = FALSE)
 ```
 
 ```{r}
-sanger_only %>% 
-    head() %>%
-    glimpse()
+str(head(sanger_only))
 ```
 
 Column names with descriptions from the survival analyses with covariates, specifying the default `print.covs="only"`
@@ -549,17 +520,15 @@ sangerCoxSurv(vcf.file=vcf.file,
 Here we load the data and glimpse the first few values in each column outputted from the SNP*interaction survival analyses using `print.covs="only"`
 
 ```{r, message=FALSE, eval=FALSE}
-sanger_intx_only <- read_tsv("sanger_intx_only.coxph")
+sanger_intx_only <- read.table("sanger_intx_only.coxph", sep="\t", header=TRUE, stringsAsFactors = FALSE)
 ```
 
 ```{r, message=FALSE, echo=FALSE}
-sanger_intx_only <- read_tsv(dir(tempdir(), pattern="^sanger_intx_only.*\\.coxph$", full.names = TRUE))
+sanger_intx_only <- read.table(dir(tempdir(), pattern="^sanger_intx_only.*\\.coxph$", full.names = TRUE), sep="\t", header=TRUE, stringsAsFactors = FALSE)
 ```
 
 ```{r}
-sanger_intx_only %>% 
-    head() %>%
-    glimpse()
+str(head(sanger_intx_only))
 ```
 
 Column names with descriptions from the survival analyses of SNP*covariate and specifying `print.covs="only"`.
@@ -575,22 +544,17 @@ IMPUTE2 is a genotype imputation and haplotype phasing program (Howie et al 2009
 We are going to load in and pre-process the genetic data and the phenotypic data (`covariate.file`).
 ```{r, message=FALSE}
 impute.file <- system.file(package="gwasurvivr",
-                           "extdata",
-                           "impute_example.impute2.gz")
+                            "extdata",
+                            "impute_example.impute2.gz")
 sample.file <- system.file(package="gwasurvivr",
                            "extdata", 
                            "impute_example.impute2_sample")
 covariate.file <- system.file(package="gwasurvivr", 
-                       "extdata",
-                       "simulated_pheno.txt")
-covariate.file <- read_delim(covariate.file, delim=" ")
-covariate.file <- covariate.file %>%
-        mutate(SexFemale=if_else(sex=="female", 1L, 0L))
-covariate.file %>%
-    head()
-sample.ids <- covariate.file %>%
-        filter(group=="experimental") %$%
-        ID_2 
+                              "extdata",
+                              "simulated_pheno.txt")
+covariate.file <- read.table(covariate.file, sep=" ", header=TRUE, stringsAsFactors = FALSE)
+covariate.file$SexFemale <- ifelse(covariate.file$sex=="female", 1L, 0L)
+sample.ids <- covariate.file[covariate.file$group=="experimental",]$ID_2
 ```
 
 To perform survival analysis using IMPUTE2 the function arguments are very similarto  `michiganCoxSurv` and `sangerCoxSurv`, however the function now takes a chromosome arguement. This is needed to properly annotate the file output with the chromosome that these SNPs are in. This is purely an artifact of IMPUTE2 and how we leverage `GWASTools` in this function. 
@@ -642,18 +606,14 @@ impute2CoxSurv(impute.file=impute.file,
 Here we load the data and glimpse the first few values in each column output.
 
 ```{r, message=FALSE, eval=FALSE}
-impute2_res_only <- read_tsv("impute_example_only.coxph")
-impute2_res_only %>%
-    head() %>% 
-    glimpse()
+impute2_res_only <- read.table("impute_example_only.coxph", sep="\t", header=TRUE, stringsAsFactors = FALSE)
+str(head(impute2_res_only))
 ```
 
 
 ```{r, message=FALSE, echo=FALSE}
-impute2_res_only <- read_tsv(dir(tempdir(), pattern="^impute_example_only.*\\.coxph$", full.names=TRUE))
-impute2_res_only %>%
-    head() %>%
-    glimpse()
+impute2_res_only <- read.table(dir(tempdir(), pattern="^impute_example_only.*\\.coxph$", full.names=TRUE), sep="\t", header=TRUE, stringsAsFactors = FALSE)
+str(head(impute2_res_only))
 ```
 
 ### SNP covariate interaction
@@ -702,18 +662,14 @@ impute2CoxSurv(impute.file=impute.file,
 Here we load the data and glimpse the first few values in each column outputted from the SNP*interaction survival analyses using `print.covs="only"`.
 
 ```{r, message=FALSE, eval=FALSE}
-impute2_res_intx <- read_tsv("impute_example_intx.coxph")
-impute2_res_intx %>%
-    head() %>% 
-    glimpse()
+impute2_res_intx <- read.table("impute_example_intx.coxph", sep="\t", header=TRUE, stringsAsFactors = FALSE)
+str(head(impute2_res_intx))
 ```
 
 
 ```{r, message=FALSE, echo=FALSE}
-impute2_res_intx <- read_tsv(dir(tempdir(), pattern="^impute_example_intx.*\\.coxph$", full.names=TRUE))
-impute2_res_intx %>%
-    head() %>%
-    glimpse()
+impute2_res_intx <- read.table(dir(tempdir(), pattern="^impute_example_intx.*\\.coxph$", full.names=TRUE), sep="\t", header=TRUE, stringsAsFactors = FALSE)
+str(head(impute2_res_intx))
 ```
 
 # Batch Examples

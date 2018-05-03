@@ -76,9 +76,6 @@ However, advanced users who wish to optimize it, can provide a cluster object ge
 family of functions that suits their need and platform.
 }
 \examples{
-library(dplyr)
-library(readr)
-library(magrittr)
 impute.file <- system.file(package="gwasurvivr",
                            "extdata",
                            "impute_example.impute2.gz")
@@ -87,14 +84,10 @@ sample.file <- system.file(package="gwasurvivr",
                            "impute_example.impute2_sample")
 covariate.file <- system.file(package="gwasurvivr", 
                               "extdata",
-                             "simulated_pheno.txt")
-covariate.file <- read_delim(covariate.file, delim=" ")
-covariate.file <- covariate.file \%>\% 
-   mutate(SexFemale=if_else(sex=="female", 1L, 0L))
-covariate.file \%>\% head
-sample.ids <- covariate.file \%>\%
-   filter(group=="experimental") \%$\%
-   ID_2 
+                              "simulated_pheno.txt")
+covariate.file <- read.table(covariate.file, sep=" ", header=TRUE, stringsAsFactors = FALSE)
+covariate.file$SexFemale <- ifelse(covariate.file$sex=="female", 1L, 0L)
+sample.ids <- covariate.file[covariate.file$group=="experimental",]$ID_2
 impute2CoxSurv(impute.file=impute.file,
               sample.file=sample.file,
               chr=14,
