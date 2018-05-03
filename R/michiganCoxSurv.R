@@ -46,7 +46,7 @@
 #' vcf.file <- system.file(package="gwasurvivr","extdata", "michigan.chr14.dose.vcf.gz")
 #' pheno.fl <- system.file(package="gwasurvivr", "extdata", "simulated_pheno.txt")
 #' pheno.file <- read.table(pheno.fl, sep=" ", header=TRUE, stringsAsFactors = FALSE)
-#' pheno.file$SexFemale <- ifelse(pheno.file$sexe=="female", 1L, 0L)
+#' pheno.file$SexFemale <- ifelse(pheno.file$sex=="female", 1L, 0L)
 #' sample.ids <- pheno.file[pheno.file$group=="experimental",]$ID_2
 #' michiganCoxSurv(vcf.file=vcf.file,
 #'               covariate.file=pheno.file,
