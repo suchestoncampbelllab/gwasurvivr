@@ -76,7 +76,8 @@ However, advanced users who wish to optimize it, can provide a cluster object ge
 family of functions that suits their need and platform.
 }
 \examples{
-library(tidyverse)
+library(dplyr)
+library(readr)
 library(magrittr)
 impute.file <- system.file(package="gwasurvivr",
                            "extdata",

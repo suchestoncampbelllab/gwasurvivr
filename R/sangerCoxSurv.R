@@ -46,7 +46,8 @@
 #' vcf.file <- system.file(package="gwasurvivr","extdata", "sanger.pbwt_reference_impute.vcf.gz")
 #' pheno.fl <- system.file(package="gwasurvivr", "extdata", "simulated_pheno.txt")
 #' pheno.file <- read.table(pheno.fl, sep=" ", header=TRUE, stringsAsFactors = FALSE)
-#' library(tidyverse)
+#' library(dplyr)
+#' library(readr)
 #' library(magrittr)
 #' pheno.file <- pheno.file %>%  
 #'                     mutate(SexFemale=if_else(sex=="female", 1L, 0L))

@@ -46,7 +46,8 @@
 #' vcf.file <- system.file(package="gwasurvivr","extdata", "michigan.chr14.dose.vcf.gz")
 #' pheno.fl <- system.file(package="gwasurvivr", "extdata", "simulated_pheno.txt")
 #' pheno.file <- read.table(pheno.fl, sep=" ", header=TRUE, stringsAsFactors = FALSE)
-#' library(tidyverse)
+#' library(dplyr)
+#' library(readr)
 #' library(magrittr)
 #' pheno.file <- pheno.file %>%  
 #'                     mutate(SexFemale=if_else(sex=="female", 1L, 0L))
@@ -65,7 +66,7 @@
 #'               out.file="michigan_example",
 #'               info.filter=0.3,
 #'               maf.filter=0.005,
-#'               chunk.size=100,
+#'               chunk.size=50,
 #'               verbose=TRUE,
 #'               clusterObj=NULL)
 #' 

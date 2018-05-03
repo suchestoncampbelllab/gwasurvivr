@@ -226,10 +226,11 @@ michiganCoxSurv(..., clusterObj=cl)
 ```
 
 # R Session Examples
-While we use `tidyverse` and `magrittr` packages in these example for data preparation/manipulation purposes, any of the data pre-processing steps can be done in base R.
+While we use `dplyr`, `readr` and `magrittr` packages in these example for data preparation/manipulation purposes, any of the data pre-processing steps can be done in base R.
 
 ```{r, message=FALSE}
-library(tidyverse)
+library(dplyr)
+library(readr)
 library(magrittr)
 ```
 
@@ -724,7 +725,8 @@ Batch jobs for multiple analyses and different subsets are easy to implement usi
 ## mysurvivalscript.R
 library(gwasurvivr)
 library(batch)
-library(tidyverse)
+library(dplyr)
+library(readr)
 parseCommandArgs(evaluate=TRUE)
 
 options("gwasurvivr.cores"=4)
