@@ -196,7 +196,7 @@ sangerCoxSurv <- function(vcf.file,
     if(verbose) message(snps_removed, " SNPs were removed from the analysis for not meeting the threshold criteria.")
     if(verbose) message("List of removed SNPs can be found in ", paste0(out.file, ".snps_removed"))
     if(verbose) message(snps_analyzed, " SNPs were analyzed in total")
-    if(verbose) message("The survival output can be found at", paste0(out.file, ".coxph"))
+    if(verbose) message("The survival output can be found at ", paste0(out.file, ".coxph"))
     
 }
 
