@@ -119,7 +119,6 @@ impute2CoxSurv <- function(impute.file,
     ##### Generate cluster obj ########
     # create cluster object depending on user pref or OS type,
     # also create option to input number of cores
-    clusterObj <- NULL
     if(!is.null(clusterObj)){
         cl <- clusterObj
     }else if(.Platform$OS.type == "unix") {
