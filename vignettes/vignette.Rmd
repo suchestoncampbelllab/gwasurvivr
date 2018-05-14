@@ -499,7 +499,7 @@ sangerCoxSurv(vcf.file=vcf.file,
 ```
 
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, eval=FALSE}
 sangerCoxSurv(vcf.file=vcf.file,
               covariate.file=pheno.file,
               id.column="ID_2",
@@ -517,21 +517,6 @@ sangerCoxSurv(vcf.file=vcf.file,
               clusterObj=NULL)
 ```
 
-Here we load the data and glimpse the first few values in each column outputted from the SNP*interaction survival analyses using `print.covs="only"`
-
-```{r, message=FALSE, eval=FALSE}
-sanger_intx_only <- read.table("sanger_intx_only.coxph", sep="\t", header=TRUE, stringsAsFactors = FALSE)
-```
-
-```{r, message=FALSE, echo=FALSE}
-sanger_intx_only <- read.table(dir(tempdir(), pattern="^sanger_intx_only.*\\.coxph$", full.names = TRUE), sep="\t", header=TRUE, stringsAsFactors = FALSE)
-```
-
-```{r}
-str(head(sanger_intx_only))
-```
-
-Column names with descriptions from the survival analyses of SNP*covariate and specifying `print.covs="only"`.
 
 ## IMPUTE2 Imputation
 IMPUTE2 is a genotype imputation and haplotype phasing program (Howie et al 2009). IMPUTE2 outputs 6 files for each chromosome chunk imputed (usually 5 MB in size). Only 2 of these files are required for analyses using `gwasurvivr`:

@@ -122,13 +122,12 @@ impute2CoxSurv <- function(impute.file,
     if(!is.null(clusterObj)){
         cl <- clusterObj
     }else if(.Platform$OS.type == "unix") {
-        cl <- makeForkCluster(getOption("gwasurvivr.cores", detectCores()))
+        cl <- makeForkCluster(getOption("gwasurvivr.cores", 2L))
     } else {
-        cl <- makeCluster(getOption("gwasurvivr.cores", detectCores()))
+        cl <- makeCluster(getOption("gwasurvivr.cores", 2L))
     }
     on.exit(stopCluster(cl), add=TRUE)
 
-    
     ###################################
     ##### Genotype data wrangling ######
     if (verbose) message("Analysis started on ", format(Sys.time(), "%Y-%m-%d"), " at ", format(Sys.time(), "%H:%M:%S"))
@@ -214,7 +213,7 @@ impute2CoxSurv <- function(impute.file,
     }
     
     
-    
+    i <- 1
     snp.tot <- list()
     
     
@@ -323,7 +322,7 @@ impute2CoxSurv <- function(impute.file,
                 # fit models in parallel
                 if(is.null(inter.term)){
                     if(is.matrix(genotypes)){
-                        cox.out <- t(parApply(cl=cl,
+                        cox.out <- t(parallel::parApply(cl=cl,
                                               X=genotypes, 
                                               MARGIN=1, 
                                               FUN=survFit, 
