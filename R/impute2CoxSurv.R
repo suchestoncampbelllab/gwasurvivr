@@ -134,7 +134,7 @@ impute2CoxSurv <- function(impute.file,
     gdsfile <- tempfile(pattern="", fileext = ".gds")
     snpfile <- tempfile(pattern="", fileext = ".snp.rdata")
     scanfile <- tempfile(pattern="", fileext = ".scan.rdata")
-    on.exit(unlink(c(gdsfile, snpfile, scanfile), recursive = TRUE))
+    on.exit(unlink(c(gdsfile, snpfile, scanfile), recursive = TRUE), add=TRUE)
     imputedDosageFile(input.files=c(impute.file, sample.file),
                       filename=gdsfile,
                       chromosome=as.numeric(chr),
@@ -164,8 +164,7 @@ impute2CoxSurv <- function(impute.file,
     snp.start <- 1
     snp.end <- nsnp(genoData)
     
-    
-    
+
     # get genotypes for certain chunk size
     nsnp.seg <- snp.end - snp.start + 1
     nchunks <- ceiling(nsnp.seg/chunk.size)
@@ -212,12 +211,8 @@ impute2CoxSurv <- function(impute.file,
                      append = FALSE)
     }
     
-    
-    i <- 1
     snp.tot <- list()
-    
-    
-    
+
     for(i in seq_len(nchunks)){
         
         # set up chunks
