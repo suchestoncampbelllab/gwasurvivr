@@ -2,7 +2,8 @@
 % Please edit documentation in R/michiganCoxSurv.R
 \name{michiganCoxSurv}
 \alias{michiganCoxSurv}
-\title{Fit cox survival to all variants in a .vcf.gz file from Michigan imputation server}
+\title{Fit cox survival to all variants in a .vcf.gz file from
+Michigan imputation server}
 \usage{
 michiganCoxSurv(vcf.file, covariate.file, id.column, sample.ids = NULL,
   time.to.event, event, covariates, inter.term = NULL, print.covs = "only",
@@ -12,66 +13,96 @@ michiganCoxSurv(vcf.file, covariate.file, id.column, sample.ids = NULL,
 \arguments{
 \item{vcf.file}{character(1) path to VCF file.}
 
-\item{covariate.file}{matrix(1) comprising phenotype (time, event) and additional covariate data.}
+\item{covariate.file}{matrix(1) comprising phenotype (time, event) and
+additional covariate data.}
 
-\item{id.column}{character(1) providing exact match to sample ID column from \code{covariate.file}}
+\item{id.column}{character(1) providing exact match to sample ID column 
+from \code{covariate.file}}
 
 \item{sample.ids}{character vector with sample ids to include in analysis}
 
-\item{time.to.event}{character(1) string that matches time column name in pheno.file}
+\item{time.to.event}{character(1) string that matches time column name 
+in pheno.file}
 
 \item{event}{character(1) string that matches event column name in pheno.file}
 
-\item{covariates}{character vector with matching column names in pheno.file of covariates of interest}
+\item{covariates}{character vector with matching column names in pheno.file
+of covariates of interest}
 
-\item{inter.term}{character(1) string giving the column name of the covariate that will be added to the interaction term with SNP (e.g. \code{term*SNP}). See details.}
+\item{inter.term}{character(1) string giving the column name of the covariate
+that will be added to the interaction term with
+ SNP (e.g. \code{term*SNP}). See details.}
 
-\item{print.covs}{character(1) string of either \code{"only"}, \code{"all"} or \code{"some"}, defining which covariate statistics should be printed to the output. See details.}
+\item{print.covs}{character(1) string of either \code{"only"},
+\code{"all"} or \code{"some"}, 
+defining which covariate statistics should be printed to the output.
+ See details.}
 
 \item{out.file}{character(1) string with output name}
 
-\item{maf.filter}{integer(1) filter out minor allele frequency below threshold (i.e. 0.005 will filter MAF > 0.005)}
+\item{maf.filter}{integer(1) filter out minor allele frequency below 
+threshold (i.e. 0.005 will filter MAF > 0.005)}
 
-\item{info.filter}{integer(1) of imputation quality score filter (i.e. 0.7 will filter info > 0.7)}
+\item{info.filter}{integer(1) of imputation quality
+score filter (i.e. 0.7 will filter info > 0.7)}
 
 \item{chunk.size}{integer(1) number of variants to process per thread}
 
-\item{verbose}{logical(1) for messages that describe which part of the analysis is currently being run}
+\item{verbose}{logical(1) for messages that describe which part of the
+analysis is currently being run}
 
-\item{clusterObj}{A cluster object that can be used with the \code{parApply} function. See details.}
+\item{clusterObj}{A cluster object that can be used with the
+\code{parApply} function. See details.}
 }
 \value{
-Saves two text files directly to disk:
-1. \code{.coxph} extension containing CoxPH survival analysis results
-2. \code{.snps_removed} extension containing SNPs that were removed due to low variance or user-defined thresholds.
+Saves two text files directly to disk:  
+\item{1. \code{.coxph} extension containing CoxPH survival analysis results.}  
+\item{2. \code{.snps_removed} extension containing SNPs that were removed
+ due to low variance or user-defined thresholds.}
 }
 \description{
-Performs survival analysis using Cox proportional hazard models on imputed genetic data stored in compressed VCF files
+Performs survival analysis using Cox proportional hazard models on imputed
+ genetic data stored in compressed VCF files
 }
 \details{
 Testing for SNP-covariate interactions:          
-User can define the column name of the covariate that will be included in the interaction term. 
-For example, for given covariates \code{a} and \code{b}, where \code{c} is defined as the \code{inter.term} the model will be:
-\code{~ a + b + c + SNP + c*SNP}.
+User can define the column name of the covariate that will be included in the
+ interaction term. 
+For example, for given covariates \code{a} and \code{b}, where \code{c} is
+ defined as the \code{inter.term} the model will be: 
+ \code{~ a + b + c + SNP + c*SNP}.
 
 Printing results of other covariates:       
-\code{print.covs} argument controls the number of covariates will be printed as output. The function is set to \code{only}
-by default and will only print the SNP or if an interaction term is given, the results of the interaction 
-term (e.g. \code{SNP*covariate}). Whereas,  \code{all} will print results (coef, se.coef, p.value etc) of all covariates 
-included in the model. \code{some} is only applicable if an interaction term is given and will print the results for SNP, 
-covarite tested for interaction and the interaction term. User should be mindful about using the \code{all} option, as
+\code{print.covs} argument controls the number of covariates will be printed 
+as output. The function is set to \code{only} by default and will only print 
+the SNP or if an interaction term is given, the results of the interaction 
+term (e.g. \code{SNP*covariate}). Whereas,  \code{all} will print results
+ (coef, se.coef, p.value etc) of all covariates included in the model. 
+ \code{some} is only applicable if an interaction term is given and will
+  print the results for SNP, covariate tested for interaction 
+  and the interaction term. 
+User should be mindful about using the \code{all} option, as
 it will likely slow down the analysis and will increase the output file size. 
 
 User defined parallelization:  
-This function uses \code{parApply} from \code{parallel} package to fit models to SNPs in parallel. 
+This function uses \code{parApply} from \code{parallel} package to fit models
+ to SNPs in parallel. 
 User is not required to set any options for the parallelization. 
-However, advanced users who wish to optimize it, can provide a cluster object generated by \code{makeCluster} 
+However, advanced users who wish to optimize it, can provide a cluster object
+ generated by \code{makeCluster} 
 family of functions that suits their need and platform.
 }
 \examples{
-vcf.file <- system.file(package="gwasurvivr","extdata", "michigan.chr14.dose.vcf.gz")
-pheno.fl <- system.file(package="gwasurvivr", "extdata", "simulated_pheno.txt")
-pheno.file <- read.table(pheno.fl, sep=" ", header=TRUE, stringsAsFactors = FALSE)
+vcf.file <- system.file(package="gwasurvivr",
+                        "extdata",
+                     "michigan.chr14.dose.vcf.gz")
+pheno.fl <- system.file(package="gwasurvivr",
+                        "extdata",
+                     "simulated_pheno.txt")
+pheno.file <- read.table(pheno.fl, 
+                         sep=" ",
+                         header=TRUE,
+                         stringsAsFactors = FALSE)
 pheno.file$SexFemale <- ifelse(pheno.file$sex=="female", 1L, 0L)
 sample.ids <- pheno.file[pheno.file$group=="experimental",]$ID_2
 michiganCoxSurv(vcf.file=vcf.file,

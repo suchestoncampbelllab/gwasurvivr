@@ -1,53 +1,83 @@
-#' Fit cox survival to all variants from a standard IMPUTE2 output after genotype imputation
+#' Fit cox survival to all variants from a standard IMPUTE2 output after
+#' genotype imputation
 #'
-#' Performs survival analysis using Cox proportional hazard models on imputed genetic data from IMPUTE2 output
+#' Performs survival analysis using Cox proportional hazard models on imputed
+#' genetic data from IMPUTE2 output
 #'
 #' @param impute.file character(1) of IMPUTE2 file 
 #' @param sample.file character(1) of sample file affiliated with IMPUTE2 file
 #' @param chr numeric(1) denoting chromosome number
-#' @param covariate.file data.frame(1) comprising phenotype information, all covariates to be added in the model must be numeric.
-#' @param id.column character(1) giving the name of the ID column in covariate.file.
-#' @param sample.ids character(1) vector of sample IDs to keep in survival analysis
-#' @param time.to.event character(1) of column name in covariate.file that represents the time interval of interest in the analysis
-#' @param event character(1) of column name in covariate.file that represents the event of interest to be included in the analysis
-#' @param covariates character(1) vector with exact names of columns in covariate.file to include in analysis
-#' @param inter.term character(1) string giving the column name of the covariate that will be added to the interaction term with SNP (e.g. \code{term*SNP}). See details.
-#' @param print.covs character(1) string of either \code{"only"}, \code{"all"} or \code{"some"}, defining which covariate statistics should be printed to the output. See details.
+#' @param covariate.file data.frame(1) comprising phenotype information, all 
+#'  covariates to be added in the model must be numeric.
+#' @param id.column character(1) giving the name of the ID column
+#'  in covariate.file.
+#' @param sample.ids character(1) vector of sample IDs to keep in
+#'  survival analysis
+#' @param time.to.event character(1) of column name in covariate.file that
+#'  represents the time interval of interest in the analysis
+#' @param event character(1) of column name in covariate.file that represents
+#'  the event of interest to be included in the analysis
+#' @param covariates character(1) vector with exact names of columns in
+#'  covariate.file to include in analysis
+#' @param inter.term character(1) string giving the column name of the covariate
+#'  that will be added to the interaction term with
+#'  SNP (e.g. \code{term*SNP}). See details.
+#' @param print.covs character(1) string of either \code{"only"}, \code{"all"}
+#'  or \code{"some"}, defining which covariate statistics should be printed to
+#'  the output. See details.
 #' @param out.file character(1) of output file name (do not include extension) 
 #' @param chunk.size integer(1) number of variants to process per thread
-#' @param maf.filter numeric(1) to filter minor allele frequency (i.e. choosing 0.05 means filtering MAF>0.05). User can set this to `NULL`` if no filtering is preffered. Default is 0.05.
-#' @param info.filter numeric(1) to filter imputation INFO score (i.e. choosing 0.7 means filtering info>0.7). Default is `NULL`, no filtering is set.
-#' @param flip.dosage logical(1) to flip which allele the dosage was calculated on, default=TRUE
-#' @param verbose logical(1) for messages that describe which part of the analysis is currently being run
-#' @param clusterObj A cluster object that can be used with the \code{parApply} function. See details.
+#' @param maf.filter numeric(1) to filter minor allele frequency
+#'  (i.e. choosing 0.05 means filtering MAF>0.05). User can set this to 
+#' \code{NULL} if no filtering is preffered. Default is 0.05.
+#' @param info.filter numeric(1) to filter imputation INFO score 
+#'  (i.e. choosing 0.7 means filtering info>0.7). Default is \code{NULL},
+#'  no filtering is set.
+#' @param flip.dosage logical(1) to flip which allele the dosage was
+#'  calculated on, default \code{flip.dosage=TRUE}
+#' @param verbose logical(1) for messages that describe which part of the
+#'  analysis is currently being run
+#' @param clusterObj A cluster object that can be used with the
+#'  \code{parApply} function. See details.
 #' 
 #' @details 
 #' 
 #' @details 
 #' 
 #' Testing for SNP-covariate interactions:          
-#' User can define the column name of the covariate that will be included in the interaction term. 
-#' For example, for given covariates \code{a} and \code{b}, where \code{c} is defined as the \code{inter.term} the model will be:
-#' \code{~ a + b + c + SNP + c*SNP}.
+#' User can define the column name of the covariate that will be included in
+#'  the interaction term. 
+#' For example, for given covariates \code{a} and \code{b}, where \code{c} is
+#'  defined as the \code{inter.term} the model will be:
+#'  \code{~ a + b + c + SNP + c*SNP}.
 #' 
 #' Printing results of other covariates:       
-#' \code{print.covs} argument controls the number of covariates will be printed as output. The function is set to \code{only}
-#' by default and will only print the SNP or if an interaction term is given, the results of the interaction 
-#' term (e.g. \code{SNP*covariate}). Whereas,  \code{all} will print results (coef, se.coef, p.value etc) of all covariates 
-#' included in the model. \code{some} is only applicable if an interaction term is given and will print the results for SNP, 
-#' covarite tested for interaction and the interaction term. User should be mindful about using the \code{all} option, as
-#' it will likely slow down the analysis and will increase the output file size. 
+#' \code{print.covs} argument controls the number of covariates will be printed
+#'  as output. The function is set to \code{only}
+#'  by default and will only print the SNP or if an interaction term is given, 
+#'  the results of the interaction 
+#'  term (e.g. \code{SNP*covariate}). Whereas,  \code{all} will print results
+#'  (coef, se.coef, p.value etc) of all covariates included in the model.
+#'  \code{some} is only applicable if an interaction term is given and will print
+#'  the results for SNP, covariate tested for interaction and the
+#'  interaction term. User should be mindful about using the \code{all} option,
+#'  as it will likely slow down the analysis and will increase
+#'  the output file size. 
 #'
 #' User defined parallelization:  
-#' This function uses \code{parApply} from \code{parallel} package to fit models to SNPs in parallel. 
+#' This function uses \code{parApply} from \code{parallel} package to fit models
+#'  to SNPs in parallel. 
 #' User is not required to set any options for the parallelization. 
-#' However, advanced users who wish to optimize it, can provide a cluster object generated by \code{makeCluster} 
-#' family of functions that suits their need and platform.
+#' However, advanced users who wish to optimize it, can provide a cluster object
+#'  generated by \code{makeCluster} family of functions that suits
+#' their need and platform.
 #'
 #' @return
-#' Saves two text files directly to disk:
-#' 1. \code{.coxph} extension containing CoxPH survival analysis results
-#' 2. \code{.snps_removed} extension containing SNPs that were removed due to low variance or user-defined thresholds. 
+#' Saves two text files directly to disk:  
+#' \item{1. \code{.coxph} extension containing CoxPH survival analysis results.}  
+#' \item{2. \code{.snps_removed} extension containing SNPs that were removed
+#'  due to low variance or user-defined thresholds.}   
+#' 
 #' 
 #' @examples
 #' impute.file <- system.file(package="gwasurvivr",
@@ -59,7 +89,10 @@
 #' covariate.file <- system.file(package="gwasurvivr", 
 #'                               "extdata",
 #'                               "simulated_pheno.txt")
-#' covariate.file <- read.table(covariate.file, sep=" ", header=TRUE, stringsAsFactors = FALSE)
+#' covariate.file <- read.table(covariate.file,
+#'                              sep=" ",
+#'                              header=TRUE,
+#'                              stringsAsFactors = FALSE)
 #' covariate.file$SexFemale <- ifelse(covariate.file$sex=="female", 1L, 0L)
 #' sample.ids <- covariate.file[covariate.file$group=="experimental",]$ID_2
 #' impute2CoxSurv(impute.file=impute.file,
