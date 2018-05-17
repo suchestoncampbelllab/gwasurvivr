@@ -55,9 +55,9 @@ function. See details.}
 }
 \value{
 Saves two text files directly to disk:  
-\item{1.\code{.coxph} extension containing CoxPH survival analysis results.}  
-\item{2.\code{.snps_removed} extension containing SNPs that were removed
- due to low variance or user-defined thresholds.}
+\code{.coxph} extension containing CoxPH survival analysis results.  
+\code{.snps_removed} extension containing SNPs that were removed
+ due to low variance or user-defined thresholds.
 }
 \description{
 Performs survival analysis using Cox proportional hazard models on imputed

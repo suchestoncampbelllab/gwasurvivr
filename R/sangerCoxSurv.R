@@ -61,9 +61,9 @@
 #
 #' @return 
 #' Saves two text files directly to disk:  
-#' \item{1.\code{.coxph} extension containing CoxPH survival analysis results.}  
-#' \item{2.\code{.snps_removed} extension containing SNPs that were removed
-#'  due to low variance or user-defined thresholds.}   
+#' \code{.coxph} extension containing CoxPH survival analysis results.  
+#' \code{.snps_removed} extension containing SNPs that were removed
+#'  due to low variance or user-defined thresholds.   
 #' 
 #' @examples 
 #' vcf.file <- system.file(package="gwasurvivr",
