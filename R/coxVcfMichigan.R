@@ -1,13 +1,22 @@
-coxVcfMichigan <- function(data, covariates, maf.filter, info.filter, cox.params, cl, inter.term, print.covs){
+coxVcfMichigan <- function(data,
+                           covariates,
+                           maf.filter, 
+                           info.filter, 
+                           cox.params,
+                           cl, 
+                           inter.term, 
+                           print.covs){
     ####### Get genotype data ############ 
     # read dosage data from collapsed vcf, subset for defined ids
     genotypes <- geno(data)$DS[, cox.params$ids, drop=FALSE]
     ########################################
-
     # AF MAF R2 ER2
     # calculates sample MAF
     snp.ids <- rownames(data)
-    snp.ranges <- data.frame(rowRanges(data))[,c("seqnames", "start", "REF", "ALT")]
+    snp.ranges <- data.frame(rowRanges(data))[,c("seqnames",
+                                                 "start", 
+                                                 "REF", 
+                                                 "ALT")]
     snp.ranges$ALT <- sapply(snp.ranges$ALT, as.character)
     snp.ranges$REF <- sapply(snp.ranges$REF, as.character)
     snp.meta <- data.frame(info(data))
@@ -17,14 +26,11 @@ coxVcfMichigan <- function(data, covariates, maf.filter, info.filter, cox.params
     
     samp.exp_alt <- round(rowMeans2(genotypes)*0.5, 4)
     samp.maf <- ifelse(samp.exp_alt > 0.5, 1-samp.exp_alt, samp.exp_alt)
-    
     snp <- cbind(RSID=snp.ids,
                  snp.ranges,
                  snp.meta,
                  SAMP_FREQ_ALT=samp.exp_alt,
                  SAMP_MAF=samp.maf)
-    
-    
     ##################################################
     ##### SNP Checks #################################
     # remove snps with SD less than 1e-4
@@ -42,7 +48,6 @@ coxVcfMichigan <- function(data, covariates, maf.filter, info.filter, cox.params
         snp.drop <- data.frame()
     }
     
-    
     empty.geno <- tryCatch(
         {
             # Further filter by user defined thresholds
@@ -58,22 +63,42 @@ coxVcfMichigan <- function(data, covariates, maf.filter, info.filter, cox.params
                 ok.info <- snp$R2 >= info.filter
                 snp.drop <- base::rbind(snp.drop,snp[!ok.info,])
                 snp <- snp[ok.info,]
-                if(all(!ok.info)) stop("None of the SNPs pass the info threshold")
+                if(all(!ok.info)) {
+                    stop("None of the SNPs pass the info threshold")
+                }
                 genotypes <- genotypes[ok.info,]
             }
             #############################################################
             ########## clean and save dropped and kept SNP info #########
             # rearrange columns for snp info
-            snp.cols <- c("RSID", "CHR", "POS", "REF", "ALT", "AF", "MAF", 
-                          "INFO", "ER2", "TYPED", "SAMP_FREQ_ALT", "SAMP_MAF")
+            snp.cols <- c("RSID",
+                          "CHR",
+                          "POS", 
+                          "REF", 
+                          "ALT", 
+                          "AF", 
+                          "MAF", 
+                          "INFO",
+                          "ER2",
+                          "TYPED",
+                          "SAMP_FREQ_ALT",
+                          "SAMP_MAF")
             colnames(snp) <- snp.cols
             colnames(snp.drop) <- snp.cols
-            snp.ord <- c("RSID", "TYPED", "CHR", "POS", "REF", "ALT", "AF", "MAF",
-                         "SAMP_FREQ_ALT", "SAMP_MAF","INFO", "ER2")
+            snp.ord <- c("RSID",
+                         "TYPED",
+                         "CHR", 
+                         "POS",
+                         "REF", 
+                         "ALT", 
+                         "AF",
+                         "MAF",
+                         "SAMP_FREQ_ALT",
+                         "SAMP_MAF",
+                         "INFO",
+                         "ER2")
             snp <- snp[, snp.ord]
             snp.drop <- snp.drop[, snp.ord]
-            ###########################################################
-            
             ###########################################################
             ############### fit models in parallel ####################
             if(is.null(inter.term)){
@@ -85,7 +110,9 @@ coxVcfMichigan <- function(data, covariates, maf.filter, info.filter, cox.params
                                           cox.params=cox.params,
                                           print.covs=print.covs))
                 } else {
-                    cox.out <- survFit(genotypes, cox.params=cox.params, print.covs=print.covs) 
+                    cox.out <- survFit(genotypes,
+                                       cox.params=cox.params,
+                                       print.covs=print.covs) 
                 }
             }else if(inter.term %in% covariates){
                 if(is.matrix(genotypes)){
@@ -105,7 +132,11 @@ coxVcfMichigan <- function(data, covariates, maf.filter, info.filter, cox.params
             }
             #############################################
             michigan.out <- list(dropped.snps=snp.drop)
-            michigan.out$res <- coxExtract(cox.out, snp, cox.params$n.sample, cox.params$n.event, print.covs)
+            michigan.out$res <- coxExtract(cox.out,
+                                           snp,
+                                           cox.params$n.sample,
+                                           cox.params$n.event,
+                                           print.covs)
             return(michigan.out)
         },
         error=function(err) err

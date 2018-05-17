@@ -1,4 +1,11 @@
-coxVcfSanger <- function(data, covariates, maf.filter, info.filter, cox.params, cl, inter.term, print.covs){
+coxVcfSanger <- function(data, 
+                         covariates, 
+                         maf.filter, 
+                         info.filter, 
+                         cox.params,
+                         cl,
+                         inter.term,
+                         print.covs){
     
     ####### Get genotype data ############ 
     # read dosage data from collapsed vcf, subset for defined ids
@@ -10,7 +17,10 @@ coxVcfSanger <- function(data, covariates, maf.filter, info.filter, cox.params, 
     # grab info, REFPAN_AF, TYPED/IMPUTED, INFO
     # calculates sample MAF
     snp.ids <- rownames(data)
-    snp.ranges <- data.frame(rowRanges(data))[,c("seqnames", "start", "REF", "ALT")]
+    snp.ranges <- data.frame(rowRanges(data))[,c("seqnames",
+                                                 "start",
+                                                 "REF", 
+                                                 "ALT")]
     snp.ranges$ALT <- sapply(snp.ranges$ALT, as.character)
     snp.meta <- data.frame(info(data))
     snp.meta$RefPanelAF <- sapply(snp.meta$RefPanelAF, as.numeric)
@@ -45,8 +55,9 @@ coxVcfSanger <- function(data, covariates, maf.filter, info.filter, cox.params, 
         {
             # Further filter by user defined thresholds
             if(!is.null(maf.filter)){
-                ok.maf <- snp$RefPanelAF>maf.filter & snp$RefPanelAF<(1-maf.filter)
-                snp.drop <- base::rbind(snp.drop,snp[!ok.maf,])
+                ok.maf <- snp$RefPanelAF>maf.filter & 
+                    snp$RefPanelAF<(1-maf.filter)
+                snp.drop <- rbind(snp.drop,snp[!ok.maf,])
                 snp <- snp[ok.maf,]
                 if(all(!ok.maf)) stop("None of the SNPs pass the MAF threshold")
                 genotypes <- genotypes[ok.maf,]
@@ -56,18 +67,36 @@ coxVcfSanger <- function(data, covariates, maf.filter, info.filter, cox.params, 
                 ok.info <- snp$INFO >= info.filter
                 snp.drop <- base::rbind(snp.drop,snp[!ok.info,])
                 snp <- snp[ok.info,]
-                if(all(!ok.info)) stop("None of the SNPs pass the info threshold")
+                if(all(!ok.info)) {
+                    stop("None of the SNPs pass the info threshold")
+                }
                 genotypes <- genotypes[ok.info,]
             }
             #############################################################
             ########## clean and save dropped and kept SNP info #########
             # rearrange columns for snp info
-            snp.cols <- c("RSID", "CHR", "POS", "REF", "ALT", "RefPanelAF", 
-                          "TYPED", "INFO", "SAMP_FREQ_ALT", "SAMP_MAF")
+            snp.cols <- c("RSID",
+                          "CHR", 
+                          "POS", 
+                          "REF",
+                          "ALT",
+                          "RefPanelAF", 
+                          "TYPED", 
+                          "INFO",
+                          "SAMP_FREQ_ALT",
+                          "SAMP_MAF")
             colnames(snp) <- snp.cols
             colnames(snp.drop) <- snp.cols
-            snp.ord <- c("RSID", "TYPED", "CHR", "POS", "REF", "ALT", "RefPanelAF",
-                         "SAMP_FREQ_ALT", "SAMP_MAF","INFO")
+            snp.ord <- c("RSID",
+                         "TYPED", 
+                         "CHR",
+                         "POS",
+                         "REF",
+                         "ALT", 
+                         "RefPanelAF",
+                         "SAMP_FREQ_ALT",
+                         "SAMP_MAF",
+                         "INFO")
             snp <- snp[, snp.ord]
             snp.drop <- snp.drop[, snp.ord]
             ###########################################################
@@ -83,7 +112,9 @@ coxVcfSanger <- function(data, covariates, maf.filter, info.filter, cox.params, 
                                           cox.params=cox.params,
                                           print.covs=print.covs))
                 } else {
-                    cox.out <- survFit(genotypes, cox.params=cox.params, print.covs=print.covs) 
+                    cox.out <- survFit(genotypes,
+                                       cox.params=cox.params,
+                                       print.covs=print.covs) 
                 }
             }else if(inter.term %in% covariates){
                 if(is.matrix(genotypes)){
@@ -103,7 +134,11 @@ coxVcfSanger <- function(data, covariates, maf.filter, info.filter, cox.params, 
             }
             #############################################
             sanger.out <- list(dropped.snps=snp.drop)
-            sanger.out$res <- coxExtract(cox.out, snp, cox.params$n.sample, cox.params$n.event, print.covs)
+            sanger.out$res <- coxExtract(cox.out,
+                                         snp, 
+                                         cox.params$n.sample, 
+                                         cox.params$n.event, 
+                                         print.covs)
             return(sanger.out)
         },
         error=function(err) err

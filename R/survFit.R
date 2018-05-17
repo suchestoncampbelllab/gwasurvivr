@@ -33,8 +33,13 @@ survFit <- function(SNP, cox.params, print.covs){
             res <- cbind(coef, serr)
             res.names <- dimnames(res)
             res <- c(res)
-            names(res) <- c(paste(toupper(res.names[[2]][1]), res.names[[1]], sep="_"),
-                               paste(toupper(res.names[[2]][2]), res.names[[1]], sep="_"))
+            names(res) <- c(paste(toupper(res.names[[2]][1]),
+                                  res.names[[1]],
+                                  sep="_"),
+                            paste(toupper(res.names[[2]][2]),
+                                  res.names[[1]],
+                                  sep="_")
+                            )
             return(res)
         }
 }

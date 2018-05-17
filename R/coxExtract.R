@@ -56,7 +56,14 @@ coxExtract <- function(cox.out, snp, n.sample, n.event, print.covs="only"){
             upperCI <- exp(cox.out[, coefs] + 1.96 * cox.out[, serrs])
             upperCI <- setNames(upperCI, paste("HR_upperCI", cols, sep = "_"))
         }
-        sres <- cbind(pval, hr, lowerCI, upperCI, cox.out, z, N=n.sample, NEVENT=n.event)
+        sres <- cbind(pval,
+                      hr,
+                      lowerCI,
+                      upperCI,
+                      cox.out,
+                      z,
+                      N=n.sample,
+                      NEVENT=n.event)
         rownames(sres) <- NULL
     }
     data.frame(cbind(snp,sres))

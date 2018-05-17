@@ -48,7 +48,9 @@ impute2CoxSurv(impute.file, sample.file, chr, covariate.file, id.column,
 \item{clusterObj}{A cluster object that can be used with the \code{parApply} function. See details.}
 }
 \value{
-Saves text file directly to disk that contains survival analysis results.
+Saves two text files directly to disk:
+1. \code{.coxph} extension containing CoxPH survival analysis results
+2. \code{.snps_removed} extension containing SNPs that were removed due to low variance or user-defined thresholds.
 }
 \description{
 Performs survival analysis using Cox proportional hazard models on imputed genetic data from IMPUTE2 output

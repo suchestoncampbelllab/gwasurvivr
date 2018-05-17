@@ -5,7 +5,6 @@ coxParam <-
              covariates,
              sample.ids,
              verbose) {
-        
         #########################################
         ##### get the Ns ####
         # define Ns
@@ -13,15 +12,11 @@ coxParam <-
         n.event <- sum(as.numeric(pheno.file[, event]))
         if (verbose)
             message(n.sample, " samples are included in the analysis")
-        
-        
-        #########################################
-        
-        
         #########################################
         ##### build arguments for coxph.fit #####
         Y <-
-            Surv(time = pheno.file[, time.to.event], event = pheno.file[, event])
+            Surv(time = pheno.file[, time.to.event],
+                 event = pheno.file[, event])
         rownames(Y) <- as.character(seq_len(nrow(Y)))
         STRATA <- NULL
         CONTROL <- structure(
@@ -92,8 +87,6 @@ coxParam <-
         }
         
         #########################################
-        
-        
         cox.params <-
             list(
                 pheno.file = pheno.file,

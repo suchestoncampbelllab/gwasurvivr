@@ -45,8 +45,10 @@
 #' family of functions that suits their need and platform.
 #'
 #' @return
-#' Saves text file directly to disk that contains survival analysis results.
-#'  
+#' Saves two text files directly to disk:
+#' 1. \code{.coxph} extension containing CoxPH survival analysis results
+#' 2. \code{.snps_removed} extension containing SNPs that were removed due to low variance or user-defined thresholds. 
+#' 
 #' @examples
 #' impute.file <- system.file(package="gwasurvivr",
 #'                            "extdata",
@@ -112,7 +114,14 @@ impute2CoxSurv <- function(impute.file,
     
     ###################################
     #### Phenotype data wrangling #####
-    cox.params <- coxPheno(covariate.file, covariates, id.column, inter.term, time.to.event, event, sample.ids, verbose)
+    cox.params <- coxPheno(covariate.file,
+                           covariates,
+                           id.column,
+                           inter.term, 
+                           time.to.event,
+                           event, 
+                           sample.ids, 
+                           verbose)
     ###################################
     
     ###################################
@@ -130,7 +139,10 @@ impute2CoxSurv <- function(impute.file,
 
     ###################################
     ##### Genotype data wrangling ######
-    if (verbose) message("Analysis started on ", format(Sys.time(), "%Y-%m-%d"), " at ", format(Sys.time(), "%H:%M:%S"))
+    if (verbose) message("Analysis started on ",
+                         format(Sys.time(), "%Y-%m-%d"),
+                         " at ", 
+                         format(Sys.time(), "%H:%M:%S"))
     gdsfile <- tempfile(pattern="", fileext = ".gds")
     snpfile <- tempfile(pattern="", fileext = ".snp.rdata")
     scanfile <- tempfile(pattern="", fileext = ".scan.rdata")
@@ -147,7 +159,8 @@ impute2CoxSurv <- function(impute.file,
     
     # read genotype
     ## need to add if statement about dimensions
-    # set default "snp,scan" -- in documentation say it needs to be in this orientation
+    # set default "snp,scan" -- 
+    # in GWASTools documentation say it needs to be in this orientation
     gds <- GdsGenotypeReader(gdsfile, genotypeDim="scan,snp")
     # close gds file on exit of the function
     on.exit(close(gds), add=TRUE)
@@ -159,19 +172,22 @@ impute2CoxSurv <- function(impute.file,
     genoData <- GenotypeData(gds,
                              snpAnnot=snpAnnot,
                              scanAnnot=scanAnnot)
-    
     # number of snps in segment
     snp.start <- 1
     snp.end <- nsnp(genoData)
-    
-
     # get genotypes for certain chunk size
     nsnp.seg <- snp.end - snp.start + 1
     nchunks <- ceiling(nsnp.seg/chunk.size)
-    
-    
     # set up columns for output
-    cols <- c("RSID", "TYPED", "CHR", "POS", "A0","A1", "exp_freq_A1", "SAMP_MAF","INFO")
+    cols <- c("RSID",
+              "TYPED",
+              "CHR", 
+              "POS",
+              "A0",
+              "A1",
+              "exp_freq_A1",
+              "SAMP_MAF",
+              "INFO")
     write.table( t(cols),
                  paste0(out.file, ".snps_removed"),
                  row.names = FALSE,
@@ -188,8 +204,19 @@ impute2CoxSurv <- function(impute.file,
                        rnorm(nrow(cox.params$pheno.file)))
     
     if(!is.null(inter.term)){
-        cox.out <- t(apply(snp.spike, 1, survFitInt, cox.params=cox.params, cov.interaction=inter.term, print.covs=print.covs))
-        res.cols <- colnames(coxExtract(cox.out, snp.df, cox.params$n.sample, cox.params$n.event, print.covs=print.covs))
+        cox.out <- t(apply(snp.spike,
+                           1,
+                           survFitInt,
+                           cox.params=cox.params,
+                           cov.interaction=inter.term, 
+                           print.covs=print.covs)
+                     )
+        res.cols <- colnames(coxExtract(cox.out,
+                                        snp.df, 
+                                        cox.params$n.sample,
+                                        cox.params$n.event,
+                                        print.covs=print.covs)
+                             )
         write.table( t(res.cols),
                      paste0(out.file, ".coxph"),
                      row.names = FALSE,
@@ -198,17 +225,27 @@ impute2CoxSurv <- function(impute.file,
                      quote = FALSE,
                      append = FALSE)
     } else {
-        cox.out <- t(apply(snp.spike, 1, survFit, cox.params=cox.params, print.covs=print.covs))
-        res.cols <- colnames(coxExtract(cox.out, snp.df, cox.params$n.sample, cox.params$n.event, print.covs=print.covs))
+        cox.out <- t(apply(snp.spike,
+                           1, 
+                           survFit,
+                           cox.params=cox.params,
+                           print.covs=print.covs)
+                     )
+        res.cols <- colnames(coxExtract(cox.out,
+                                        snp.df, 
+                                        cox.params$n.sample, 
+                                        cox.params$n.event, 
+                                        print.covs=print.covs)
+                             )
         
         
-        write.table( t(res.cols),
-                     paste0(out.file, ".coxph"),
-                     row.names = FALSE,
-                     col.names=FALSE,
-                     sep="\t",
-                     quote = FALSE,
-                     append = FALSE)
+        write.table(t(res.cols),
+                    paste0(out.file, ".coxph"),
+                    row.names = FALSE,
+                    col.names=FALSE,
+                    sep="\t",
+                    quote = FALSE,
+                    append = FALSE)
     }
     
     snp.tot <- list()
@@ -249,7 +286,10 @@ impute2CoxSurv <- function(impute.file,
         ##### SNP info and filtering #####
         # calculate MAF
         snp$exp_freq_A1 <- round(rowMeans2(genotypes)*0.5,4)
-        snp$MAF <- ifelse(snp$exp_freq_A1 > 0.5, 1-snp$exp_freq_A1, snp$exp_freq_A1)
+        snp$MAF <- ifelse(snp$exp_freq_A1 > 0.5,
+                          1-snp$exp_freq_A1,
+                          snp$exp_freq_A1
+                          )
         # calculate info score
         obs.mean <- rowMeans2(genotypes)
         obs.var <- rowVars(genotypes)
@@ -281,28 +321,49 @@ impute2CoxSurv <- function(impute.file,
             {
                 # Further filter by user defined thresholds
                 if(!is.null(maf.filter)){
-                    ok.maf <- snp$exp_freq_A1>maf.filter & snp$exp_freq_A1<(1-maf.filter)
-                    snp.drop <- base::rbind(snp.drop,snp[!ok.maf,])
+                    ok.maf <- snp$exp_freq_A1>maf.filter &
+                        snp$exp_freq_A1<(1-maf.filter)
+                    snp.drop <- rbind(snp.drop,snp[!ok.maf,])
                     snp <- snp[ok.maf,]
-                    if(all(!ok.maf)) stop("None of the SNPs pass the MAF threshold")
+                    if(all(!ok.maf)) {
+                        stop("None of the SNPs pass the MAF threshold")
+                    }
                     genotypes <- genotypes[ok.maf,]
                 }
                 
                 
                 if(!is.null(info.filter)){
                     ok.info <- snp$info >= info.filter
-                    snp.drop <- base::rbind(snp.drop,snp[!ok.info,])
+                    snp.drop <- rbind(snp.drop,snp[!ok.info,])
                     snp <- snp[ok.info,]
-                    if(all(!ok.info)) stop("None of the SNPs pass the info threshold")
+                    if(all(!ok.info)){
+                        stop("None of the SNPs pass the info threshold")
+                    }
                     genotypes <- genotypes[ok.info,]
                 }
                 
                 
-                snp.cols <- c("snpID","TYPED","RSID","POS","A0","A1","CHR",
-                              "exp_freq_A1", "SAMP_MAF","INFO")
+                snp.cols <- c("snpID",
+                              "TYPED",
+                              "RSID",
+                              "POS",
+                              "A0",
+                              "A1",
+                              "CHR",
+                              "exp_freq_A1",
+                              "SAMP_MAF",
+                              "INFO")
                 colnames(snp) <- snp.cols
                 colnames(snp.drop) <- snp.cols
-                snp.ord <- c("RSID", "TYPED", "CHR", "POS", "A0", "A1", "exp_freq_A1", "SAMP_MAF","INFO")
+                snp.ord <- c("RSID",
+                             "TYPED",
+                             "CHR", 
+                             "POS", 
+                             "A0", 
+                             "A1", 
+                             "exp_freq_A1",
+                             "SAMP_MAF",
+                             "INFO")
                 snp <- snp[, snp.ord]
                 snp.drop <- snp.drop[, snp.ord]
                 
@@ -324,7 +385,9 @@ impute2CoxSurv <- function(impute.file,
                                               cox.params=cox.params,
                                               print.covs=print.covs))
                     } else {
-                        cox.out <- survFit(genotypes, cox.params=cox.params, print.covs=print.covs)
+                        cox.out <- survFit(genotypes,
+                                           cox.params=cox.params,
+                                           print.covs=print.covs)
                     }
                 } else if(inter.term %in% covariates){
                     if(is.matrix(genotypes)){
@@ -372,14 +435,24 @@ impute2CoxSurv <- function(impute.file,
         
         
     }
-    if(verbose) message(sum(snp.tot[["snps_removed"]],na.rm=TRUE)," SNPs were removed from the analysis for not meeting\nthe given threshold criteria or for having MAF = 0")
-    if(verbose) message("List of removed SNPs are saved to ", paste0(out.file, ".snps_removed"))
-    if(verbose) message(sum(snp.tot[["snps_analyzed"]],na.rm=TRUE)," SNPs were included in the analysis")
-    if(verbose) message("The Cox model results output was saved to ", paste0(out.file, ".coxph"))
+    if(verbose) {
+        message(sum(snp.tot[["snps_removed"]], na.rm=TRUE),
+        " SNPs were removed from the analysis for not meeting\n",
+        "the given threshold criteria or for having MAF = 0")
+    }
+    if(verbose) message("List of removed SNPs are saved to ",
+                        paste0(out.file, ".snps_removed"))
+    if(verbose) message(sum(snp.tot[["snps_analyzed"]],na.rm=TRUE),
+                        " SNPs were included in the analysis")
+    if(verbose) message("The Cox model results output was saved to ",
+                        paste0(out.file, ".coxph"))
     
     
     
-    if (verbose) message("Analysis completed on ", format(Sys.time(), "%Y-%m-%d"), " at ", format(Sys.time(), "%H:%M:%S"))
+    if (verbose) message("Analysis completed on ",
+                         format(Sys.time(), "%Y-%m-%d"),
+                         " at ",
+                         format(Sys.time(), "%H:%M:%S"))
 }
 
 

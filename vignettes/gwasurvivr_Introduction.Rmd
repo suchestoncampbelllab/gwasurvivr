@@ -39,19 +39,19 @@ library(knitr)
 2. `sangerCoxSurv`:  Performs survival analysis on imputed genetic data stored in compressed VCF files generated via Sanger imputation server.    
 3. `impute2CoxSurv`: Performs survival analysis on imputed genetic data from IMPUTE2 output.        
 
-All functions fit a Cox PH model to each SNP including other user defined covariates and will save the results as a text file directly to disk that contains survival analysis results. `gwasurvivr` functions can also test for interaction of SNPs with a given covariate. See examples for further details. 
+All functions fit a Cox PH model to each SNP including other user defined covariates and will save the results as a text file directly to the disk that contains survival analysis results. `gwasurvivr` functions can also test for interaction of SNPs with a given covariate. See examples for further details. 
 
 ## Main input arguments
 
 All three functions require the following main arguments:
 
 * `vcf.file`: A character string giving the path to genotype data file (`impute.file` for IMPUTE2)
-* `covariate.file`: A data frame comprising sample IDs (that match to the genotype data), phenotype (time, event) and additional covariate data
-* `id.column`: A character string providing exact match to sample ID column in covariate.file
-* `time.to.event`: A character string that matches time column name in covariate.file
-* `event`: Character string that matches event column name in covariate.file
-* `covariates`: Character vector with matching column names in covariate.file of covariates of interest
-* `out.file`: A character string giving output name
+* `covariate.file`: A data frame comprising sample IDs (that link to the genotype data samples), phenotype (time, event) and additional covariate data
+* `id.column`: A character string providing sample ID column name in covariate.file
+* `time.to.event`: A character string that contains the time column name in covariate.file
+* `event`: Character string that contains the event column name in covariate.file
+* `covariates`: Character vector with contains column names in covariate.file of covariates to include in model
+* `out.file`: A character string giving output file name
 
 Further arguments can be passed depending on the user preference. For example, user can define minor allele frequency (MAF) or info score threshold to filter out SNPs that have low MAF or info score to avoid false-positive signals and to reduce computing time. User can also define a subset of samples to be analyzed by providing the set of sample IDs. Users can also control how chunk size -- the number of rows (SNPs) to include for each iteration. 
 
@@ -159,7 +159,6 @@ colnames(df) <- c("Column", "Description")
 kable(df)
 ```
 
-
 More statistics can be printed out by invoking the `print.covs` argument and setting it to `print.covs=all` (single SNP/SNP\*covariate interaction) or `print.covs=some` (SNP\*covariate ineraction). These options are available mainly for modeling purposes (covariate selection) and aren't suggested for very large analyses as it will greatly increase the number of columns in the output, depending on how many covariates users are adjusting for. 
 
 # Getting started
@@ -228,11 +227,11 @@ michiganCoxSurv(..., clusterObj=cl)
 # R Session Examples
 
 ##  Michigan Imputation Server
-[Michigan Imputation Server](https://imputationserver.sph.umich.edu/index.html) pre-phases typed genotypes using HAPI-UR, SHAPEIT, or EAGLE (default is EAGLE2), imputes using Minimac3 imputation engine and outputs Blocked GNU Zip Format VCF files (`.vcf.gz`). Just as with Sanger these `.vcf.gz` files are used as input for `gwasurvivr`. The function, `michiganCoxSurv`  uses a modification of Cox proportional hazard regression from the R library `survival`.  Minimac uses slightly different metrics to assess imputation quality ($R^2$ versus info score) and complete details as to minimac output are available on the [Minimac3 Wikipage](https://genome.sph.umich.edu/wiki/Minimac3_Imputation_Cookbook).
+[Michigan Imputation Server](https://imputationserver.sph.umich.edu/index.html) pre-phases typed genotypes using HAPI-UR, SHAPEIT, or EAGLE (default is EAGLE2), imputes using Minimac3 imputation engine and outputs Blocked GNU Zip Format VCF files (`.vcf.gz`). These `.vcf.gz` files are used as input for `gwasurvivr`.  Minimac uses slightly different metrics to assess imputation quality ($R^2$ versus info score) and complete details as to minimac output are available on the [Minimac3 Wikipage](https://genome.sph.umich.edu/wiki/Minimac3_Imputation_Cookbook).
 
-The function, `michiganCoxSurv`  uses a modification of cox proportional hazard regression from the R library `survival`. Built specifically for genetic data, `michiganCoxSurv` allows the user to filter on info score (imputation quality metric) and minor allele frequency from the reference panel used for imputation using `RefPanelAF` as the input arguement for `maf.filter`. Users are also provided with the sample minor allele frequency in the `sangerCoxSurv` output. 
+The function, `michiganCoxSurv` uses a modification of Cox proportional hazard regression from the R library `survival::coxph.fit`. Built specifically for genetic data, `michiganCoxSurv` allows the user to filter on info ($R^2$) score (imputation quality metric) and minor allele frequency from the reference panel used for imputation using `RefPanelAF` as the input arguement for `maf.filter`. Users are also provided with the sample minor allele frequency (MAF) in the `sangerCoxSurv` output, which can be used for filtering post analysis. 
 
-Samples can be selected for analyses by providing a vector of `sample.ids`. The output from Sanger imputation server returns the samples as `SAMP1, ..., SAMPN`, where `N` is the total number of samples. The sample order corresponds to the sample order in the vcf file you used for imputation. Note, sample order can also be found in the `.fam` file if genotyping data were initially in `.bed`, `.bim` and `.fam` (PLINK) format prior to conversion to VCF. If no sample list is specified all samples are included in the analyses.
+Samples can be selected for analyses by providing a vector of `sample.ids`. The output from Sanger imputation server returns the samples as `SAMP1, ..., SAMPN`, where `N` is the total number of samples. The sample order corresponds to the sample order in the `vcf.file` used for imputation. Note, sample order can also be found in the `.fam` file if genotyping data were initially in `.bed`, `.bim` and `.fam` (PLINK) format prior to conversion to VCF. If no sample list is specified all samples are included in the analyses.
 
 ```{r, message=FALSE}
 vcf.file <- system.file(package="gwasurvivr",
@@ -250,17 +249,16 @@ sample.ids <- pheno.file[pheno.file$group=="experimental",]$ID_2
 head(sample.ids)
 ```
 
-In this example, we will select samples from the `experimental` group and will test survival only on these patients. The first column in the `pheno.file` are sample IDs (we will match on these). We include `age`, `DrugTxYes`, and `sex` in the survival model as covariates. 
+In this example, we will select samples from the `experimental` group and will test survival only on these patients. The first column in the `pheno.file` are sample IDs, which link the phenotype file to the imputation file. We include `age`, `DrugTxYes`, and `sex` in the survival model as covariates. 
 
-We perform the analysis using the `experimental` group to demonstrate how one may want to prepare their data if not initially all samples are patients or cases (i.e. a case-control study and survival of cases is of interest). We also are showing how the IDs (`sample.ids`) need to be a vector of class `character`. The `chunk.size` refers to size of each data chunk read in and is defaulted to 10,000 rows, users can customize that to their needs. The larger the `chunk.size` the more memory (RAM) required to run the analysis. The recommended `chunk.size=10000` and probably should not exceed `chunk.size=100000`. 
+We perform the analysis using the `experimental` group to demonstrate how one may want to prepare their data if interested in testing only on a subset of samples (i.e. a case-control study and survival of cases is of interest). Note that how the IDs (`sample.ids`) need to be a vector of class `character`. The `chunk.size` refers to size of each data chunk read in and is defaulted to 10,000 rows. Users can customize that to their needs. The larger the `chunk.size` the more memory (RAM) required to run the analysis. The recommended `chunk.size=10000` and probably should not exceed `chunk.size=100000`. This does not mean that `gwasurvivr` is limited to only 100,000 SNPs, it just is how many SNPs are analyzed for each iteration. 
 
 By default survival estimates and pvalues for the SNP adjusted for other covariates are outputted (`print.covs='only'`), however users can select `print.covs=all` to get the coefficient estimates for covariates included in the model. Depending on the number of covariates included this can add substantially to output file size. 
+
+### Single SNP analysis
 Next we run `michiganCoxSurv` with the default, `print.covs="only"`, load the results into R and provide descriptions of output by column. We will then run the analysis again using `print.covs="all"`. `verbose=TRUE` is used for these examples so the function display messages while running.
 
 Use `?michiganCoxSurv` for argument specific documentation.
-
-
-### Single SNP analysis
 
 `print.covs="only"`
 
@@ -338,7 +336,6 @@ michiganCoxSurv(vcf.file=vcf.file,
                 clusterObj=NULL)
 ```
 
-
 ```{r, echo=FALSE}
 michiganCoxSurv(vcf.file=vcf.file,
                 covariate.file=pheno.file,
@@ -357,7 +354,7 @@ michiganCoxSurv(vcf.file=vcf.file,
                 clusterObj=NULL)
 ```
 
-Here we load the data and glimpse the first few values in each column outputted from the SNP*interaction survival analyses using `print.covs="only"`
+Here we load the data and glimpse the first few values in each column outputted from the SNP*interaction survival analyses using `print.covs="only"`.
 
 ```{r, message=FALSE, eval=FALSE}
 michigan_intx_only <- read.table("michigan_intx_only.coxph", sep="\t", header=TRUE, stringsAsFactors = FALSE)
@@ -371,11 +368,10 @@ michigan_intx_only <- read.table(dir(tempdir(), pattern="^michigan_intx_only.*\\
 str(head(michigan_intx_only))
 ```
 
-
 ## Sanger Imputation Server
-[Sanger Imputation Server](https://imputation.sanger.ac.uk/) pre-phases typed genotypes using either SHAPEIT or EAGLE, imputes genotypes using PBWT algorithm and outputs a `.vcf.gz` file for each chromosome. These `.vcf.gz` files are used as input for `gwasurvivr`. The function, `sangerCoxSurv`  uses a modification of cox proportional hazard regression from the R library `survival`. Built specifically for genetic data, `sangerCoxSurv` allows the user to filter on info score (imputation quality metric) and minor allele frequency from the reference panel used for imputation using `RefPanelAF` as the input arguement for `maf.filter`. Users are also provided with the sample minor allele frequency in the `sangerCoxSurv` output. 
+[Sanger Imputation Server](https://imputation.sanger.ac.uk/) pre-phases typed genotypes using either SHAPEIT or EAGLE, imputes genotypes using PBWT algorithm and outputs a `.vcf.gz` file for each chromosome. These `.vcf.gz` files are used as input for `gwasurvivr`. The function, `sangerCoxSurv`  uses a modification of Cox proportional hazard regression from `survival::coxph.fit`. Built specifically for genetic data, `sangerCoxSurv` allows the user to filter on info score (imputation quality metric) and minor allele frequency from the reference panel used for imputation using `RefPanelAF` as the input arguement for `maf.filter`. Users are also provided with the sample minor allele frequency in the `sangerCoxSurv` output. 
 
-Samples can be selected for analyses by providing a vector of `sample.ids`. The output from Sanger imputation server returns the samples as `SAMP1, ..., SAMPN`, where `N` is the total number of samples. The sample order corresponds to the sample order in the vcf file you used for imputation. Note, sample order can also be found in the `.fam` file if genotyping data were initially in `.bed`, `.bim` and `.fam` (PLINK) format prior to conversion to VCF. If no sample list is specified all samples are included in the analyses.
+Samples can be selected for analyses by providing a vector of `sample.ids`. The output from Sanger imputation server returns the samples as `SAMP1, ..., SAMPN`, where `N` is the total number of samples. The sample order corresponds to the sample order in the VCF file used for imputation. Note, sample order can also be found in the `.fam` file if genotyping data were initially in `.bed`, `.bim` and `.fam` (PLINK) format prior to conversion to VCF. If no sample list is specified, all samples are included in the analyses.
 
 In this example, we will select samples from the `experimental` group and will test survival only on these patients. The first column in the `pheno.file` are sample IDs (we will match on these). We include `age`, `DrugTxYes`, and `sex` in the survival model as covariates. 
 
@@ -395,12 +391,16 @@ sample.ids <- pheno.file[pheno.file$group=="experimental",]$ID_2
 head(sample.ids)
 ```
 
-We perform the analysis using the `experimental` group to demonstrate how one may want to prepare their data if not initially all samples are patients or cases (i.e. a case-control study and survival of cases is of interest). We also are showing how the IDs (`sample.ids`) need to be a vector of class `character`. The `chunk.size` refers to size of each data chunk read in and is defaulted to 10,000 rows, users can customize that to their needs. The larger the `chunk.size` the more memory (RAM) required to run the analysis. The recommended `chunk.size=500` and probably should not exceed `chunk.size=5000`. 
+We perform the analysis using the `experimental` group to demonstrate how one may want to prepare their data if not initially all samples are patients or cases (i.e. a case-control study and survival of cases is of interest). We also are showing how the IDs (`sample.ids`) need to be a vector of class `character`. The `chunk.size` refers to size of each data chunk read in and is defaulted to 10,000 rows, users can customize that to their needs. The larger the `chunk.size` the more memory (RAM) required to run the analysis. The recommended `chunk.size=10000` and probably should not exceed `chunk.size=100000`. This does not mean that `gwasurvivr` is limited to only 100,000 SNPs, it just is how many SNPs are analyzed for each iteration. 
 
 By default survival estimates and pvalues for the SNP adjusted for other covariates are outputted (`print.covs='only'`), however users can select `print.covs=all` to get the coefficient estimates for covariates included in the model. Depending on the number of covariates included this can add substantially to output file size. 
-Next we run `sangerCoxSurv` with the default, `print.covs="only"`, load the results into R and provide descriptions of output by column. We will then run the analysis again using `print.covs="all"`. `verbose=TRUE` is used for these examples so the function display messages while running.
 
 Use `?sangerCoxSurv` for argument specific documentation.
+
+### Single SNP analysis
+Next we run `sangerCoxSurv` with the default, `print.covs="only"`, load the results into R and provide descriptions of output by column. `verbose=TRUE` is used for these examples so the function display messages while running.
+
+`print.covs="only"`
 
 ```{r, eval=FALSE}
 sangerCoxSurv(vcf.file=vcf.file,
@@ -420,7 +420,6 @@ sangerCoxSurv(vcf.file=vcf.file,
               clusterObj=NULL)
 ```
 
-
 ```{r, echo=FALSE}
 sangerCoxSurv(vcf.file=vcf.file,
               covariate.file=pheno.file,
@@ -439,10 +438,6 @@ sangerCoxSurv(vcf.file=vcf.file,
               clusterObj=NULL)
 ```
 
-### Single SNP analysis
-
-`print.covs="only"`
-
 Here we load the data and glimpse the first few values in each column from the survival analyses.
 ```{r, message=FALSE, echo=FALSE}
 sanger_only <- read.table(dir(tempdir(), pattern="^sanger_only.*\\.coxph$", full.names = TRUE), sep="\t", header=TRUE, stringsAsFactors = FALSE)
@@ -453,27 +448,6 @@ str(head(sanger_only))
 ```
 
 Column names with descriptions from the survival analyses with covariates, specifying the default `print.covs="only"`
-
-`print.covs="all"`
-In this example, `sangerCoxSurv` is used with `print.covs="all"`. The output is described below. `verbose=FALSE` is used for these examples so the function does not display messages while running. 
-
-```{r,eval=FALSE}
-sangerCoxSurv(vcf.file=vcf.file,
-              covariate.file=pheno.file,
-              id.column="ID_2",
-              sample.ids=sample.ids,
-              time.to.event="time",
-              event="event",
-              covariates=c("age", "SexFemale", "DrugTxYes"),
-              inter.term=NULL,
-              print.covs="all",
-              out.file="sanger_all",
-              info.filter=0.3,
-              maf.filter=0.005,
-              chunk.size=100,
-              verbose=FALSE,
-              clusterObj=NULL)
-```
 
 ### SNP with covariate interaction
 A SNP*covariate interaction can be implemented using the `inter.term` argument. In this example, we will use `DrugTxYes` from the covariate file as the covariate we want to test for interaction with the SNP. 
@@ -662,28 +636,31 @@ str(head(impute2_res_intx))
 ## Batch Example sangerCoxSurv
 Batch jobs for multiple analyses and different subsets are easy to implement using `gwasurvivr`. These types of analyses should be reserved for usage on a UNIX-based high performance computing cluster. This is facilitated by the package `batch`, which can internalize R variables from bash. First write an R script (e.g. `mysurvivalscript.R`) to pass in bash.
 
+**Note: it is important to refer to the Getting Started part of the manual for packages that need to be installed for this**
+
 ```{r, eval=FALSE}
 ## mysurvivalscript.R
 library(gwasurvivr)
 library(batch)
-library(dplyr)
-library(readr)
-parseCommandArgs(evaluate=TRUE)
+
+parseCommandArgs(evaluate=TRUE) # this is loaded in the batch package
 
 options("gwasurvivr.cores"=4)
-# recode sex column
-pheno.file <- pheno.file %>%
-        mutate(SexFemale=if_else(sex=="female", 1L, 0L))
-# select only experimental group
-sample.ids <- pheno.file %>%
-        filter(group=="experimental") %$%
-        ID_2 
 
+vcf.file <- system.file(package="gwasurvivr",
+                        "extdata", 
+                        vcf.file)
+pheno.fl <- system.file(package="gwasurvivr",
+                        "extdata", 
+                        pheno.file)
+pheno.file <- read.table(pheno.fl, sep=" ", header=TRUE, stringsAsFactors = FALSE)
+# recode sex column and remove first column 
+pheno.file$SexFemale <- ifelse(pheno.file$sex=="female", 1L, 0L)
+# select only experimental group sample.ids
+sample.ids <- pheno.file[pheno.file$group=="experimental",]$ID_2
 ## -- unlist the covariates 
 ## (refer below to the shell script as to why we are doing this)
-covariates <- covariates %>%
-        str_split("_") %>%
-        unlist()
+covariates <- unlist(sapply(covariates, strsplit, "_", 1, "[[")
 
 sangerCoxSurv(vcf.file=vcf.file,
               covariate.file=pheno.file,
@@ -694,7 +671,7 @@ sangerCoxSurv(vcf.file=vcf.file,
               covariates=covariates,
               inter.term=NULL,
               print.covs="only",
-              out.file="sanger_only",
+              out.file=out.file,
               info.filter=0.3,
               maf.filter=0.005,
               chunk.size=100,
@@ -706,15 +683,17 @@ Now we can run a shell script. This can be used well with manifest files to set 
 
 ```{bash, eval=FALSE}
 #!/bin/bash
-PATH=/path/to/dir/impute_chr
+DIRECTORY=/path/to/dir/impute_chr
 
-R --script ${PATH}/survival/code/mysurvivalscript.R -q --args \
-        vcf.file ${PATH}/chr14.vcf.gz \
-        pheno.file ${PATH}/phenotype_data/pheno.txt \
+module load R 
+
+R --script ${DIRECTORY}/survival/code/mysurvivalscript.R -q --args \
+        vcf.file ${DIRECTORY}/sanger.pbwt_reference_impute.vcf.gz \
+        pheno.file ${DIRECTORY}/phenotype_data/simulated_pheno.txt \
         covariates DrugTxYes_age_SexFemale\
         time.to.event time \
         event event \
-        out.file ${PATH}/survival/results/sanger_example_output
+        out.file ${DIRECTORY}/survival/results/sanger_example_output
 ```
 
 The file paths above are completely arbitrary and were just used as an example of how file structure may be and where desirable output would be stored.
