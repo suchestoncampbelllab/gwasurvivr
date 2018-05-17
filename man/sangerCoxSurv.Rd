@@ -2,7 +2,8 @@
 % Please edit documentation in R/sangerCoxSurv.R
 \name{sangerCoxSurv}
 \alias{sangerCoxSurv}
-\title{Fit cox survival to all variants in a .vcf.gz file from Sanger imputation server}
+\title{Fit Cox survival to all variants in a .vcf.gz file from Sanger imputation 
+ server}
 \usage{
 sangerCoxSurv(vcf.file, covariate.file, id.column, sample.ids = NULL,
   time.to.event, event, covariates, inter.term = NULL, print.covs = "only",
@@ -54,8 +55,8 @@ function. See details.}
 }
 \value{
 Saves two text files directly to disk:  
-\item{1. \code{.coxph} extension containing CoxPH survival analysis results.}  
-\item{2. \code{.snps_removed} extension containing SNPs that were removed
+\item{1.\code{.coxph} extension containing CoxPH survival analysis results.}  
+\item{2.\code{.snps_removed} extension containing SNPs that were removed
  due to low variance or user-defined thresholds.}
 }
 \description{
