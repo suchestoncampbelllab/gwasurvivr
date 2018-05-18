@@ -12,9 +12,9 @@ author:
 package: gwasurvivr
 date: '`r format(Sys.Date(), "%B %d, %Y")`'
 output: 
+  BiocStyle::pdf_document: default
   BiocStyle::html_document:
     toc_float: true
-  BiocStyle::pdf_document: default
 vignette: >
   %\VignetteIndexEntry{gwasurvivr Vignette}
   %\VignetteEncoding{UTF-8}
