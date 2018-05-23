@@ -21,8 +21,6 @@ Suggests:
     knitr,
     rmarkdown,
     magrittr
-Depends:
-    R
 License: Artistic-2.0
 URL: https://github.com/suchestoncampbelllab/gwasurvivr
 biocViews: 
