@@ -694,7 +694,7 @@ sangerCoxSurv(vcf.file=vcf.file,
 
 Now we can run a shell script. This can be used well with manifest files to set up multiple runs with different outcomes and different subsets of samples. We define a manifest file has columns that corresond to the functions that the user wants to pass and each row is a separate analysis that a user may want to run. The covariates are separated by an underscore (`"_"`). This is so it can be passed properly, and also why we used `str_split` to split the covariates. 
 
-```{bash, eval=FALSE}
+```{r, eval=FALSE}
 #!/bin/bash
 DIRECTORY=/path/to/dir/impute_chr
 
