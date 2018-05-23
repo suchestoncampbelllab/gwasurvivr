@@ -12,9 +12,9 @@ author:
 package: gwasurvivr
 date: '`r format(Sys.Date(), "%B %d, %Y")`'
 output: 
-  BiocStyle::pdf_document: default
   BiocStyle::html_document:
     toc_float: true
+  BiocStyle::pdf_document: default
 vignette: >
   %\VignetteIndexEntry{gwasurvivr Vignette}
   %\VignetteEncoding{UTF-8}
@@ -240,8 +240,12 @@ vcf.file <- system.file(package="gwasurvivr",
 pheno.fl <- system.file(package="gwasurvivr",
                         "extdata", 
                         "simulated_pheno.txt")
-pheno.file <- read.table(pheno.fl, sep=" ", header=TRUE, stringsAsFactors = FALSE)
+pheno.file <- read.table(pheno.fl,
+                         sep=" ", 
+                         header=TRUE,
+                         stringsAsFactors = FALSE)
 head(pheno.file)
+
 # recode sex column and remove first column 
 pheno.file$SexFemale <- ifelse(pheno.file$sex=="female", 1L, 0L)
 # select only experimental group sample.ids
@@ -382,7 +386,10 @@ vcf.file <- system.file(package="gwasurvivr",
 pheno.fl <- system.file(package="gwasurvivr",
                         "extdata", 
                         "simulated_pheno.txt")
-pheno.file <- read.table(pheno.fl, sep=" ", header=TRUE, stringsAsFactors = FALSE)
+pheno.file <- read.table(pheno.fl,
+                         sep=" ",
+                         header=TRUE,
+                         stringsAsFactors = FALSE)
 head(pheno.file)
 # recode sex column and remove first column 
 pheno.file$SexFemale <- ifelse(pheno.file$sex=="female", 1L, 0L)
@@ -511,7 +518,10 @@ sample.file <- system.file(package="gwasurvivr",
 covariate.file <- system.file(package="gwasurvivr", 
                               "extdata",
                               "simulated_pheno.txt")
-covariate.file <- read.table(covariate.file, sep=" ", header=TRUE, stringsAsFactors = FALSE)
+covariate.file <- read.table(covariate.file, 
+                             sep=" ",
+                             header=TRUE,
+                             stringsAsFactors = FALSE)
 covariate.file$SexFemale <- ifelse(covariate.file$sex=="female", 1L, 0L)
 sample.ids <- covariate.file[covariate.file$group=="experimental",]$ID_2
 ```
@@ -653,14 +663,17 @@ vcf.file <- system.file(package="gwasurvivr",
 pheno.fl <- system.file(package="gwasurvivr",
                         "extdata", 
                         pheno.file)
-pheno.file <- read.table(pheno.fl, sep=" ", header=TRUE, stringsAsFactors = FALSE)
+pheno.file <- read.table(pheno.fl, 
+                         sep=" ",
+                         header=TRUE, 
+                         stringsAsFactors = FALSE)
 # recode sex column and remove first column 
 pheno.file$SexFemale <- ifelse(pheno.file$sex=="female", 1L, 0L)
 # select only experimental group sample.ids
 sample.ids <- pheno.file[pheno.file$group=="experimental",]$ID_2
 ## -- unlist the covariates 
 ## (refer below to the shell script as to why we are doing this)
-covariates <- unlist(sapply(covariates, strsplit, "_", 1, "[[")
+covariates <- unlist(sapply(covariates, strsplit, "_", 1, "[["))
 
 sangerCoxSurv(vcf.file=vcf.file,
               covariate.file=pheno.file,
