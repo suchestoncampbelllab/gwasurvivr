@@ -1,7 +1,7 @@
 Package: gwasurvivr
 Type: Package
 Title: GWAS survival analysis
-Version: 0.99.35
+Version: 0.99.36
 Author: Abbas Rizvi, Ezgi Karaesmen, Martin Morgan, Lara Sucheston-Campbell
 Maintainer: Abbas Rizvi <aarizv@gmail.com>
 Description: gwasurvivr is a package to perform survival analysis using Cox proportional hazard models on imputed genetic data.
@@ -21,6 +21,8 @@ Suggests:
     knitr,
     rmarkdown,
     magrittr
+Depends:
+    R (>= 3.4.0)
 License: Artistic-2.0
 URL: https://github.com/suchestoncampbelllab/gwasurvivr
 biocViews: 
