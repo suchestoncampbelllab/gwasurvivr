@@ -73,7 +73,7 @@ ID_1 ID_2 event time age DrugTxYes sex group
 72 SAMP72 1 4.43 58.38 0 female experimental
 73 SAMP73 0 12 37.32 0 male experimental
 74 SAMP74 0 6.7 40.93 0 male experimental
-75 SAMP75 1 -0.3 56.35 0 male experimental
+75 SAMP75 1 0.3 56.35 0 male experimental
 76 SAMP76 1 2.62 61.02 1 male experimental
 77 SAMP77 0 12 37.63 0 male control
 78 SAMP78 0 12 35.21 0 male control
@@ -91,7 +91,7 @@ ID_1 ID_2 event time age DrugTxYes sex group
 90 SAMP90 0 12 36.27 0 male experimental
 91 SAMP91 1 5.06 62.15 0 male experimental
 92 SAMP92 1 4.4 54.87 0 female experimental
-93 SAMP93 1 -0.92 61.29 0 female experimental
+93 SAMP93 1 0.92 61.29 0 female experimental
 94 SAMP94 1 5.73 53.45 0 male experimental
 95 SAMP95 1 5.86 56.78 1 female experimental
 96 SAMP96 1 2.75 57.67 0 male control
