@@ -147,13 +147,11 @@ kable(df)
 cols <- c("TYPED",
           "A0",
           "A1", 
-          "exp_freq_A1",
-          "INFO")
+          "exp_freq_A1")
 desc <- c("`---` is imputed, repeated RSID is typed",
           "Allele coded 0 in IMPUTE2",
           "Allele coded 1 in IMPUTE2",
-          "Expected allele frequency of alelle code A1",
-          "Imputation INFO score computed based on ratio of empircal and expected variance in dosage format")
+          "Expected allele frequency of alelle code A1")
 df <- cbind(cols, desc)
 colnames(df) <- c("Column", "Description")
 kable(df)
@@ -546,9 +544,8 @@ impute2CoxSurv(impute.file=impute.file,
                out.file="impute_example_only",
                chunk.size=100,
                maf.filter=0.005,
-               info.filter=0.3,
                flip.dosage=TRUE,
-               verbose=FALSE,
+               verbose=TRUE,
                clusterObj=NULL)
 ```
 
@@ -567,7 +564,6 @@ impute2CoxSurv(impute.file=impute.file,
                out.file=tempfile("impute_example_only"),
                chunk.size=100,
                maf.filter=0.005,
-               info.filter=0.3,
                flip.dosage=TRUE,
                verbose=TRUE,
                clusterObj=NULL)
@@ -602,7 +598,6 @@ impute2CoxSurv(impute.file=impute.file,
                out.file="impute_example_intx",
                chunk.size=100,
                maf.filter=0.005,
-               info.filter=0.3,
                flip.dosage=TRUE,
                verbose=FALSE,
                clusterObj=NULL)
@@ -623,7 +618,6 @@ impute2CoxSurv(impute.file=impute.file,
                out.file=tempfile("impute_example_intx"),
                chunk.size=100,
                maf.filter=0.005,
-               info.filter=0.3,
                flip.dosage=TRUE,
                verbose=FALSE,
                clusterObj=NULL)

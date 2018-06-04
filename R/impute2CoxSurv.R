@@ -30,9 +30,6 @@
 #' @param maf.filter numeric(1) to filter minor allele frequency
 #'  (i.e. choosing 0.05 means filtering MAF>0.05). User can set this to 
 #' \code{NULL} if no filtering is preffered. Default is 0.05.
-#' @param info.filter numeric(1) to filter imputation INFO score 
-#'  (i.e. choosing 0.7 means filtering info>0.7). Default is \code{NULL},
-#'  no filtering is set.
 #' @param flip.dosage logical(1) to flip which allele the dosage was
 #'  calculated on, default \code{flip.dosage=TRUE}
 #' @param verbose logical(1) for messages that describe which part of the
@@ -105,7 +102,6 @@
 #'               out.file="impute_example",
 #'               chunk.size=50,
 #'               maf.filter=0.005,
-#'               info.filter=0.3,
 #'               flip.dosage=TRUE,
 #'               verbose=TRUE,
 #'               clusterObj=NULL)  
@@ -133,7 +129,6 @@ impute2CoxSurv <- function(impute.file,
                            print.covs="only",
                            out.file,
                            chunk.size=10000,
-                           info.filter=0.3,
                            maf.filter=0.05,
                            flip.dosage=TRUE,
                            verbose=TRUE,
@@ -214,7 +209,8 @@ impute2CoxSurv <- function(impute.file,
               "exp_freq_A1",
               "SAMP_MAF",
               "INFO")
-    write.table( t(cols),
+    snps.rm.cols <- cols[cols != "INFO"]
+    write.table( t(snps.rm.cols),
                  paste0(out.file, ".snps_removed"),
                  row.names = FALSE,
                  col.names=FALSE,
@@ -243,6 +239,9 @@ impute2CoxSurv <- function(impute.file,
                                         cox.params$n.event,
                                         print.covs=print.covs)
                              )
+        
+        res.cols <- res.cols[res.cols != "INFO"]
+        
         write.table( t(res.cols),
                      paste0(out.file, ".coxph"),
                      row.names = FALSE,
@@ -264,6 +263,7 @@ impute2CoxSurv <- function(impute.file,
                                         print.covs=print.covs)
                              )
         
+        res.cols <- res.cols[res.cols != "INFO"]
         
         write.table(t(res.cols),
                     paste0(out.file, ".coxph"),
@@ -316,14 +316,15 @@ impute2CoxSurv <- function(impute.file,
                           1-snp$exp_freq_A1,
                           snp$exp_freq_A1
                           )
-        # calculate info score
-        obs.mean <- rowMeans2(genotypes)
-        obs.var <- rowVars(genotypes)
-        p <- obs.mean/2
-        p_all <- 2*p*(1-p)
-        info.score <- round(obs.var/p_all,3)
-        info.score[info.score>1] <- 1
-        snp$info <- info.score
+        # # calculate info score
+        # obs.mean <- rowMeans2(genotypes)
+        # obs.var <- rowVars(genotypes)
+        # p <- obs.mean/2
+        # p_all <- 2*p*(1-p)
+        # info.score <- round(obs.var/p_all,3)
+        # info.score[info.score>1] <- 1
+        snp$info <- 1
+        
         
         ### Check snps for MAF = 0  ###
         # remove snps with SD less than 1e-4
@@ -358,16 +359,16 @@ impute2CoxSurv <- function(impute.file,
                 }
                 
                 
-                if(!is.null(info.filter)){
-                    ok.info <- snp$info >= info.filter
-                    snp.drop <- rbind(snp.drop,snp[!ok.info,])
-                    snp <- snp[ok.info,]
-                    if(all(!ok.info)){
-                        stop("None of the SNPs pass the info threshold")
-                    }
-                    genotypes <- genotypes[ok.info,]
-                }
-                
+                # if(!is.null(info.filter)){
+                #     ok.info <- snp$info >= info.filter
+                #     snp.drop <- rbind(snp.drop,snp[!ok.info,])
+                #     snp <- snp[ok.info,]
+                #     if(all(!ok.info)){
+                #         stop("None of the SNPs pass the info threshold")
+                #     }
+                #     genotypes <- genotypes[ok.info,]
+                # }
+
                 
                 snp.cols <- c("snpID",
                               "TYPED",
@@ -388,10 +389,11 @@ impute2CoxSurv <- function(impute.file,
                              "A0", 
                              "A1", 
                              "exp_freq_A1",
-                             "SAMP_MAF",
-                             "INFO")
+                             "SAMP_MAF")
                 snp <- snp[, snp.ord]
+                
                 snp.drop <- snp.drop[, snp.ord]
+                
                 
                 write.table(snp.drop, 
                             paste0(out.file, ".snps_removed"),
@@ -437,6 +439,8 @@ impute2CoxSurv <- function(impute.file,
                                   cox.params$n.sample, 
                                   cox.params$n.event, 
                                   print.covs)
+                
+                res <- res[,colnames(res) != "INFO"]
                 
                 write.table(res, 
                             file=paste0(out.file, ".coxph"),

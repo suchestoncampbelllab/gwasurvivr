@@ -7,9 +7,8 @@ genotype imputation}
 \usage{
 impute2CoxSurv(impute.file, sample.file, chr, covariate.file, id.column,
   sample.ids = NULL, time.to.event, event, covariates, inter.term = NULL,
-  print.covs = "only", out.file, chunk.size = 10000, info.filter = 0.3,
-  maf.filter = 0.05, flip.dosage = TRUE, verbose = TRUE,
-  clusterObj = NULL)
+  print.covs = "only", out.file, chunk.size = 10000, maf.filter = 0.05,
+  flip.dosage = TRUE, verbose = TRUE, clusterObj = NULL)
 }
 \arguments{
 \item{impute.file}{character(1) of IMPUTE2 file}
@@ -47,10 +46,6 @@ the output. See details.}
 \item{out.file}{character(1) of output file name (do not include extension)}
 
 \item{chunk.size}{integer(1) number of variants to process per thread}
-
-\item{info.filter}{numeric(1) to filter imputation INFO score 
-(i.e. choosing 0.7 means filtering info>0.7). Default is \code{NULL},
-no filtering is set.}
 
 \item{maf.filter}{numeric(1) to filter minor allele frequency
  (i.e. choosing 0.05 means filtering MAF>0.05). User can set this to 
@@ -134,7 +129,6 @@ impute2CoxSurv(impute.file=impute.file,
               out.file="impute_example",
               chunk.size=50,
               maf.filter=0.005,
-              info.filter=0.3,
               flip.dosage=TRUE,
               verbose=TRUE,
               clusterObj=NULL)  
