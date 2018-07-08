@@ -60,7 +60,7 @@ coxVcfMichigan <- function(data,
             }
             
             if(!is.null(info.filter)){
-                ok.info <- snp$R2 >= info.filter
+                ok.info <- !is.na(snp$R2 >= info.filter)
                 snp.drop <- base::rbind(snp.drop,snp[!ok.info,])
                 snp <- snp[ok.info,]
                 if(all(!ok.info)) {
