@@ -1,7 +1,7 @@
 coxVcfMichigan <- function(data,
                            covariates,
                            maf.filter, 
-                           info.filter, 
+                           r2.filter, 
                            cox.params,
                            cl, 
                            inter.term, 
@@ -59,18 +59,18 @@ coxVcfMichigan <- function(data,
                 genotypes <- genotypes[ok.maf,]
             }
             
-            if(!is.null(info.filter)){
-                ok.info <- !is.na(snp$R2 >= info.filter)
-                snp.drop <- base::rbind(snp.drop,snp[!ok.info,])
-                snp <- snp[ok.info,]
-                if(all(!ok.info)) {
-                    stop("None of the SNPs pass the info threshold")
+            if(!is.null(r2.filter)){
+                ok.r2 <- !is.na(snp$R2 >= r2.filter)
+                snp.drop <- base::rbind(snp.drop,snp[!ok.r2,])
+                snp <- snp[ok.r2,]
+                if(all(!ok.r2)) {
+                    stop("None of the SNPs pass the R2 threshold")
                 }
-                genotypes <- genotypes[ok.info,]
+                genotypes <- genotypes[ok.r2,]
             }
             #############################################################
-            ########## clean and save dropped and kept SNP info #########
-            # rearrange columns for snp info
+            ########## clean and save dropped and kept SNP r2 #########
+            # rearrange columns for snp r2
             snp.cols <- c("RSID",
                           "CHR",
                           "POS", 
@@ -78,7 +78,7 @@ coxVcfMichigan <- function(data,
                           "ALT", 
                           "AF", 
                           "MAF", 
-                          "INFO",
+                          "R2",
                           "ER2",
                           "TYPED",
                           "SAMP_FREQ_ALT",
@@ -95,7 +95,7 @@ coxVcfMichigan <- function(data,
                          "MAF",
                          "SAMP_FREQ_ALT",
                          "SAMP_MAF",
-                         "INFO",
+                         "R2",
                          "ER2")
             snp <- snp[, snp.ord]
             snp.drop <- snp.drop[, snp.ord]

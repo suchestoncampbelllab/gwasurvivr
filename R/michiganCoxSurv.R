@@ -23,8 +23,8 @@
 #'  defining which covariate statistics should be printed to the output.
 #'   See details.
 #' @param sample.ids character vector with sample ids to include in analysis
-#' @param info.filter integer(1) of imputation quality
-#'  score filter (i.e. 0.7 will filter info > 0.7)
+#' @param r2.filter integer(1) of imputation quality
+#'  score filter (i.e. 0.7 will filter r2 > 0.7)
 #' @param maf.filter integer(1) filter out minor allele frequency below 
 #'  threshold (i.e. 0.005 will filter MAF > 0.005)
 #' @param chunk.size integer(1) number of variants to process per thread
@@ -91,7 +91,7 @@
 #'               inter.term=NULL,
 #'               print.covs="only",
 #'               out.file="michigan_example",
-#'               info.filter=0.3,
+#'               r2.filter=0.3,
 #'               maf.filter=0.005,
 #'               chunk.size=50,
 #'               verbose=TRUE,
@@ -118,7 +118,7 @@ michiganCoxSurv <- function(vcf.file,
                             print.covs="only",
                             out.file,
                             maf.filter=0.05,
-                            info.filter=NULL,
+                            r2.filter=NULL,
                             chunk.size=5000,
                             verbose=TRUE,
                             clusterObj=NULL){
@@ -167,7 +167,7 @@ michiganCoxSurv <- function(vcf.file,
     out.list <- coxVcfMichigan(data,
                                covariates, 
                                maf.filter, 
-                               info.filter, 
+                               r2.filter, 
                                cox.params,
                                cl,
                                inter.term,
@@ -216,7 +216,7 @@ michiganCoxSurv <- function(vcf.file,
         out.list <- coxVcfMichigan(data,
                                    covariates,
                                    maf.filter, 
-                                   info.filter,
+                                   r2.filter,
                                    cox.params,
                                    cl,
                                    inter.term, 

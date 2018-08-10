@@ -207,10 +207,8 @@ impute2CoxSurv <- function(impute.file,
               "A0",
               "A1",
               "exp_freq_A1",
-              "SAMP_MAF",
-              "INFO")
-    snps.rm.cols <- cols[cols != "INFO"]
-    write.table( t(snps.rm.cols),
+              "SAMP_MAF")
+    write.table( t(cols),
                  paste0(out.file, ".snps_removed"),
                  row.names = FALSE,
                  col.names=FALSE,
@@ -218,7 +216,7 @@ impute2CoxSurv <- function(impute.file,
                  quote = FALSE,
                  append = FALSE)
     
-    snp.df <- data.frame(t(rep(NA, 9)))
+    snp.df <- data.frame(t(rep(NA, 8)))
     colnames(snp.df) <- cols
     rownames(snp.df) <- NULL
     
@@ -240,8 +238,6 @@ impute2CoxSurv <- function(impute.file,
                                         print.covs=print.covs)
                              )
         
-        res.cols <- res.cols[res.cols != "INFO"]
-        
         write.table( t(res.cols),
                      paste0(out.file, ".coxph"),
                      row.names = FALSE,
@@ -262,8 +258,6 @@ impute2CoxSurv <- function(impute.file,
                                         cox.params$n.event, 
                                         print.covs=print.covs)
                              )
-        
-        res.cols <- res.cols[res.cols != "INFO"]
         
         write.table(t(res.cols),
                     paste0(out.file, ".coxph"),
@@ -316,16 +310,7 @@ impute2CoxSurv <- function(impute.file,
                           1-snp$exp_freq_A1,
                           snp$exp_freq_A1
                           )
-        # # calculate info score
-        # obs.mean <- rowMeans2(genotypes)
-        # obs.var <- rowVars(genotypes)
-        # p <- obs.mean/2
-        # p_all <- 2*p*(1-p)
-        # info.score <- round(obs.var/p_all,3)
-        # info.score[info.score>1] <- 1
-        snp$info <- 1
-        
-        
+
         ### Check snps for MAF = 0  ###
         # remove snps with SD less than 1e-4
         # to put this in perspective:
@@ -357,19 +342,7 @@ impute2CoxSurv <- function(impute.file,
                     }
                     genotypes <- genotypes[ok.maf,]
                 }
-                
-                
-                # if(!is.null(info.filter)){
-                #     ok.info <- snp$info >= info.filter
-                #     snp.drop <- rbind(snp.drop,snp[!ok.info,])
-                #     snp <- snp[ok.info,]
-                #     if(all(!ok.info)){
-                #         stop("None of the SNPs pass the info threshold")
-                #     }
-                #     genotypes <- genotypes[ok.info,]
-                # }
 
-                
                 snp.cols <- c("snpID",
                               "TYPED",
                               "RSID",
@@ -378,8 +351,7 @@ impute2CoxSurv <- function(impute.file,
                               "A1",
                               "CHR",
                               "exp_freq_A1",
-                              "SAMP_MAF",
-                              "INFO")
+                              "SAMP_MAF")
                 colnames(snp) <- snp.cols
                 colnames(snp.drop) <- snp.cols
                 snp.ord <- c("RSID",
@@ -439,8 +411,6 @@ impute2CoxSurv <- function(impute.file,
                                   cox.params$n.sample, 
                                   cox.params$n.event, 
                                   print.covs)
-                
-                res <- res[,colnames(res) != "INFO"]
                 
                 write.table(res, 
                             file=paste0(out.file, ".coxph"),

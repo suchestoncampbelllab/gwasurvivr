@@ -53,7 +53,7 @@ All three functions require the following main arguments:
 * `covariates`: Character vector with contains column names in covariate.file of covariates to include in model
 * `out.file`: A character string giving output file name
 
-Further arguments can be passed depending on the user preference. For example, user can define minor allele frequency (MAF) or info score threshold to filter out SNPs that have low MAF or info score to avoid false-positive signals and to reduce computing time. User can also define a subset of samples to be analyzed by providing the set of sample IDs. Users can also control how chunk size -- the number of rows (SNPs) to include for each iteration. 
+Further arguments can be passed depending on the user preference. For example, user can define minor allele frequency (MAF) or info/R2 score threshold to filter out SNPs that have low MAF or info/R2 score to avoid false-positive signals and to reduce computing time. User can also define a subset of samples to be analyzed by providing the set of sample IDs. Users can also control how chunk size -- the number of rows (SNPs) to include for each iteration. 
 
 **IMPORTANT: In the `covariate.file`, categorical variables need to be converted to indicator (dummy) variables and be of class `numeric`. Ordinal variables represented as characters, ie "low", "medium" and "high" should be converted to the appropriate numeric values as well.**
 
@@ -105,18 +105,18 @@ kable(df)
 ```
 
 The software specific fields are summarized below:  
-1. `michiganCoxSurv` unique output columns are AF, MAF, INFO, ER2. They are summarized below.  
+1. `michiganCoxSurv` unique output columns are AF, MAF, R2, ER2. They are summarized below.  
 
 ```{r, echo=FALSE}
 cols <- c("TYPED",
           "AF", 
           "MAF",
-          "INFO",
+          "R2",
           "ER2")
 desc <- c("Imputation status: TRUE (SNP IS TYPED)/FALSE (SNP IS IMPUTED)",
           "Minimac3 output Alternate Allele Frequency",
           "Minimac3 output of Minor Allele Frequency",
-          "Imputation INFO score (minimac3 $R^2$)",
+          "Imputation R2 score (minimac3 $R^2$)",
           "Minimac3 ouput empirical $R^2$")
 df <- cbind(cols, desc)
 colnames(df) <- c("Column", "Description")
@@ -160,10 +160,18 @@ kable(df)
 More statistics can be printed out by invoking the `print.covs` argument and setting it to `print.covs=all` (single SNP/SNP\*covariate interaction) or `print.covs=some` (SNP\*covariate ineraction). These options are available mainly for modeling purposes (covariate selection) and aren't suggested for very large analyses as it will greatly increase the number of columns in the output, depending on how many covariates users are adjusting for. 
 
 # Getting started
-Install `gwasurvivr` from the [Sucheston-Campbell Lab Github repository](http://github.com/suchestoncampbelllab/gwasurvivr) using `devtools`.
+Install `gwasurvivr` from the [Sucheston-Campbell Lab Github repository](http://github.com/suchestoncampbelllab/gwasurvivr) using `devtools`. 
 
 ```{r, eval=FALSE}
 devtools::install_github("suchestoncampbelllab/gwasurvivr")
+```
+
+Or please install from the `devel` branch of Bioconductor (R version >= 3.5)
+
+```{r, eval=FALSE}
+if (!requireNamespace("BiocManager", quietly=TRUE))
+    install.packages("BiocManager")
+BiocManager::install("gwasurvivr", version = "devel")    
 ```
 
 ## Dependencies
@@ -275,7 +283,7 @@ michiganCoxSurv(vcf.file=vcf.file,
                 inter.term=NULL,
                 print.covs="only",
                 out.file="michigan_only",
-                info.filter=0.3,
+                r2.filter=0.3,
                 maf.filter=0.005,
                 chunk.size=100,
                 verbose=TRUE,
@@ -294,7 +302,7 @@ michiganCoxSurv(vcf.file=vcf.file,
                 inter.term=NULL,
                 print.covs="only",
                 out.file=tempfile("michigan_only"),
-                info.filter=0.3,
+                r2.filter=0.3,
                 maf.filter=0.005,
                 chunk.size=100,
                 verbose=TRUE,
@@ -331,7 +339,7 @@ michiganCoxSurv(vcf.file=vcf.file,
                 inter.term="DrugTxYes",
                 print.covs="only",
                 out.file="michigan_intx_only",
-                info.filter=0.3,
+                r2.filter=0.3,
                 maf.filter=0.005,
                 chunk.size=100,
                 verbose=FALSE,
@@ -349,7 +357,7 @@ michiganCoxSurv(vcf.file=vcf.file,
                 inter.term="DrugTxYes",
                 print.covs="only",
                 out.file=tempfile("michigan_intx_only"),
-                info.filter=0.3,
+                r2.filter=0.3,
                 maf.filter=0.005,
                 chunk.size=100,
                 verbose=FALSE,
