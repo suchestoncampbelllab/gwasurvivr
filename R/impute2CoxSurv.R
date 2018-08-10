@@ -176,7 +176,7 @@ impute2CoxSurv <- function(impute.file,
                       file.type="gds",
                       snp.annot.filename = snpfile,
                       scan.annot.filename = scanfile,
-                      verbose=FALSE)
+                      verbose=TRUE)
     
     # read genotype
     ## need to add if statement about dimensions
