@@ -7,7 +7,7 @@
 \usage{
 michiganCoxSurv(vcf.file, covariate.file, id.column, sample.ids = NULL,
   time.to.event, event, covariates, inter.term = NULL, print.covs = "only",
-  out.file, maf.filter = 0.05, info.filter = NULL, chunk.size = 5000,
+  out.file, maf.filter = 0.05, r2.filter = NULL, chunk.size = 5000,
   verbose = TRUE, clusterObj = NULL)
 }
 \arguments{
@@ -44,8 +44,8 @@ defining which covariate statistics should be printed to the output.
 \item{maf.filter}{integer(1) filter out minor allele frequency below 
 threshold (i.e. 0.005 will filter MAF > 0.005)}
 
-\item{info.filter}{integer(1) of imputation quality
-score filter (i.e. 0.7 will filter info > 0.7)}
+\item{r2.filter}{integer(1) of imputation quality
+score filter (i.e. 0.7 will filter r2 > 0.7)}
 
 \item{chunk.size}{integer(1) number of variants to process per thread}
 
@@ -116,7 +116,7 @@ michiganCoxSurv(vcf.file=vcf.file,
               inter.term=NULL,
               print.covs="only",
               out.file="michigan_example",
-              info.filter=0.3,
+              r2.filter=0.3,
               maf.filter=0.005,
               chunk.size=50,
               verbose=TRUE,
