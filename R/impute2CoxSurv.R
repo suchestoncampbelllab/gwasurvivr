@@ -406,10 +406,10 @@ impute2CoxSurv <- function(impute.file,
                     }
                 }   
                 
-                res <- coxExtract(cox.out,
+                res <- coxExtract(cox.out$res,
                                   snp,
-                                  cox.params$n.sample, 
-                                  cox.params$n.event, 
+                                  cox.out$n.sample, 
+                                  cox.out$n.event, 
                                   print.covs)
                 
                 write.table(res, 

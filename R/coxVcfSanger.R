@@ -134,10 +134,10 @@ coxVcfSanger <- function(data,
             }
             #############################################
             sanger.out <- list(dropped.snps=snp.drop)
-            sanger.out$res <- coxExtract(cox.out,
+            sanger.out$res <- coxExtract(cox.out$res,
                                          snp, 
-                                         cox.params$n.sample, 
-                                         cox.params$n.event, 
+                                         cox.out$n.sample, 
+                                         cox.out$n.event, 
                                          print.covs)
             return(sanger.out)
         },

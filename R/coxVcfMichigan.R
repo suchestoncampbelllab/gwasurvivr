@@ -132,10 +132,10 @@ coxVcfMichigan <- function(data,
             }
             #############################################
             michigan.out <- list(dropped.snps=snp.drop)
-            michigan.out$res <- coxExtract(cox.out,
+            michigan.out$res <- coxExtract(cox.out$res,
                                            snp,
-                                           cox.params$n.sample,
-                                           cox.params$n.event,
+                                           cox.out$n.sample,
+                                           cox.out$n.event,
                                            print.covs)
             return(michigan.out)
         },
