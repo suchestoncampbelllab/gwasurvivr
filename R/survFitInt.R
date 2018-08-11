@@ -7,9 +7,14 @@ survFitInt <- function(SNP,
     X <- cbind(INTER.TERM=cox.params$pheno.file[,cov.interaction]*SNP,
                SNP,
                cox.params$pheno.file)
+    
+    ## remove NA samples in genotype data
+    X <- X[!is.na(SNP),]
+    Y <- cox.params$Y[!is.na(SNP)]
+    
     ## run fit with pre-defined parameters including INIT
     fit <- coxph.fit(X,
-                     cox.params$Y,
+                     Y,
                      cox.params$STRATA,
                      cox.params$OFFSET,
                      c(0,cox.params$INIT), 
@@ -22,7 +27,10 @@ survFitInt <- function(SNP,
         coef <- fit$coefficients[1]
         serr <- sqrt(diag(fit$var)[1])
         res <- cbind(coef, serr)
-        return(res)
+        n.sample <- length(Y)
+        n.event <- sum(!grepl("[+]", as.character(Y)))
+        return(list(res=res, n.sample=n.sample, n.event=n.event))
+        
     } else if(print.covs=="some"){
         coef <- fit$coefficients
         serr <- sqrt(diag(fit$var))
@@ -38,7 +46,10 @@ survFitInt <- function(SNP,
                         paste(toupper(res.names[[2]][2]),
                               res.names[[1]], 
                               sep="_"))
-        return(res)
+        n.sample <- length(Y)
+        n.event <- sum(!grepl("[+]", as.character(Y)))
+        return(list(res=res, n.sample=n.sample, n.event=n.event))
+        
     } else if(print.covs=="all"){
         coef <- fit$coefficients
         serr <- sqrt(diag(fit$var))
@@ -51,6 +62,8 @@ survFitInt <- function(SNP,
                         paste(toupper(res.names[[2]][2]),
                               res.names[[1]],
                               sep="_"))
-        return(res)
+        n.sample <- length(Y)
+        n.event <- sum(!grepl("[+]", as.character(Y)))
+        return(list(res=res, n.sample=n.sample, n.event=n.event))
     }
 }
