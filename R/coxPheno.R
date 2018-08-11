@@ -17,6 +17,9 @@ coxPheno <- function(pheno.file,
     if(!is.null(sample.ids)){
         # only keep samples given with sample.ids argument
         pheno.file <- pheno.file[pheno.file[[id.column]] %in% sample.ids,]
+        if(nrow(pheno.file) < 1) {
+            stop("Your input ID column is incorrect 
+                 or none of the provided sample IDs are present in the data.")}
     }
     
 
