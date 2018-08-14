@@ -290,6 +290,8 @@ impute2CoxSurv <- function(impute.file,
 
     for(i in seq_len(nchunks)){
         
+        if(verbose) message("Analyzing part ", i, "/", nchunks, "...")
+        
         # set up chunks
         next.chunk <- (i-1)*chunk.size
         next.chunk.start <- snp.start + next.chunk
