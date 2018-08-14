@@ -1,4 +1,4 @@
-coxExtract <- function(cox.out, snp, n.sample, n.event, print.covs="only"){
+coxExtract <- function(cox.out, snp, print.covs="only"){
     if(print.covs == "only"){
         # calculate z-score
         z <- cox.out[,1]/cox.out[,2]
@@ -10,16 +10,16 @@ coxExtract <- function(cox.out, snp, n.sample, n.event, print.covs="only"){
         lowerCI <- exp(cox.out[,1]-1.96*cox.out[,2])
         upperCI <- exp(cox.out[,1]+1.96*cox.out[,2])
         # putting everything back together
-        sres <- cbind(pval, hr, lowerCI, upperCI, cox.out, z, n.sample, n.event)
+        sres <- cbind(pval, hr, lowerCI, upperCI, z, cox.out)
         colnames(sres) <- c("PVALUE",
                             "HR",
                             "HR_lowerCI", 
                             "HR_upperCI",
+                            "Z",
                             "COEF",
                             "SE.COEF",
-                            "Z",
                             "N", 
-                            "NEVENT")
+                            "N.EVENT")
         rownames(sres) <- NULL 
     } else {
         cox.cols <- colnames(cox.out)
@@ -60,10 +60,8 @@ coxExtract <- function(cox.out, snp, n.sample, n.event, print.covs="only"){
                       hr,
                       lowerCI,
                       upperCI,
-                      cox.out,
                       z,
-                      N=n.sample,
-                      NEVENT=n.event)
+                      cox.out)
         rownames(sres) <- NULL
     }
     data.frame(cbind(snp,sres))
