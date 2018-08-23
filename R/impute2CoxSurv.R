@@ -248,6 +248,8 @@ impute2CoxSurv <- function(impute.file,
     }
     
     on.exit(unlink(c(gdsfile, snpfile, scanfile), recursive = TRUE), add=TRUE)
+    
+    comp_time <- system.time(
     imputedDosageFile(input.files=c(impute.file, sample.file),
                       filename=gdsfile,
                       chromosome=as.numeric(chr),
@@ -257,6 +259,14 @@ impute2CoxSurv <- function(impute.file,
                       snp.annot.filename = snpfile,
                       scan.annot.filename = scanfile,
                       verbose=TRUE)
+    )
+    
+    message("***** Compression time ******\n", 
+            "User:", round(comp_time[1], 3),
+            "\nSystem: ", round(comp_time[2], 3),
+            "\nElapsed: ", round(comp_time[3], 3), 
+            "\n*****************************"
+                )
     ############################################################################
     
     ############################################################################
