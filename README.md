@@ -153,10 +153,11 @@ Bioconductor packages:
 
 
 ```r
-source("https://bioconductor.org/biocLite.R")
-biocLite("GWASTools")
-biocLite("VariantAnnotation")
-biocLite("SummarizedExperiment")
+if (!requireNamespace("BiocManager", quietly=TRUE))
+    install.packages("BiocManager")
+BiocManager::install("GWASTools")
+BiocManager::install("VariantAnnotation")
+BiocManager::install("SummarizedExperiment")
 ```
 
 Load `gwasurvivr`.
