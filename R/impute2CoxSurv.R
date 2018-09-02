@@ -211,13 +211,13 @@ impute2CoxSurv <- function(impute.file,
                      append = FALSE)
     }
     
-
+    
     ############################################################################
     
     ############################################################################
     ##### Generate cluster obj #################################################
     
-    # create cluster object depending on user pref or OS type,
+    #create cluster object depending on user pref or OS type,
     # also create option to input number of cores
     if(!is.null(clusterObj)){
         cl <- clusterObj
@@ -341,7 +341,7 @@ impute2CoxSurv <- function(impute.file,
         
         # assign rsIDs (pasted with imputation status) as rows 
         # and sample ID as columns to genotype file
-        dimnames(genotypes) <- list(paste(snp$snp, snp$rsID, sep=";"), 
+        dimnames(genotypes) <- list(paste(snp$TYPED, snp$RSID, sep=";"), 
                                     scanAnn$ID_2)
         
         # Subset genotypes by given samples
@@ -351,8 +351,8 @@ impute2CoxSurv <- function(impute.file,
         if(flip.dosage) genotypes <- 2 - genotypes
     ########################################################################
         
-    ########################################################################
-    ##### SNP info and filtering ###########################################
+    ###############################################################
+    ##### SNP filtering ###########################################
         
         ### Check snps for MAF = 0  ###
         # remove snps with SD less than 1e-4
@@ -399,7 +399,7 @@ impute2CoxSurv <- function(impute.file,
                 append = TRUE )
             snp.drop.n <- snp.drop.n+nrow(snp.drop)
         }
-        
+
         if (nrow(genotypes) > 0) {
             # fit models in parallel
             if (is.null(inter.term)) {
@@ -414,6 +414,7 @@ impute2CoxSurv <- function(impute.file,
                             print.covs = print.covs
                         )
                     )
+                    
                 } else if(is.numeric(genotypes)) {
                     cox.out <- survFit(genotypes,
                                        cox.params = cox.params,
@@ -432,6 +433,8 @@ impute2CoxSurv <- function(impute.file,
                             print.covs = print.covs
                         )
                     )
+            
+                    
                 } else if(is.numeric(genotypes)) {
                     cox.out <- survFitInt(
                         genotypes,
@@ -459,6 +462,8 @@ impute2CoxSurv <- function(impute.file,
             snp.n <- nrow(genotypes) + snp.n
             
         }
+    
+        
         
     }
     
