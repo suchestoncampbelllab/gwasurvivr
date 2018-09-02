@@ -2,10 +2,12 @@
 
 export(impute2CoxSurv)
 export(michiganCoxSurv)
+export(plinkCoxSurv)
 export(sangerCoxSurv)
 import(GWASTools)
 import(VariantAnnotation)
 import(parallel)
+importFrom(SNPRelate,snpgdsBED2GDS)
 importFrom(SummarizedExperiment,rowRanges)
 importFrom(matrixStats,rowMeans2)
 importFrom(matrixStats,rowSds)
