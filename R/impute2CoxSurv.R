@@ -132,7 +132,7 @@ impute2CoxSurv <- function(impute.file,
                            maf.filter=0.05,
                            flip.dosage=TRUE,
                            verbose=TRUE,
-                           clusterObj=NULL,
+                           ncores=NULL,
                            keepGDS=FALSE
                            )
 {
@@ -211,6 +211,19 @@ impute2CoxSurv <- function(impute.file,
                      append = FALSE)
     }
     
+    
+    
+    
+    if(!is.null(ncores)){
+        ncores <- 6
+    } else {
+        options(MulticoreParam=quote(MulticoreParam(workers=2L)))
+
+    }
+    
+    param <- SnowParam(workers = ncores, type = "SOCK")
+    
+#    on.exit(stopCluster(cl), add=TRUE)
 
     ############################################################################
     
@@ -219,14 +232,14 @@ impute2CoxSurv <- function(impute.file,
     
     # create cluster object depending on user pref or OS type,
     # also create option to input number of cores
-    if(!is.null(clusterObj)){
-        cl <- clusterObj
-    }else if(.Platform$OS.type == "unix") {
-        cl <- makeForkCluster(getOption("gwasurvivr.cores", 2L))
-    } else {
-        cl <- makeCluster(getOption("gwasurvivr.cores", 2L))
-    }
-    on.exit(stopCluster(cl), add=TRUE)
+    # if(!is.null(clusterObj)){
+    #     cl <- clusterObj
+    # }else if(.Platform$OS.type == "unix") {
+    #     cl <- makeForkCluster(getOption("gwasurvivr.cores", 2L))
+    # } else {
+    #     cl <- makeCluster(getOption("gwasurvivr.cores", 2L))
+    # }
+    # on.exit(stopCluster(cl), add=TRUE)
     
     ############################################################################
     
@@ -340,7 +353,7 @@ impute2CoxSurv <- function(impute.file,
         
         # assign rsIDs (pasted with imputation status) as rows 
         # and sample ID as columns to genotype file
-        dimnames(genotypes) <- list(paste(snp$snp, snp$rsID, sep=";"), 
+        dimnames(genotypes) <- list(paste(snp$TYPED, snp$RSID, sep=";"), 
                                     scanAnn$ID_2)
         
         # Subset genotypes by given samples
@@ -350,8 +363,8 @@ impute2CoxSurv <- function(impute.file,
         if(flip.dosage) genotypes <- 2 - genotypes
     ########################################################################
         
-    ########################################################################
-    ##### SNP info and filtering ###########################################
+    ###############################################################
+    ##### SNP filtering ###########################################
         
         ### Check snps for MAF = 0  ###
         # remove snps with SD less than 1e-4
@@ -371,6 +384,8 @@ impute2CoxSurv <- function(impute.file,
                           1-snp$exp_freq_A1,
                           snp$exp_freq_A1
                           )
+
+        
 
         # Further filter by user defined thresholds
         if (!is.null(maf.filter)) {
@@ -399,20 +414,50 @@ impute2CoxSurv <- function(impute.file,
             snp.drop.n <- snp.drop.n+nrow(snp.drop)
         }
         
+        
+        
+        
+        array_split <- function(data, number_of_chunks) {
+            rowIdx <- seq_len(nrow(data))
+            lapply(split(rowIdx, cut(rowIdx, pretty(rowIdx, number_of_chunks))), function(x) data[x, ])
+        }
+        
+        geno <- array_split(data=genotypes, number_of_chunks=ncores*10)
+        
+        genoFun <- function(i, x, cox.params, print.covs) {
+            t(apply(x[[i]], 1L, FUN=gwasurvivr:::survFit, cox.params, print.covs))}
+        
+        genoFunInt <- function(i, x,  cox.params, cov.interaction, print.covs) {
+            t(apply(x[[i]], 1L, FUN=gwasurvivr:::survFitInt, cox.params,  cov.interaction, print.covs))}
+        
+        
+       
+        
+        
         if (nrow(genotypes) > 0) {
             # fit models in parallel
             if (is.null(inter.term)) {
                 if (is.matrix(genotypes)) {
-                    cox.out <- t(
-                        parallel::parApply(
-                            cl = cl,
-                            X = genotypes,
-                            MARGIN = 1,
-                            FUN = survFit,
-                            cox.params = cox.params,
-                            print.covs = print.covs
-                        )
-                    )
+                    # cox.out <- t(
+                    #     parallel::parApply(
+                    #         cl = cl,
+                    #         X = genotypes,
+                    #         MARGIN = 1,
+                    #         FUN = survFit,
+                    #         cox.params = cox.params,
+                    #         print.covs = print.covs
+                    #     )
+                    # )
+                    cox.out <- bplapply(1:length(geno),
+                                        FUN=genoFun, 
+                                        x=geno, 
+                                        cox.params=cox.params,
+                                        print.covs=print.covs,
+                                        BPPARAM = param)
+                    
+                    cox.out <- do.call("rbind", cox.out)
+                    
+                    
                 } else if(is.numeric(genotypes)) {
                     cox.out <- survFit(genotypes,
                                        cox.params = cox.params,
@@ -420,17 +465,28 @@ impute2CoxSurv <- function(impute.file,
                 }
             } else if (inter.term %in% covariates) {
                 if (is.matrix(genotypes)) {
-                    cox.out <- t(
-                        parApply(
-                            cl = cl,
-                            X = genotypes,
-                            MARGIN = 1,
-                            FUN = survFitInt,
-                            cox.params = cox.params,
-                            cov.interaction = inter.term,
-                            print.covs = print.covs
-                        )
-                    )
+                    # cox.out <- t(
+                    #     parApply(
+                    #         cl = cl,
+                    #         X = genotypes,
+                    #         MARGIN = 1,
+                    #         FUN = survFitInt,
+                    #         cox.params = cox.params,
+                    #         cov.interaction = inter.term,
+                    #         print.covs = print.covs
+                    #     )
+                    # )
+                    cox.out <- bplapply(1:length(geno),
+                                        FUN=genoFunInt, 
+                                        x=geno, 
+                                        cox.params=cox.params,
+                                        cov.interaction=inter.term,
+                                        print.covs=print.covs,
+                                        BPPARAM = param)
+                    
+                    cox.out <- do.call("rbind", cox.out)
+                    
+                    
                 } else if(is.numeric(genotypes)) {
                     cox.out <- survFitInt(
                         genotypes,
@@ -458,6 +514,8 @@ impute2CoxSurv <- function(impute.file,
             snp.n <- nrow(genotypes) + snp.n
             
         }
+    
+        
         
     }
     
