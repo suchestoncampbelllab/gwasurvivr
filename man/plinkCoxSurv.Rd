@@ -5,10 +5,9 @@
 \title{Fit Cox survival to all variants from PLINK binary files (.BED, .BIM, .FAM)}
 \usage{
 plinkCoxSurv(b.file, covariate.file, id.column, sample.ids = NULL,
-  time.to.event, event, covariates, inter.term = NULL,
-  print.covs = "only", out.file, chunk.size = 10000,
-  maf.filter = 0.005, flip.dosage = TRUE, verbose = TRUE,
-  clusterObj = NULL, keepGDS = FALSE)
+  time.to.event, event, covariates, inter.term = NULL, print.covs = "only",
+  out.file, chunk.size = 10000, maf.filter = 0.005, flip.dosage = TRUE,
+  verbose = TRUE, clusterObj = NULL, keepGDS = FALSE)
 }
 \arguments{
 \item{b.file}{character(1) of name of plink files without extension}
