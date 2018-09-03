@@ -127,6 +127,11 @@ gdsCoxSurv <- function(gdsfile,
                        verbose = TRUE,
                        clusterObj = NULL)
 {
+    if (verbose) message("Analysis started on ",
+                         format(Sys.time(), "%Y-%m-%d"),
+                         " at ", 
+                         format(Sys.time(), "%H:%M:%S"))
+    
     ############################################################################
     #### Phenotype data wrangling ##############################################
     cox.params <- coxPheno(covariate.file,
