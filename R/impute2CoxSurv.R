@@ -4,7 +4,7 @@
 #' Performs survival analysis using Cox proportional hazard models on imputed
 #' genetic data from IMPUTE2 output
 #'
-#' @param impute.file character(1) of IMPUTE2 file 
+#' @param impute.file character(1) of IMPUTE2 file
 #' @param sample.file character(1) of sample file affiliated with IMPUTE2 file
 #' @param chr numeric(1) denoting chromosome number
 #' @param covariate.file data.frame(1) comprising phenotype information, all 
@@ -27,6 +27,7 @@
 #'  the output. See details.
 #' @param out.file character(1) of output file name (do not include extension) 
 #' @param chunk.size integer(1) number of variants to process per thread
+#' @param exclude.snps a character vector listing the rsIDs of SNPs that will be excluded from analyses
 #' @param maf.filter numeric(1) to filter minor allele frequency
 #'  (i.e. choosing 0.05 means filtering MAF>0.05). User can set this to 
 #' \code{NULL} if no filtering is preffered. Default is 0.05.
@@ -121,7 +122,7 @@ impute2CoxSurv <- function(impute.file,
                            chr,
                            covariate.file,
                            id.column,
-                           sample.ids=NULL, 
+                           sample.ids=NULL,
                            time.to.event, 
                            event,
                            covariates,
@@ -130,6 +131,7 @@ impute2CoxSurv <- function(impute.file,
                            out.file,
                            chunk.size=10000,
                            maf.filter=0.05,
+                           exclude.snps=NULL,
                            flip.dosage=TRUE,
                            verbose=TRUE,
                            clusterObj=NULL,
@@ -345,8 +347,14 @@ impute2CoxSurv <- function(impute.file,
                                     scanAnn$ID_2)
         
         # Subset genotypes by given samples
-        genotypes <- genotypes[,cox.params$ids]
-        
+
+        if(is.null(exclude.snps)){
+            genotypes <- genotypes[,cox.params$ids]
+        } else {
+            genotypes <- genotypes[!snp$RSID %in% exclude.snps,cox.params$ids]
+            snp <- snp[! snp$RSID %in% exclude.snps, ]
+            if(verbose) message(length(exclude.snps), " SNPs are excluded based on the exclusion list provided by the user")
+        }
         # flip dosage
         if(flip.dosage) genotypes <- 2 - genotypes
     ########################################################################
