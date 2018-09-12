@@ -3,33 +3,33 @@
 #' Performs survival analysis using Cox proportional hazard models on directly 
 #' typed data in PLINK format
 #'
-#' @param b.file character(1) of name of plink files without extension 
-#' @param covariate.file data.frame(1) comprising phenotype information, all 
+#' @param b.file character of name of plink files without extension 
+#' @param covariate.file data.frame comprising phenotype information, all 
 #'  covariates to be added in the model must be numeric.
-#' @param id.column character(1) giving the name of the ID column
+#' @param id.column character giving the name of the ID column
 #'  in covariate.file.
-#' @param sample.ids character(1) vector of sample IDs to keep in
+#' @param sample.ids character vector of sample IDs to keep in
 #'  survival analysis
-#' @param time.to.event character(1) of column name in covariate.file that
+#' @param time.to.event character of column name in covariate.file that
 #'  represents the time interval of interest in the analysis
-#' @param event character(1) of column name in covariate.file that represents
+#' @param event character of column name in covariate.file that represents
 #'  the event of interest to be included in the analysis
-#' @param covariates character(1) vector with exact names of columns in
+#' @param covariates character vector with exact names of columns in
 #'  covariate.file to include in analysis
-#' @param inter.term character(1) string giving the column name of the covariate
+#' @param inter.term character string giving the column name of the covariate
 #'  that will be added to the interaction term with
 #'  SNP (e.g. \code{term*SNP}). See details.
-#' @param print.covs character(1) string of either \code{"only"}, \code{"all"}
+#' @param print.covs character string of either \code{"only"}, \code{"all"}
 #'  or \code{"some"}, defining which covariate statistics should be printed to
 #'  the output. See details.
-#' @param out.file character(1) of output file name (do not include extension) 
-#' @param chunk.size integer(1) number of variants to process per thread
-#' @param maf.filter numeric(1) to filter minor allele frequency
+#' @param out.file character of output file name (do not include extension) 
+#' @param chunk.size integer number of variants to process per thread
+#' @param maf.filter numeric to filter minor allele frequency
 #'  (i.e. choosing 0.05 means filtering MAF>0.05). User can set this to 
 #' \code{NULL} if no filtering is preffered. Default is 0.05.
-#' @param flip.dosage logical(1) to flip which allele the dosage was
+#' @param flip.dosage logical to flip which allele the dosage was
 #'  calculated on, default \code{flip.dosage=TRUE}
-#' @param verbose logical(1) for messages that describe which part of the
+#' @param verbose logical for messages that describe which part of the
 #'  analysis is currently being run
 #' @param clusterObj A cluster object that can be used with the
 #'  \code{parApply} function. See details.
@@ -72,7 +72,7 @@
 #' @examples
 #' b.file <- system.file(package="gwasurvivr,
 #'                       "extdata,
-#'                       "example_bed")
+#'                       "plink_example.bed")
 #' covariate.file <- system.file(package="gwasurvivr", 
 #'                               "extdata",
 #'                               "simulated_pheno.txt")
@@ -82,7 +82,7 @@
 #'                              stringsAsFactors = FALSE)
 #' covariate.file$SexFemale <- ifelse(covariate.file$sex=="female", 1L, 0L)
 #' sample.ids <- covariate.file[covariate.file$group=="experimental",]$ID_2
-#' plinkCoxSurv(b.file=impute.file,
+#' plinkCoxSurv(bed.file=bed.file,
 #'              covariate.file=covariate.file,
 #'              id.column="ID_2",
 #'              sample.ids=sample.ids,
@@ -96,7 +96,8 @@
 #'              maf.filter=0.005,
 #'              flip.dosage=TRUE,
 #'              verbose=TRUE,
-#'              clusterObj=NULL)  
+#'              clusterObj=NULL,
+#'              keepGDS=FALSE)  
 #'  
 #' @importFrom survival Surv coxph.fit
 #' @importFrom matrixStats rowMeans2 rowVars rowSds
@@ -128,9 +129,10 @@ plinkCoxSurv <- function(b.file,
                          keepGDS=FALSE)
 {
     
-    bed.file <- paste0(b.file, ".bed")
-    bim.file <- paste0(b.file, ".bim")
-    fam.file <- paste0(b.file, ".fam")
+
+    bed.file <- b.file
+    bim.file <- sub("\\.[^.]*?$", ".bim", b.file)
+    fam.file <- sub("\\.[^.]*?$", ".fam", b.file)
     ###################################
     #### Phenotype data wrangling #####
     cox.params <- coxPheno(covariate.file,
