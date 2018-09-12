@@ -367,12 +367,13 @@ gdsCoxSurv <- function(gdsfile,
             # fit models in parallel
             if (is.null(inter.term)) {
                 if (is.matrix(genotypes)) {
+                    browser()
                     cox.out <- t(
                         parallel::parApply(
                             cl = cl,
                             X = genotypes,
                             MARGIN = 1,
-                            FUN = survFit,
+                            FUN = function(x, ...) {Sys.getpid()},
                             cox.params = cox.params,
                             print.covs = print.covs
                         )
