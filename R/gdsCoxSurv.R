@@ -217,7 +217,8 @@ gdsCoxSurv <- function(gdsfile,
     if(!is.null(clusterObj)){
         cl <- clusterObj
     }else if(.Platform$OS.type == "unix") {
-        cl <- makeForkCluster(getOption("gwasurvivr.cores", 2L))
+        cl <- makePSOCKcluster(getOption("gwasurvivr.cores", 2L))
+        clusterEvalQ(cl, library(gwasurvivr))
     } else {
         cl <- makeCluster(getOption("gwasurvivr.cores", 2L))
     }
@@ -367,15 +368,16 @@ gdsCoxSurv <- function(gdsfile,
             # fit models in parallel
             if (is.null(inter.term)) {
                 if (is.matrix(genotypes)) {
-                    browser()
+                    # browser()
+                    # cl2 <- makeForkCluster(2L)
                     cox.out <- t(
                         parallel::parApply(
                             cl = cl,
                             X = genotypes,
                             MARGIN = 1,
-                            FUN = function(x, ...) {Sys.getpid()},
+                            FUN = survFit,
                             cox.params = cox.params,
-                            print.covs = print.covs
+                            print.covs = "only"
                         )
                     )
                 } else if(is.numeric(genotypes)) {
