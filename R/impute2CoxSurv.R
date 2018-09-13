@@ -4,36 +4,36 @@
 #' Performs survival analysis using Cox proportional hazard models on imputed
 #' genetic data from IMPUTE2 output
 #'
-#' @param impute.file character(1) of IMPUTE2 file
-#' @param sample.file character(1) of sample file affiliated with IMPUTE2 file
-#' @param chr numeric(1) denoting chromosome number
-#' @param covariate.file data.frame(1) comprising phenotype information, all 
+#' @param impute.file character of IMPUTE2 file
+#' @param sample.file character of sample file affiliated with IMPUTE2 file
+#' @param chr numeric denoting chromosome number
+#' @param covariate.file data.frame comprising phenotype information, all 
 #'  covariates to be added in the model must be numeric.
-#' @param id.column character(1) giving the name of the ID column
+#' @param id.column character giving the name of the ID column
 #'  in covariate.file.
-#' @param sample.ids character(1) vector of sample IDs to keep in
+#' @param sample.ids character vector of sample IDs to keep in
 #'  survival analysis
-#' @param time.to.event character(1) of column name in covariate.file that
+#' @param time.to.event character of column name in covariate.file that
 #'  represents the time interval of interest in the analysis
-#' @param event character(1) of column name in covariate.file that represents
+#' @param event character of column name in covariate.file that represents
 #'  the event of interest to be included in the analysis
-#' @param covariates character(1) vector with exact names of columns in
+#' @param covariates character vector with exact names of columns in
 #'  covariate.file to include in analysis
-#' @param inter.term character(1) string giving the column name of the covariate
+#' @param inter.term character string giving the column name of the covariate
 #'  that will be added to the interaction term with
 #'  SNP (e.g. \code{term*SNP}). See details.
-#' @param print.covs character(1) string of either \code{"only"}, \code{"all"}
+#' @param print.covs character string of either \code{"only"}, \code{"all"}
 #'  or \code{"some"}, defining which covariate statistics should be printed to
 #'  the output. See details.
-#' @param out.file character(1) of output file name (do not include extension) 
-#' @param chunk.size integer(1) number of variants to process per thread
+#' @param out.file character of output file name (do not include extension) 
+#' @param chunk.size integer number of variants to process per thread
 #' @param exclude.snps a character vector listing the rsIDs of SNPs that will be excluded from analyses
-#' @param maf.filter numeric(1) to filter minor allele frequency
+#' @param maf.filter numeric to filter minor allele frequency
 #'  (i.e. choosing 0.05 means filtering MAF>0.05). User can set this to 
 #' \code{NULL} if no filtering is preffered. Default is 0.05.
-#' @param flip.dosage logical(1) to flip which allele the dosage was
+#' @param flip.dosage logical to flip which allele the dosage was
 #'  calculated on, default \code{flip.dosage=TRUE}
-#' @param verbose logical(1) for messages that describe which part of the
+#' @param verbose logical for messages that describe which part of the
 #'  analysis is currently being run
 #' @param clusterObj A cluster object that can be used with the
 #'  \code{parApply} function. See details.
@@ -224,7 +224,7 @@ impute2CoxSurv <- function(impute.file,
     if(!is.null(clusterObj)){
         cl <- clusterObj
     }else if(.Platform$OS.type == "unix") {
-        cl <- makeForkCluster(getOption("gwasurvivr.cores", 2L))
+        cl <- makePSOCKcluster(getOption("gwasurvivr.cores", 2L))
     } else {
         cl <- makeCluster(getOption("gwasurvivr.cores", 2L))
     }
