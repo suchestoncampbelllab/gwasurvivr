@@ -225,6 +225,7 @@ impute2CoxSurv <- function(impute.file,
         cl <- clusterObj
     }else if(.Platform$OS.type == "unix") {
         cl <- makePSOCKcluster(getOption("gwasurvivr.cores", 2L))
+        clusterEvalQ(cl, library(gwasurvivr))
     } else {
         cl <- makeCluster(getOption("gwasurvivr.cores", 2L))
     }
