@@ -144,7 +144,7 @@ sangerCoxSurv <- function(vcf.file,
     if(!is.null(clusterObj)){
         cl <- clusterObj
     }else if(.Platform$OS.type == "unix") {
-        cl <- makeForkCluster(getOption("gwasurvivr.cores", 2L))
+        cl <- makePSOCKcluster(getOption("gwasurvivr.cores", 2L))
     } else {
         cl <- makeCluster(getOption("gwasurvivr.cores", 2L))
     }
