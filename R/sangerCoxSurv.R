@@ -127,9 +127,7 @@ sangerCoxSurv <- function(vcf.file,
     
     ################################################
     #### Phenotype data wrangling ################
-    cox.params <- coxPheno(covariate.file,
-                           covariates,
-                           id.column, 
+    cox.params <- coxPheno(covariate.file, covariates, id.column, 
                            inter.term, 
                            time.to.event,
                            event, 
@@ -168,6 +166,7 @@ sangerCoxSurv <- function(vcf.file,
                                                    "TYPED", 
                                                    "INFO"))
                     )
+    
     out.list <- coxVcfSanger(data,
                              covariates,
                              maf.filter,
