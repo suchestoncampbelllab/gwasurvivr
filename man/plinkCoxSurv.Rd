@@ -5,51 +5,52 @@
 \title{Fit Cox survival to all variants from PLINK binary files (.BED, .BIM, .FAM)}
 \usage{
 plinkCoxSurv(b.file, covariate.file, id.column, sample.ids = NULL,
-  time.to.event, event, covariates, inter.term = NULL, print.covs = "only",
-  out.file, chunk.size = 10000, maf.filter = 0.005, flip.dosage = TRUE,
-  verbose = TRUE, clusterObj = NULL, keepGDS = FALSE)
+  time.to.event, event, covariates, inter.term = NULL,
+  print.covs = "only", out.file, chunk.size = 10000,
+  maf.filter = 0.005, flip.dosage = TRUE, verbose = TRUE,
+  clusterObj = NULL, keepGDS = FALSE)
 }
 \arguments{
-\item{b.file}{character(1) of name of plink files without extension}
+\item{b.file}{character of name of plink files without extension}
 
-\item{covariate.file}{data.frame(1) comprising phenotype information, all 
+\item{covariate.file}{data.frame comprising phenotype information, all 
 covariates to be added in the model must be numeric.}
 
-\item{id.column}{character(1) giving the name of the ID column
+\item{id.column}{character giving the name of the ID column
 in covariate.file.}
 
-\item{sample.ids}{character(1) vector of sample IDs to keep in
+\item{sample.ids}{character vector of sample IDs to keep in
 survival analysis}
 
-\item{time.to.event}{character(1) of column name in covariate.file that
+\item{time.to.event}{character of column name in covariate.file that
 represents the time interval of interest in the analysis}
 
-\item{event}{character(1) of column name in covariate.file that represents
+\item{event}{character of column name in covariate.file that represents
 the event of interest to be included in the analysis}
 
-\item{covariates}{character(1) vector with exact names of columns in
+\item{covariates}{character vector with exact names of columns in
 covariate.file to include in analysis}
 
-\item{inter.term}{character(1) string giving the column name of the covariate
+\item{inter.term}{character string giving the column name of the covariate
 that will be added to the interaction term with
 SNP (e.g. \code{term*SNP}). See details.}
 
-\item{print.covs}{character(1) string of either \code{"only"}, \code{"all"}
+\item{print.covs}{character string of either \code{"only"}, \code{"all"}
 or \code{"some"}, defining which covariate statistics should be printed to
 the output. See details.}
 
-\item{out.file}{character(1) of output file name (do not include extension)}
+\item{out.file}{character of output file name (do not include extension)}
 
-\item{chunk.size}{integer(1) number of variants to process per thread}
+\item{chunk.size}{integer number of variants to process per thread}
 
-\item{maf.filter}{numeric(1) to filter minor allele frequency
+\item{maf.filter}{numeric to filter minor allele frequency
  (i.e. choosing 0.05 means filtering MAF>0.05). User can set this to 
 \code{NULL} if no filtering is preffered. Default is 0.05.}
 
-\item{flip.dosage}{logical(1) to flip which allele the dosage was
+\item{flip.dosage}{logical to flip which allele the dosage was
 calculated on, default \code{flip.dosage=TRUE}}
 
-\item{verbose}{logical(1) for messages that describe which part of the
+\item{verbose}{logical for messages that describe which part of the
 analysis is currently being run}
 
 \item{clusterObj}{A cluster object that can be used with the
@@ -97,7 +98,7 @@ However, advanced users who wish to optimize it, can provide a
 \examples{
 b.file <- system.file(package="gwasurvivr,
                       "extdata,
-                      "example_bed")
+                      "plink_example.bed")
 covariate.file <- system.file(package="gwasurvivr", 
                               "extdata",
                               "simulated_pheno.txt")
@@ -107,7 +108,7 @@ covariate.file <- read.table(covariate.file,
                              stringsAsFactors = FALSE)
 covariate.file$SexFemale <- ifelse(covariate.file$sex=="female", 1L, 0L)
 sample.ids <- covariate.file[covariate.file$group=="experimental",]$ID_2
-plinkCoxSurv(b.file=impute.file,
+plinkCoxSurv(bed.file=bed.file,
              covariate.file=covariate.file,
              id.column="ID_2",
              sample.ids=sample.ids,
@@ -121,6 +122,7 @@ plinkCoxSurv(b.file=impute.file,
              maf.filter=0.005,
              flip.dosage=TRUE,
              verbose=TRUE,
-             clusterObj=NULL)  
+             clusterObj=NULL,
+             keepGDS=FALSE)  
  
 }

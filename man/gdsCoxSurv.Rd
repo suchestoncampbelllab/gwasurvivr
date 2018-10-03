@@ -6,9 +6,10 @@
 genotype imputation}
 \usage{
 gdsCoxSurv(gdsfile, covariate.file, id.column, sample.ids = NULL,
-  time.to.event, event, covariates, inter.term = NULL, print.covs = "only",
-  out.file, chunk.size = 5000, maf.filter = 0.05, flip.dosage = TRUE,
-  verbose = TRUE, clusterObj = NULL)
+  time.to.event, event, covariates, inter.term = NULL,
+  print.covs = "only", out.file, chunk.size = 5000,
+  maf.filter = 0.05, flip.dosage = TRUE, verbose = TRUE,
+  clusterObj = NULL)
 }
 \arguments{
 \item{gdsfile}{path to .gds file. Location of the .gds file should also contain

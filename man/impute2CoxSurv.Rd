@@ -6,56 +6,59 @@
 genotype imputation}
 \usage{
 impute2CoxSurv(impute.file, sample.file, chr, covariate.file, id.column,
-  sample.ids = NULL, time.to.event, event, covariates, inter.term = NULL,
-  print.covs = "only", out.file, chunk.size = 10000, maf.filter = 0.05,
+  sample.ids = NULL, time.to.event, event, covariates,
+  inter.term = NULL, print.covs = "only", out.file,
+  chunk.size = 10000, maf.filter = 0.05, exclude.snps = NULL,
   flip.dosage = TRUE, verbose = TRUE, clusterObj = NULL,
   keepGDS = FALSE)
 }
 \arguments{
-\item{impute.file}{character(1) of IMPUTE2 file}
+\item{impute.file}{character of IMPUTE2 file}
 
-\item{sample.file}{character(1) of sample file affiliated with IMPUTE2 file}
+\item{sample.file}{character of sample file affiliated with IMPUTE2 file}
 
-\item{chr}{numeric(1) denoting chromosome number}
+\item{chr}{numeric denoting chromosome number}
 
-\item{covariate.file}{data.frame(1) comprising phenotype information, all 
+\item{covariate.file}{data.frame comprising phenotype information, all 
 covariates to be added in the model must be numeric.}
 
-\item{id.column}{character(1) giving the name of the ID column
+\item{id.column}{character giving the name of the ID column
 in covariate.file.}
 
-\item{sample.ids}{character(1) vector of sample IDs to keep in
+\item{sample.ids}{character vector of sample IDs to keep in
 survival analysis}
 
-\item{time.to.event}{character(1) of column name in covariate.file that
+\item{time.to.event}{character of column name in covariate.file that
 represents the time interval of interest in the analysis}
 
-\item{event}{character(1) of column name in covariate.file that represents
+\item{event}{character of column name in covariate.file that represents
 the event of interest to be included in the analysis}
 
-\item{covariates}{character(1) vector with exact names of columns in
+\item{covariates}{character vector with exact names of columns in
 covariate.file to include in analysis}
 
-\item{inter.term}{character(1) string giving the column name of the covariate
+\item{inter.term}{character string giving the column name of the covariate
 that will be added to the interaction term with
 SNP (e.g. \code{term*SNP}). See details.}
 
-\item{print.covs}{character(1) string of either \code{"only"}, \code{"all"}
+\item{print.covs}{character string of either \code{"only"}, \code{"all"}
 or \code{"some"}, defining which covariate statistics should be printed to
 the output. See details.}
 
-\item{out.file}{character(1) of output file name (do not include extension)}
+\item{out.file}{character of output file name (do not include extension)}
 
-\item{chunk.size}{integer(1) number of variants to process per thread}
+\item{chunk.size}{integer number of variants to process per thread}
 
-\item{maf.filter}{numeric(1) to filter minor allele frequency
+\item{maf.filter}{numeric to filter minor allele frequency
  (i.e. choosing 0.05 means filtering MAF>0.05). User can set this to 
 \code{NULL} if no filtering is preffered. Default is 0.05.}
 
-\item{flip.dosage}{logical(1) to flip which allele the dosage was
+\item{exclude.snps}{a character vector listing the rsIDs of SNPs that will be excluded from analyses}
+
+\item{flip.dosage}{logical to flip which allele the dosage was
 calculated on, default \code{flip.dosage=TRUE}}
 
-\item{verbose}{logical(1) for messages that describe which part of the
+\item{verbose}{logical for messages that describe which part of the
 analysis is currently being run}
 
 \item{clusterObj}{A cluster object that can be used with the
@@ -130,6 +133,7 @@ impute2CoxSurv(impute.file=impute.file,
               out.file="impute_example",
               chunk.size=50,
               maf.filter=0.005,
+              exclude.snps=NULL,
               flip.dosage=TRUE,
               verbose=TRUE,
               clusterObj=NULL)  

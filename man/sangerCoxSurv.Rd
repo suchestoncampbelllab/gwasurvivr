@@ -6,9 +6,10 @@
  server}
 \usage{
 sangerCoxSurv(vcf.file, covariate.file, id.column, sample.ids = NULL,
-  time.to.event, event, covariates, inter.term = NULL, print.covs = "only",
-  out.file, maf.filter = 0.05, info.filter = NULL, chunk.size = 5000,
-  verbose = TRUE, clusterObj = NULL)
+  time.to.event, event, covariates, inter.term = NULL,
+  print.covs = "only", out.file, maf.filter = 0.05,
+  info.filter = NULL, chunk.size = 5000, verbose = TRUE,
+  clusterObj = NULL)
 }
 \arguments{
 \item{vcf.file}{character(1) path to VCF file.}
