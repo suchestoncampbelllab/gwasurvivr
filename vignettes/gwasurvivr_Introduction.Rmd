@@ -196,10 +196,18 @@ Bioconductor packages:
 4. `SNPRelate`
 
 ```{r, eval=FALSE}
+<<<<<<< HEAD
 BiocManager::install("GWASTools")    
 BiocManager::install("VariantAnnotation")    
 BiocManager::install("SummarizedExperiment")    
 BiocManager::install("SNPRelate")    
+=======
+if (!requireNamespace("BiocManager", quietly=TRUE))
+    install.packages("BiocManager")
+BiocManager::install("GWASTools")
+BiocManager::install("VariantAnnotation")
+BiocManager::install("SummarizedExperiment")
+>>>>>>> 241dd9d56fcd1de0d18a0202696e6f658748d977
 ```
 
 Load `gwasurvivr`.
