@@ -196,18 +196,10 @@ Bioconductor packages:
 4. `SNPRelate`
 
 ```{r, eval=FALSE}
-<<<<<<< HEAD
 BiocManager::install("GWASTools")    
 BiocManager::install("VariantAnnotation")    
 BiocManager::install("SummarizedExperiment")    
 BiocManager::install("SNPRelate")    
-=======
-if (!requireNamespace("BiocManager", quietly=TRUE))
-    install.packages("BiocManager")
-BiocManager::install("GWASTools")
-BiocManager::install("VariantAnnotation")
-BiocManager::install("SummarizedExperiment")
->>>>>>> 241dd9d56fcd1de0d18a0202696e6f658748d977
 ```
 
 Load `gwasurvivr`.
@@ -563,6 +555,7 @@ impute2CoxSurv(impute.file=impute.file,
                out.file="impute_example_only",
                chunk.size=100,
                maf.filter=0.005,
+               exclude.snps=NULL,
                flip.dosage=TRUE,
                verbose=TRUE,
                clusterObj=NULL)
@@ -583,6 +576,7 @@ impute2CoxSurv(impute.file=impute.file,
                out.file=tempfile("impute_example_only"),
                chunk.size=100,
                maf.filter=0.005,
+               exclude.snps=NULL,
                flip.dosage=TRUE,
                verbose=TRUE,
                clusterObj=NULL)
