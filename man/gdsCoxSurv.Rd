@@ -66,7 +66,7 @@ Saves two text files directly to disk:
 }
 \description{
 Performs survival analysis using Cox proportional hazard models on imputed
-genetic data from a GDS files
+genetic data from GDS files.
 }
 \details{
 Testing for SNP-covariate interactions:          
@@ -99,8 +99,8 @@ However, advanced users who wish to optimize it, can provide a
 }
 \examples{
 gdsfile <- system.file(package="gwasurvivr",
-                           "extdata",
-                           "gds_example.gds")
+                       "extdata",
+                       "gds_example.gds")
 covariate.file <- system.file(package="gwasurvivr", 
                               "extdata",
                               "simulated_pheno.txt")
@@ -111,20 +111,19 @@ covariate.file <- read.table(covariate.file,
 covariate.file$SexFemale <- ifelse(covariate.file$sex=="female", 1L, 0L)
 sample.ids <- covariate.file[covariate.file$group=="experimental",]$ID_2
 gdsCoxSurv(gdsfile=gdsfile,
-              chr=14,
-              covariate.file=covariate.file,
-              id.column="ID_2",
-              sample.ids=sample.ids,
-              time.to.event="time",
-              event="event",
-              covariates=c("age", "SexFemale", "DrugTxYes"),
-              inter.term=NULL,
-              print.covs="only",
-              out.file="impute_example",
-              chunk.size=50,
-              maf.filter=0.005,
-              flip.dosage=TRUE,
-              verbose=TRUE,
-              clusterObj=NULL)  
+           covariate.file=covariate.file,
+           id.column="ID_2",
+           sample.ids=sample.ids,
+           time.to.event="time",
+           event="event",
+           covariates=c("age", "SexFemale", "DrugTxYes"),
+           inter.term=NULL,
+           print.covs="only",
+           out.file="impute_example",
+           chunk.size=50,
+           maf.filter=0.005,
+           flip.dosage=TRUE,
+           verbose=TRUE,
+           clusterObj=NULL)  
  
 }

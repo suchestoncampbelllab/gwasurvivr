@@ -2,7 +2,7 @@
 #' genotype imputation
 #'
 #' Performs survival analysis using Cox proportional hazard models on imputed
-#' genetic data from a GDS files
+#' genetic data from GDS files.
 #'
 #' @param gdsfile path to .gds file. Location of the .gds file should also contain
 #' .snp.rdata and .scan.rdata files.
@@ -73,8 +73,8 @@
 #' 
 #' @examples
 #' gdsfile <- system.file(package="gwasurvivr",
-#'                            "extdata",
-#'                            "gds_example.gds")
+#'                        "extdata",
+#'                        "gds_example.gds")
 #' covariate.file <- system.file(package="gwasurvivr", 
 #'                               "extdata",
 #'                               "simulated_pheno.txt")
@@ -85,21 +85,20 @@
 #' covariate.file$SexFemale <- ifelse(covariate.file$sex=="female", 1L, 0L)
 #' sample.ids <- covariate.file[covariate.file$group=="experimental",]$ID_2
 #' gdsCoxSurv(gdsfile=gdsfile,
-#'               chr=14,
-#'               covariate.file=covariate.file,
-#'               id.column="ID_2",
-#'               sample.ids=sample.ids,
-#'               time.to.event="time",
-#'               event="event",
-#'               covariates=c("age", "SexFemale", "DrugTxYes"),
-#'               inter.term=NULL,
-#'               print.covs="only",
-#'               out.file="impute_example",
-#'               chunk.size=50,
-#'               maf.filter=0.005,
-#'               flip.dosage=TRUE,
-#'               verbose=TRUE,
-#'               clusterObj=NULL)  
+#'            covariate.file=covariate.file,
+#'            id.column="ID_2",
+#'            sample.ids=sample.ids,
+#'            time.to.event="time",
+#'            event="event",
+#'            covariates=c("age", "SexFemale", "DrugTxYes"),
+#'            inter.term=NULL,
+#'            print.covs="only",
+#'            out.file="impute_example",
+#'            chunk.size=50,
+#'            maf.filter=0.005,
+#'            flip.dosage=TRUE,
+#'            verbose=TRUE,
+#'            clusterObj=NULL)  
 #'  
 #' @importFrom survival Surv coxph.fit
 #' @importFrom matrixStats rowMeans2 rowVars rowSds
