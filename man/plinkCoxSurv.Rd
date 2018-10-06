@@ -4,15 +4,13 @@
 \alias{plinkCoxSurv}
 \title{Fit Cox survival to all variants from PLINK binary files (.BED, .BIM, .FAM)}
 \usage{
-plinkCoxSurv(b.file, covariate.file, id.column, sample.ids = NULL,
+plinkCoxSurv(bed.file, covariate.file, id.column, sample.ids = NULL,
   time.to.event, event, covariates, inter.term = NULL,
   print.covs = "only", out.file, chunk.size = 10000,
   maf.filter = 0.005, flip.dosage = TRUE, verbose = TRUE,
   clusterObj = NULL, keepGDS = FALSE)
 }
 \arguments{
-\item{b.file}{character of name of plink files without extension}
-
 \item{covariate.file}{data.frame comprising phenotype information, all 
 covariates to be added in the model must be numeric.}
 
@@ -55,6 +53,8 @@ analysis is currently being run}
 
 \item{clusterObj}{A cluster object that can be used with the
 \code{parApply} function. See details.}
+
+\item{b.file}{character of name of plink files without extension}
 }
 \value{
 Saves two text files directly to disk:  
@@ -96,9 +96,9 @@ However, advanced users who wish to optimize it, can provide a
  suits their need and platform.
 }
 \examples{
-b.file <- system.file(package="gwasurvivr,
-                      "extdata,
-                      "plink_example.bed")
+bed.file <- system.file(package="gwasurvivr",
+                       "extdata",
+                       "plink_example.bed")
 covariate.file <- system.file(package="gwasurvivr", 
                               "extdata",
                               "simulated_pheno.txt")

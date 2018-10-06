@@ -70,9 +70,9 @@
 #'  due to low variance or user-defined thresholds.   
 #' 
 #' @examples
-#' b.file <- system.file(package="gwasurvivr,
-#'                       "extdata,
-#'                       "plink_example.bed")
+#' bed.file <- system.file(package="gwasurvivr",
+#'                        "extdata",
+#'                        "plink_example.bed")
 #' covariate.file <- system.file(package="gwasurvivr", 
 #'                               "extdata",
 #'                               "simulated_pheno.txt")
@@ -111,7 +111,7 @@
 #' @export
 
 
-plinkCoxSurv <- function(b.file,
+plinkCoxSurv <- function(bed.file,
                          covariate.file,
                          id.column,
                          sample.ids=NULL, 
@@ -130,9 +130,9 @@ plinkCoxSurv <- function(b.file,
 {
     
 
-    bed.file <- b.file
-    bim.file <- sub("\\.[^.]*?$", ".bim", b.file)
-    fam.file <- sub("\\.[^.]*?$", ".fam", b.file)
+    bed.file <- bed.file
+    bim.file <- sub("\\.[^.]*?$", ".bim", bed.file)
+    fam.file <- sub("\\.[^.]*?$", ".fam", bed.file)
     ###################################
     #### Phenotype data wrangling #####
     cox.params <- coxPheno(covariate.file,
