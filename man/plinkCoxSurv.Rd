@@ -8,9 +8,11 @@ plinkCoxSurv(bed.file, covariate.file, id.column, sample.ids = NULL,
   time.to.event, event, covariates, inter.term = NULL,
   print.covs = "only", out.file, chunk.size = 10000,
   maf.filter = 0.005, flip.dosage = TRUE, verbose = TRUE,
-  clusterObj = NULL, keepGDS = FALSE)
+  clusterObj = NULL)
 }
 \arguments{
+\item{bed.file}{character of name of plink files without extension}
+
 \item{covariate.file}{data.frame comprising phenotype information, all 
 covariates to be added in the model must be numeric.}
 
@@ -53,8 +55,6 @@ analysis is currently being run}
 
 \item{clusterObj}{A cluster object that can be used with the
 \code{parApply} function. See details.}
-
-\item{b.file}{character of name of plink files without extension}
 }
 \value{
 Saves two text files directly to disk:  
@@ -122,7 +122,6 @@ plinkCoxSurv(bed.file=bed.file,
              maf.filter=0.005,
              flip.dosage=TRUE,
              verbose=TRUE,
-             clusterObj=NULL,
-             keepGDS=FALSE)  
+             clusterObj=NULL)  
  
 }

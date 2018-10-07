@@ -63,6 +63,9 @@ analysis is currently being run}
 
 \item{clusterObj}{A cluster object that can be used with the
 \code{parApply} function. See details.}
+
+\item{keepGDS}{logical to keep GDS files (compressed IMPUTE2 files) 
+after the analysis. Defaults to \code{FALSE}.}
 }
 \value{
 Saves two text files directly to disk:  
@@ -136,6 +139,7 @@ impute2CoxSurv(impute.file=impute.file,
               exclude.snps=NULL,
               flip.dosage=TRUE,
               verbose=TRUE,
-              clusterObj=NULL)  
+              clusterObj=NULL,
+              keepGDS=FALSE)  
  
 }

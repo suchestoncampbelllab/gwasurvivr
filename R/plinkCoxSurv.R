@@ -3,7 +3,7 @@
 #' Performs survival analysis using Cox proportional hazard models on directly 
 #' typed data in PLINK format
 #'
-#' @param b.file character of name of plink files without extension 
+#' @param bed.file character of name of plink files without extension 
 #' @param covariate.file data.frame comprising phenotype information, all 
 #'  covariates to be added in the model must be numeric.
 #' @param id.column character giving the name of the ID column
@@ -96,8 +96,7 @@
 #'              maf.filter=0.005,
 #'              flip.dosage=TRUE,
 #'              verbose=TRUE,
-#'              clusterObj=NULL,
-#'              keepGDS=FALSE)  
+#'              clusterObj=NULL)  
 #'  
 #' @importFrom survival Surv coxph.fit
 #' @importFrom matrixStats rowMeans2 rowVars rowSds
@@ -125,8 +124,7 @@ plinkCoxSurv <- function(bed.file,
                          maf.filter=0.005,
                          flip.dosage=TRUE,
                          verbose=TRUE,
-                         clusterObj=NULL,
-                         keepGDS=FALSE)
+                         clusterObj=NULL)
 {
     
 
@@ -152,19 +150,13 @@ plinkCoxSurv <- function(bed.file,
     if(!is.null(clusterObj)){
         cl <- clusterObj
     }else if(.Platform$OS.type == "unix") {
-        cl <- makeForkCluster(getOption("gwasurvivr.cores", 2L))
+        cl <- makePSOCKcluster(getOption("gwasurvivr.cores", 2L))
     } else {
         cl <- makeCluster(getOption("gwasurvivr.cores", 2L))
     }
     on.exit(stopCluster(cl), add=TRUE)
     
-    if (keepGDS){
-        gdsfile <- sub("\\.[^.]*?$", ".gds", bed.file)
-        on.exit(unlink(gdsfile, recursive = TRUE), add=TRUE)
-    } else {
-        gdsfile <- tempfile(pattern="", fileext = ".gds")
-    }
-    
+    gdsfile <- tempfile(pattern="", fileext = ".gds")
     
     comp_time <- system.time(snpgdsBED2GDS(bed.file, 
                   fam.file,

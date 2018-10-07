@@ -37,6 +37,8 @@
 #'  analysis is currently being run
 #' @param clusterObj A cluster object that can be used with the
 #'  \code{parApply} function. See details.
+#' @param keepGDS logical to keep GDS files (compressed IMPUTE2 files) 
+#' after the analysis. Defaults to \code{FALSE}.
 #' 
 #' @details 
 #' Testing for SNP-covariate interactions:          
@@ -106,7 +108,8 @@
 #'               exclude.snps=NULL,
 #'               flip.dosage=TRUE,
 #'               verbose=TRUE,
-#'               clusterObj=NULL)  
+#'               clusterObj=NULL,
+#'               keepGDS=FALSE)  
 #'  
 #' @importFrom survival Surv coxph.fit
 #' @importFrom matrixStats rowMeans2 rowVars rowSds
