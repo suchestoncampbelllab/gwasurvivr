@@ -4,7 +4,8 @@
 #' Performs survival analysis using Cox proportional hazard models on imputed
 #'  genetic data stored in compressed VCF files. 
 #' 
-#' @param vcf.file character(1) path to VCF file.
+#' @param vcf.file character(1) path to VCF file. This file needs to accompanied 
+#' with an index file (.tbi file).
 #' @param covariate.file matrix(1) comprising phenotype (time, event) and
 #'  additional covariate data. 
 #' @param id.column character(1) providing exact match to sample ID column

@@ -47,7 +47,7 @@ All functions fit a Cox PH model to each SNP including other user defined covari
 
 All three functions require the following main arguments:
 
-* `vcf.file`: A character string giving the path to genotype data file (`impute.file` for IMPUTE2; `b.file` for PLINK)
+* `vcf.file`: A character string giving the path to genotype data file (`impute.file` for IMPUTE2; `bed.file` for PLINK)
 * `covariate.file`: A data frame comprising sample IDs (that link to the genotype data samples), phenotype (time, event) and additional covariate data
 * `id.column`: A character string providing sample ID column name in covariate.file
 * `time.to.event`: A character string that contains the time column name in covariate.file
@@ -57,7 +57,7 @@ All three functions require the following main arguments:
 
 Further arguments can be passed depending on the user preference. For example, user can define minor allele frequency (MAF) or info/R2 score threshold to filter out SNPs that have low MAF or info/R2 score to avoid false-positive signals and to reduce computing time. User can also define a subset of samples to be analyzed by providing the set of sample IDs. Users can also control how chunk size -- the number of rows (SNPs) to include for each iteration. 
 
-**IMPORTANT: In the `covariate.file`, categorical variables need to be converted to indicator (dummy) variables and be of class `numeric`. Ordinal variables represented as characters, ie "low", "medium" and "high" should be converted to the appropriate numeric values as well.**
+**IMPORTANT: In the `covariate.file`, categorical variables need to be converted to indicator (dummy) variables and be of class `numeric`. Ordinal variables represented as characters, ie "low", "medium" and "high" should be converted to the appropriate numeric values as well. For VCF files -- an index  (.tbi or .csi) file must be accompanied with the vcf file, with the exact same name (plus the extension) and in the same directory. Index files can alternatively be created using tabix/bcftools.**
 
 ## Main output format
 The output for the 3 main functions in `gwasurvivr` are very similar but with subtle differences. In general the output includes the following main fields: RSID, TYPED, CHR, POS, REF, ALT, Allele Frequencies\*, INFO\*, PVALUES, HRs, HR confidence intervals, coefficient estimates, standard errors, Z-statistic, N, and NEVENT. Allele frequencies and INFO differ by the input imputation software. 
@@ -558,7 +558,8 @@ impute2CoxSurv(impute.file=impute.file,
                exclude.snps=NULL,
                flip.dosage=TRUE,
                verbose=TRUE,
-               clusterObj=NULL)
+               clusterObj=NULL,
+               keepGDS=FALSE)
 ```
 
 ```{r, echo=FALSE}
@@ -579,7 +580,8 @@ impute2CoxSurv(impute.file=impute.file,
                exclude.snps=NULL,
                flip.dosage=TRUE,
                verbose=TRUE,
-               clusterObj=NULL)
+               clusterObj=NULL,
+               keepGDS=FALSE)
 ```
 Here we load the data and glimpse the first few values in each column output.
 
@@ -611,6 +613,7 @@ impute2CoxSurv(impute.file=impute.file,
                out.file="impute_example_intx",
                chunk.size=100,
                maf.filter=0.005,
+               exclude.snps=NULL,
                flip.dosage=TRUE,
                verbose=FALSE,
                clusterObj=NULL,
@@ -632,6 +635,7 @@ impute2CoxSurv(impute.file=impute.file,
                out.file=tempfile("impute_example_intx"),
                chunk.size=100,
                maf.filter=0.005,
+               exclude.snps=NULL,
                flip.dosage=TRUE,
                verbose=FALSE,
                clusterObj=NULL,

@@ -11,7 +11,8 @@ michiganCoxSurv(vcf.file, covariate.file, id.column, sample.ids = NULL,
   chunk.size = 5000, verbose = TRUE, clusterObj = NULL)
 }
 \arguments{
-\item{vcf.file}{character(1) path to VCF file.}
+\item{vcf.file}{character(1) path to VCF file. This file needs to accompanied 
+with an index file (.csi file).}
 
 \item{covariate.file}{matrix(1) comprising phenotype (time, event) and
 additional covariate data.}

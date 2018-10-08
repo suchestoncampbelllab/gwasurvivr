@@ -12,7 +12,8 @@ sangerCoxSurv(vcf.file, covariate.file, id.column, sample.ids = NULL,
   clusterObj = NULL)
 }
 \arguments{
-\item{vcf.file}{character(1) path to VCF file.}
+\item{vcf.file}{character(1) path to VCF file. This file needs to accompanied 
+with an index file (.tbi file).}
 
 \item{covariate.file}{matrix(1) comprising phenotype (time, event) and
 additional covariate data.}
