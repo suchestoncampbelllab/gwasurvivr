@@ -1,7 +1,7 @@
 Package: gwasurvivr
 Type: Package
 Title: gwasurvivr: an R package for genome wide survival analysis 
-Version: 0.99.40
+Version: 0.99.47
 Author: Abbas Rizvi, Ezgi Karaesmen, Martin Morgan, Lara Sucheston-Campbell
 Maintainer: Abbas Rizvi <aarizv@gmail.com>
 Description: gwasurvivr is a package to perform survival analysis using Cox proportional hazard models on imputed genetic data.
@@ -20,7 +20,8 @@ Imports:
 Suggests:
     BiocStyle,
     knitr,
-    rmarkdown
+    rmarkdown,
+    testthat
 Depends:
     R (>= 3.4.0)
 License: Artistic-2.0
@@ -34,4 +35,5 @@ biocViews:
     GeneticVariability,
     Pharmacogenomics,
     BiomedicalInformatics
-RoxygenNote: 6.1.0
+RoxygenNote: 7.1.1
+Encoding: UTF-8

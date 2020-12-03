@@ -1,0 +1,5 @@
+*.Rproj
+*.md
+.Rproj.user
+.Rhistory
+.Ruserdata
