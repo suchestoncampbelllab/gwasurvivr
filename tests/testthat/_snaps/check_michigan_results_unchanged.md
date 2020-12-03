@@ -1,4 +1,4 @@
-# check gds example results not changed
+# check michigan example results not changed
 
              RSID TYPED CHR      POS REF ALT       AF      MAF SAMP_FREQ_ALT
     1  rs34919020 FALSE  14 19459185   C   T 0.301263 0.301263        0.3548

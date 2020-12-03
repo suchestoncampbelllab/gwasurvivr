@@ -30,12 +30,20 @@ gdsCoxSurv(gdsfile=gdsfile,
            clusterObj=NULL) 
 
 
-results_file <- read.table(paste0(results_file_name, ".coxph"), sep="\t", header=TRUE, stringsAsFactors = FALSE)
+if(file.exists(paste0(results_file_name, ".coxph"))){
+  results_file <- read.table(paste0(results_file_name, ".coxph"), sep="\t", header=TRUE, stringsAsFactors = FALSE)
+} else {
+  results_file <- NULL
+}
 
 test_that("check gds example results not changed", {
-  skip_on_cran()
-  expect_snapshot_output(results_file)
+  expect_snapshot_output(results_file, cran = F)
 })
 
-file.remove(paste0(results_file_name, ".coxph"))
-file.remove(paste0(results_file_name, ".snps_removed"))
+if(file.exists(paste0(results_file_name, ".coxph"))){
+  file.remove(paste0(results_file_name, ".coxph"))
+}
+
+if(file.exists(paste0(results_file_name, ".snps_removed"))){
+  file.remove(paste0(results_file_name, ".snps_removed"))
+}
