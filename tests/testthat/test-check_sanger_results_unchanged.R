@@ -31,7 +31,10 @@ sangerCoxSurv(vcf.file=vcf.file,
              clusterObj=NULL)
 
 if(file.exists(paste0(results_file_name, ".coxph"))){
-  results_file <- read.table(paste0(results_file_name, ".coxph"), sep="\t", header=TRUE, stringsAsFactors = FALSE)
+  results_file <- read.table(paste0(results_file_name, ".coxph"), 
+                             sep="\t", 
+                             header=TRUE, 
+                             stringsAsFactors = FALSE)
 } else {
   results_file <- NULL
 }
@@ -47,4 +50,3 @@ if(file.exists(paste0(results_file_name, ".coxph"))){
 if(file.exists(paste0(results_file_name, ".snps_removed"))){
   file.remove(paste0(results_file_name, ".snps_removed"))
 }
-

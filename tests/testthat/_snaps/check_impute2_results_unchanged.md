@@ -1,4 +1,4 @@
-# check impute2 results not changed from example
+# check impute2 example results not changed
 
              RSID TYPED CHR      POS A0 A1 exp_freq_A1 SAMP_MAF    PVALUE        HR
     1  rs34919020   ---  14 19459185  C  T      0.3548   0.3548 0.7125795 1.2244641

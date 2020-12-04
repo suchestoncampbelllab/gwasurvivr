@@ -31,7 +31,10 @@ gdsCoxSurv(gdsfile=gdsfile,
 
 
 if(file.exists(paste0(results_file_name, ".coxph"))){
-  results_file <- read.table(paste0(results_file_name, ".coxph"), sep="\t", header=TRUE, stringsAsFactors = FALSE)
+  results_file <- read.table(paste0(results_file_name, ".coxph"), 
+                             sep="\t", 
+                             header=TRUE, 
+                             stringsAsFactors = FALSE)
 } else {
   results_file <- NULL
 }

@@ -14,6 +14,7 @@ covariate.file <- read.table(covariate.file,
                              stringsAsFactors = FALSE)
 covariate.file$SexFemale <- ifelse(covariate.file$sex=="female", 1L, 0L)
 sample.ids <- covariate.file[covariate.file$group=="experimental",]$ID_2
+
 plinkCoxSurv(b.file=bed.file,
              covariate.file=covariate.file,
              id.column="ID_2",
@@ -28,10 +29,13 @@ plinkCoxSurv(b.file=bed.file,
              maf.filter=0.005,
              flip.dosage=TRUE,
              verbose=TRUE,
-             clusterObj=NULL)  
-
+             clusterObj=NULL)
+  
 if(file.exists(paste0(results_file_name, ".coxph"))){
-  results_file <- read.table(paste0(results_file_name, ".coxph"), sep="\t", header=TRUE, stringsAsFactors = FALSE)
+  results_file <- read.table(paste0(results_file_name, ".coxph"), 
+                             sep="\t", 
+                             header=TRUE, 
+                             stringsAsFactors = FALSE)
 } else {
   results_file <- NULL
 }
