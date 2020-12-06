@@ -450,19 +450,7 @@ plinkCoxSurv <- function(b.file,
       
     }
     
-    if(verbose) {
-      message(snp.drop.n," SNPs were removed from the analysis for not meeting\n",
-              "the given threshold criteria or for having MAF = 0")
-    }
-    if(verbose) message("List of removed SNPs are saved to ",
-                        paste0(out.file, ".snps_removed"))
-    if(verbose) message("In total ", snp.n,
-                        " SNPs were included in the analysis")
-    if(verbose) message("The Cox model results output was saved to ",
-                        paste0(out.file, ".coxph"))
-    if (verbose) message("Analysis completed on ",
-                         format(Sys.time(), "%Y-%m-%d"),
-                         " at ",
-                         format(Sys.time(), "%H:%M:%S"))
+    if(verbose) closing_messages(snps_removed = snp.drop.n, 
+                                 snps_analyzed = snp.n, out.file = out.file)
     
 } 
