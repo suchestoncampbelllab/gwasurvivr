@@ -101,7 +101,7 @@ coxVcfMichigan <- function(data,
             snp.drop <- snp.drop[, snp.ord]
             ###########################################################
             ############### fit models in parallel ####################
-            cox.out <- getCoxOut(inter.term, genotypes, cl, cox.params,
+            cox.out <- getGenotypesCoxOut(inter.term, genotypes, cl, cox.params,
                                  print.covs)
             #############################################
             michigan.out <- list(dropped.snps=snp.drop)

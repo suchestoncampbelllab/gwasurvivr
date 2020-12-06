@@ -103,7 +103,7 @@ coxVcfSanger <- function(data,
             
             ###########################################################
             ############### fit models in parallel ####################
-            cox.out <- getCoxOut(inter.term, genotypes, cl, cox.params,
+            cox.out <- getGenotypesCoxOut(inter.term, genotypes, cl, cox.params,
                                  print.covs)
             #############################################
             sanger.out <- list(dropped.snps=snp.drop)

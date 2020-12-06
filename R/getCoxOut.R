@@ -1,4 +1,4 @@
-getCoxOut <- function(inter.term, genotypes, cl, cox.params,
+getGenotypesCoxOut <- function(inter.term, genotypes, cl, cox.params,
                         print.covs) {
   
   if(is.null(inter.term)){
@@ -34,3 +34,22 @@ getCoxOut <- function(inter.term, genotypes, cl, cox.params,
   return(cox.out)
         
 }
+
+
+getSnpSpikeCoxOut <- function(inter.term, snp.spike, cox.params, print.covs){
+  
+  if(is.null(inter.term)){
+    cox.out <- t(apply(snp.spike, 1, survFit,
+                       cox.params=cox.params,
+                       print.covs=print.covs))
+  } else {
+    cox.out <- t(apply(snp.spike,
+                       1,
+                       survFitInt,
+                       cox.params=cox.params,
+                       cov.interaction=inter.term, 
+                       print.covs=print.covs) )
+  }
+  
+}
+

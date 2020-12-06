@@ -145,6 +145,15 @@ gdsCoxSurv <- function(gdsfile,
     ############################################################################
     
     ############################################################################
+    ##### Generate cluster obj #################################################
+    
+    # create cluster object depending on user pref or OS type,
+    # also create option to input number of cores
+    cl <- create_cluster_obj(clusterObj)
+    on.exit(stopCluster(cl), add=TRUE)
+    ############################################################################
+    
+    ############################################################################
     #### Prep output files #####################################################
     
     # set up columns for output
@@ -172,51 +181,23 @@ gdsCoxSurv <- function(gdsfile,
                        c(rnorm(nrow(cox.params$pheno.file)-4), rep(NA, 4))
     )
     
-    if(is.null(inter.term)){
-        cox.out <- t(apply(snp.spike, 1, survFit,
-                           cox.params=cox.params,
-                           print.covs=print.covs) )
-        
-        res.cols <- colnames(coxExtract(cox.out,snp.df,print.covs=print.covs))
-        
-        write.table(t(res.cols),
-                    paste0(out.file, ".coxph"),
-                    row.names = FALSE,
-                    col.names=FALSE,
-                    sep="\t",
-                    quote = FALSE,
-                    append = FALSE)
-    } else {
-        cox.out <- t(apply(snp.spike,
-                           1,
-                           survFitInt,
-                           cox.params=cox.params,
-                           cov.interaction=inter.term, 
-                           print.covs=print.covs) )
-        
-        res.cols <- colnames(coxExtract(cox.out,
-                                        snp.df, 
-                                        print.covs=print.covs) )
-        
-        write.table( t(res.cols),
-                     paste0(out.file, ".coxph"),
-                     row.names = FALSE,
-                     col.names=FALSE,
-                     sep="\t",
-                     quote = FALSE,
-                     append = FALSE)
-    }
+    cox.out <- getSnpSpikeCoxOut(inter.term, snp.spike, cox.params, print.covs)
+    
+    res.cols <- colnames(coxExtract(cox.out,
+                                    snp.df, 
+                                    print.covs=print.covs) )
+    
+    write.table( t(res.cols),
+                 paste0(out.file, ".coxph"),
+                 row.names = FALSE,
+                 col.names=FALSE,
+                 sep="\t",
+                 quote = FALSE,
+                 append = FALSE)
     
     ############################################################################
     
-    ############################################################################
-    ##### Generate cluster obj #################################################
-    
-    # create cluster object depending on user pref or OS type,
-    # also create option to input number of cores
-    cl <- create_cluster_obj(clusterObj)
-    on.exit(stopCluster(cl), add=TRUE)
-    ############################################################################
+
     
     ############################################################################
     ##### Load Genotype data ###################################################
@@ -358,7 +339,7 @@ gdsCoxSurv <- function(gdsfile,
         
         if (nrow(genotypes) > 0) {
             # fit models in parallel
-            cox.out <- getCoxOut(inter.term, genotypes, cl, cox.params,
+            cox.out <- getGenotypesCoxOut(inter.term, genotypes, cl, cox.params,
                                   print.covs)
             
             res <- coxExtract(cox.out,
