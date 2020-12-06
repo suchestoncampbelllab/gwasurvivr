@@ -139,6 +139,12 @@ impute2CoxSurv <- function(impute.file,
                            keepGDS=FALSE
                            )
 {
+    if(verbose) message("Analysis started on ",
+                        format(Sys.time(), "%Y-%m-%d"),
+                        " at ",
+                        format(Sys.time(), "%H:%M:%S"))
+    
+    
     ############################################################################
     #### Phenotype data wrangling ##############################################
     cox.params <- coxPheno(covariate.file,
@@ -222,16 +228,8 @@ impute2CoxSurv <- function(impute.file,
     
     #create cluster object depending on user pref or OS type,
     # also create option to input number of cores
-    if(!is.null(clusterObj)){
-        cl <- clusterObj
-    }else if(.Platform$OS.type == "unix") {
-        cl <- makePSOCKcluster(getOption("gwasurvivr.cores", 2L))
-        clusterEvalQ(cl, library(gwasurvivr))
-    } else {
-        cl <- makeCluster(getOption("gwasurvivr.cores", 2L))
-    }
+    cl <- create_cluster_obj(clusterObj)
     on.exit(stopCluster(cl), add=TRUE)
-    
     ############################################################################
     
     ############################################################################
@@ -492,7 +490,3 @@ impute2CoxSurv <- function(impute.file,
                          " at ",
                          format(Sys.time(), "%H:%M:%S"))
 }
-
-
-
-

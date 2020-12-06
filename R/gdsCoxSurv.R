@@ -214,16 +214,8 @@ gdsCoxSurv <- function(gdsfile,
     
     # create cluster object depending on user pref or OS type,
     # also create option to input number of cores
-    if(!is.null(clusterObj)){
-        cl <- clusterObj
-    }else if(.Platform$OS.type == "unix") {
-        cl <- makePSOCKcluster(getOption("gwasurvivr.cores", 2L))
-        clusterEvalQ(cl, library(gwasurvivr))
-    } else {
-        cl <- makeCluster(getOption("gwasurvivr.cores", 2L))
-    }
+    cl <- create_cluster_obj(clusterObj)
     on.exit(stopCluster(cl), add=TRUE)
-    
     ############################################################################
     
     ############################################################################
@@ -443,7 +435,3 @@ gdsCoxSurv <- function(gdsfile,
                          " at ",
                          format(Sys.time(), "%H:%M:%S"))
 }
-
-
-
-

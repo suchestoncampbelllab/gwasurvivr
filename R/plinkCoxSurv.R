@@ -128,7 +128,11 @@ plinkCoxSurv <- function(b.file,
                          clusterObj=NULL,
                          keepGDS=FALSE)
 {
-    
+  
+  if(verbose) message("Analysis started on ",
+                      format(Sys.time(), "%Y-%m-%d"),
+                      " at ",
+                      format(Sys.time(), "%H:%M:%S"))
 
     bed.file <- b.file
     bim.file <- sub("\\.[^.]*?$", ".bim", b.file)
@@ -149,13 +153,7 @@ plinkCoxSurv <- function(b.file,
     # create cluster object depending on 
     # user pref or OS type, also create 
     #option to input number of cores
-    if(!is.null(clusterObj)){
-        cl <- clusterObj
-    }else if(.Platform$OS.type == "unix") {
-        cl <- makeForkCluster(getOption("gwasurvivr.cores", 2L))
-    } else {
-        cl <- makeCluster(getOption("gwasurvivr.cores", 2L))
-    }
+    cl <- create_cluster_obj(clusterObj)
     on.exit(stopCluster(cl), add=TRUE)
     
     if (keepGDS){
@@ -468,4 +466,3 @@ plinkCoxSurv <- function(b.file,
                          format(Sys.time(), "%H:%M:%S"))
     
 } 
- 
