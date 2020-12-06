@@ -253,13 +253,13 @@ plinkCoxSurv <- function(b.file,
 
 
     
+    # number of snps in segment
+    snp.start <- 1
+    snp.end <- nsnp(genoData)
     # number of dropped snps
     snp.drop.n <-0
     snp.n <- 0
     
-    
-    snp.start <- 1
-    snp.end <- nsnp(genoData)
     # get genotypes for certain chunk size
     nsnp.seg <- snp.end - snp.start + 1
     nchunks <- ceiling(nsnp.seg/chunk.size)
