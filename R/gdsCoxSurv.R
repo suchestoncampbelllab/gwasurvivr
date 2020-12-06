@@ -165,6 +165,7 @@ gdsCoxSurv <- function(gdsfile,
               "A1",
               "exp_freq_A1",
               "SAMP_MAF")
+    
     write.table( t(cols),
                  paste0(out.file, ".snps_removed"),
                  row.names = FALSE,

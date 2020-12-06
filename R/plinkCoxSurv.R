@@ -134,9 +134,7 @@ plinkCoxSurv <- function(b.file,
                       " at ",
                       format(Sys.time(), "%H:%M:%S"))
 
-    bed.file <- b.file
-    bim.file <- sub("\\.[^.]*?$", ".bim", b.file)
-    fam.file <- sub("\\.[^.]*?$", ".fam", b.file)
+
     ###################################
     #### Phenotype data wrangling #####
     cox.params <- coxPheno(covariate.file,
@@ -198,6 +196,10 @@ plinkCoxSurv <- function(b.file,
     
     ############################################################################
     ##### Load Genotype data ###################################################
+    
+    bed.file <- b.file
+    bim.file <- sub("\\.[^.]*?$", ".bim", b.file)
+    fam.file <- sub("\\.[^.]*?$", ".fam", b.file)
     
     if (keepGDS){
         gdsfile <- sub("\\.[^.]*?$", ".gds", bed.file)
