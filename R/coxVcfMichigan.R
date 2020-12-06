@@ -101,35 +101,8 @@ coxVcfMichigan <- function(data,
             snp.drop <- snp.drop[, snp.ord]
             ###########################################################
             ############### fit models in parallel ####################
-            if(is.null(inter.term)){
-                if(is.matrix(genotypes)){
-                    cox.out <- t(parApply(cl=cl,
-                                          X=genotypes, 
-                                          MARGIN=1, 
-                                          FUN=survFit, 
-                                          cox.params=cox.params,
-                                          print.covs=print.covs))
-                } else {
-                    cox.out <- survFit(genotypes,
-                                       cox.params=cox.params,
-                                       print.covs=print.covs) 
-                }
-            }else if(inter.term %in% covariates){
-                if(is.matrix(genotypes)){
-                    cox.out <- t(parApply(cl=cl,
-                                          X=genotypes,
-                                          MARGIN=1,
-                                          FUN=survFitInt, 
-                                          cox.params=cox.params, 
-                                          cov.interaction=inter.term,
-                                          print.covs=print.covs))
-                } else {
-                    cox.out <- survFitInt(genotypes,
-                                          cox.params=cox.params,
-                                          cov.interaction=inter.term, 
-                                          print.covs=print.covs)
-                }
-            }
+            cox.out <- getCoxOut(inter.term, genotypes, cl, cox.params,
+                                 print.covs)
             #############################################
             michigan.out <- list(dropped.snps=snp.drop)
             michigan.out$res <- coxExtract(cox.out, 

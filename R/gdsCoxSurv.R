@@ -358,47 +358,8 @@ gdsCoxSurv <- function(gdsfile,
         
         if (nrow(genotypes) > 0) {
             # fit models in parallel
-            if (is.null(inter.term)) {
-                if (is.matrix(genotypes)) {
-                    # browser()
-                    # cl2 <- makeForkCluster(2L)
-                    cox.out <- t(
-                        parallel::parApply(
-                            cl = cl,
-                            X = genotypes,
-                            MARGIN = 1,
-                            FUN = survFit,
-                            cox.params = cox.params,
-                            print.covs = "only"
-                        )
-                    )
-                } else if(is.numeric(genotypes)) {
-                    cox.out <- survFit(genotypes,
-                                       cox.params = cox.params,
-                                       print.covs = print.covs)
-                }
-            } else if (inter.term %in% covariates) {
-                if (is.matrix(genotypes)) {
-                    cox.out <- t(
-                        parApply(
-                            cl = cl,
-                            X = genotypes,
-                            MARGIN = 1,
-                            FUN = survFitInt,
-                            cox.params = cox.params,
-                            cov.interaction = inter.term,
-                            print.covs = print.covs
-                        )
-                    )
-                } else if(is.numeric(genotypes)) {
-                    cox.out <- survFitInt(
-                        genotypes,
-                        cox.params = cox.params,
-                        cov.interaction = inter.term,
-                        print.covs = print.covs
-                    )
-                }
-            }
+            cox.out <- getCoxOut(inter.term, genotypes, cl, cox.params,
+                                  print.covs)
             
             res <- coxExtract(cox.out,
                               snp,
