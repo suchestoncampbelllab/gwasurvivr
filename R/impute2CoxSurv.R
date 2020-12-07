@@ -169,49 +169,16 @@ impute2CoxSurv <- function(impute.file,
     ############################################################################
     #### Prep output files #####################################################
     
-    # set up columns for output
-    cols <- c("RSID",
-              "TYPED",
-              "CHR", 
-              "POS",
-              "A0",
-              "A1",
-              "exp_freq_A1",
-              "SAMP_MAF")
-    write.table( t(cols),
-                 paste0(out.file, ".snps_removed"),
-                 row.names = FALSE,
-                 col.names=FALSE,
-                 sep="\t",
-                 quote = FALSE,
-                 append = FALSE)
-    
-    snp.df <- data.frame(matrix(data = rep(NA, 16), ncol = 8 ) )
-    colnames(snp.df) <- cols
-    rownames(snp.df) <- NULL
-    
-    snp.spike <- rbind(c(rnorm(nrow(cox.params$pheno.file)-3), rep(NA, 3)),
-                       c(rnorm(nrow(cox.params$pheno.file)-4), rep(NA, 4))
-                       )
-    
-    cox.out <- getSnpSpikeCoxOut(inter.term, snp.spike, cox.params, print.covs)
-    
-    res.cols <- colnames(coxExtract(cox.out,
-                                    snp.df, 
-                                    print.covs=print.covs) )
-    
-    write.table( t(res.cols),
-                 paste0(out.file, ".coxph"),
-                 row.names = FALSE,
-                 col.names=FALSE,
-                 sep="\t",
-                 quote = FALSE,
-                 append = FALSE)
-    
-    
-    ############################################################################
-    
-
+    writeFileHeadings(
+        cols = c("RSID", "TYPED", "CHR", "POS", "A0","A1", "exp_freq_A1", 
+                 "SAMP_MAF"), 
+        out.file = out.file,
+        inter.term = inter.term,
+        snp.df = data.frame(matrix(data = rep(NA, 16), ncol = 8 ) ), 
+        snp.spike = rbind(c(rnorm(nrow(cox.params$pheno.file)-3), rep(NA, 3)),
+                          c(rnorm(nrow(cox.params$pheno.file)-4), rep(NA, 4))),
+        print.covs = print.covs,
+        cox.params = cox.params)
     
     ############################################################################
     ##### Load Genotype data ###################################################

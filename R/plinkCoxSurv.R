@@ -156,44 +156,19 @@ plinkCoxSurv <- function(b.file,
     on.exit(stopCluster(cl), add=TRUE)
     ############################################################################
     
-    # set up columns for output
-    cols <- c("RSID",
-              "CHR", 
-              "POS",
-              "A0",
-              "A1",
-              "exp_freq_A1",
-              "SAMP_MAF")
-    
-    write.table( t(cols),
-                 paste0(out.file, ".snps_removed"),
-                 row.names = FALSE,
-                 col.names=FALSE,
-                 sep="\t",
-                 quote = FALSE,
-                 append = FALSE)
-    
-    snp.df <- data.frame(t(rep(NA, 7)))
-    colnames(snp.df) <- cols
-    rownames(snp.df) <- NULL
-    
-    snp.spike <- rbind(rnorm(nrow(cox.params$pheno.file)),
-                       rnorm(nrow(cox.params$pheno.file)))
-    
-    cox.out <- getSnpSpikeCoxOut(inter.term, snp.spike, cox.params, print.covs)
-    
-    res.cols <- colnames(coxExtract(cox.out,
-                                    snp.df,
-                                    print.covs=print.covs))
-    
-    write.table(t(res.cols),
-                paste0(out.file, ".coxph"),
-                row.names = FALSE,
-                col.names=FALSE,
-                sep="\t",
-                quote = FALSE,
-                append = FALSE)
-    
+    ############################################################################
+    #### Prep output files #####################################################
+
+    writeFileHeadings(
+      cols = c("RSID","CHR", "POS","A0","A1", "exp_freq_A1","SAMP_MAF"),
+      out.file = out.file,
+      inter.term = inter.term,
+      snp.df = data.frame(t(rep(NA, 7))), 
+      snp.spike = rbind(rnorm(nrow(cox.params$pheno.file)),
+                        rnorm(nrow(cox.params$pheno.file))),
+      print.covs = print.covs,
+      cox.params = cox.params)
+
     ############################################################################
     ##### Load Genotype data ###################################################
     
