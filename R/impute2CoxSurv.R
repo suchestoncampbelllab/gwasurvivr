@@ -159,9 +159,6 @@ impute2CoxSurv <- function(impute.file,
     
     ############################################################################
     ##### Generate cluster obj #################################################
-    
-    #create cluster object depending on user pref or OS type,
-    # also create option to input number of cores
     cl <- create_cluster_obj(clusterObj)
     on.exit(stopCluster(cl), add=TRUE)
     ############################################################################

@@ -1,3 +1,5 @@
+#create cluster object depending on user pref or OS type,
+# also create option to input number of cores
 create_cluster_obj <- function(clusterObj) {
   if(!is.null(clusterObj)){
     cl <- clusterObj
