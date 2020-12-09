@@ -27,6 +27,7 @@ plinkCoxSurv(b.file=bed.file,
              out.file=results_file_name,
              chunk.size=50,
              maf.filter=0.005,
+             exclude.snps = NULL,
              flip.dosage=TRUE,
              verbose=TRUE,
              clusterObj=NULL)
