@@ -34,19 +34,7 @@ runOnChunks <- function(genoData, chunk.size, verbose,
     
     # get the snp info file
     snp <- getAnnotation(getSnpAnnotation(genoData))[chunk.idx,]
-    # snp.cols <- c("snpID",
-    #               "TYPED",
-    #               "RSID",
-    #               "POS",
-    #               "A0",
-    #               "A1",
-    #               "CHR")
-    # snp.ord <- c("RSID",
-    #              "TYPED",
-    #              "CHR",
-    #              "POS",
-    #              "A0",
-    #              "A1")
+
 
     colnames(snp) <- snp.cols
     snp <- snp[, snp.ord]
@@ -54,21 +42,7 @@ runOnChunks <- function(genoData, chunk.size, verbose,
     # grab sample file data
     scanAnn <- getAnnotation(getScanAnnotation(genoData))
     
-    # assign rsIDs (pasted with imputation status) as rows 
-    # and sample ID as columns to genotype file
-    # dimnames(genotypes) <- list(paste(snp$TYPED, snp$RSID, sep=";"), 
-    #                             scanAnn$ID_2)
-    # 
-    # # Subset genotypes by given samples
-    # 
-    # if(is.null(exclude.snps)){
-    #   genotypes <- genotypes[,cox.params$ids]
-    # } else {
-    #   genotypes <- genotypes[!snp$RSID %in% exclude.snps,cox.params$ids]
-    #   snp <- snp[! snp$RSID %in% exclude.snps, ]
-    #   if(verbose) message(length(exclude.snps), " SNPs are excluded based on the exclusion list provided by the user")
-    # }
-    # flip dosage
+
     listSNPGenotype <- funProcessSNPGenotypes(
       snp = snp, genotypes = genotypes, scanAnn = scanAnn, 
       exclude.snps = exclude.snps, cox.params = cox.params, verbose = verbose)

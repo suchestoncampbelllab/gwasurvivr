@@ -123,118 +123,20 @@ michiganCoxSurv <- function(vcf.file,
                             verbose=TRUE,
                             clusterObj=NULL){
     
-    if(verbose) message("Analysis started on ",
-                        format(Sys.time(), "%Y-%m-%d"),
-                        " at ",
-                        format(Sys.time(), "%H:%M:%S"))
-    ################################################
-    #### Phenotype data wrangling ################
-    cox.params <- coxPheno(covariate.file,
-                           covariates,
-                           id.column, 
-                           inter.term,
-                           time.to.event,
-                           event,
-                           sample.ids,
-                           verbose)
-    ################################################
-    ################################################
-    ########## Cluster object ########################
-    # create cluster object depending on user pref or OS type,
-    # also create option to input number of cores
-    cl <- create_cluster_obj(clusterObj)
-    on.exit(stopCluster(cl), add=TRUE)
+    coxSurv(createMichiganCoxSurv(vcf.file = vcf.file,
+                                  covariate.file = covariate.file,
+                                  id.column = id.column,
+                                  sample.ids=sample.ids,
+                                  time.to.event = time.to.event,
+                                  event = event,
+                                  covariates = covariates,
+                                  inter.term=inter.term,
+                                  print.covs=print.covs,
+                                  out.file = out.file,
+                                  maf.filter=maf.filter,
+                                  r2.filter=r2.filter,
+                                  chunk.size=chunk.size,
+                                  verbose=verbose,
+                                  clusterObj=clusterObj))
     
-    ################################################
-    #### open VCF file connection ##################
-    vcf <- VcfFile(vcf.file, yieldSize=chunk.size)
-    open(vcf)
-    
-    ################################################
-    ####### read first chunk #######################
-    chunk.start <- 0
-
-    
-    ################################################
-    ##### Start repeat loop ########################
-    # get genotype probabilities by chunks
-    # apply the survival function and save output
-    repeat{ 
-        # read in just dosage data from Vcf file
-        if(verbose) message("Analyzing chunk ",
-                            chunk.start,
-                            "-",
-                            chunk.start+chunk.size)    
-        
-        data <- readVcf(vcf, 
-                        param=ScanVcfParam(geno="DS",
-                                           info=c("AF", "MAF", "R2", "ER2")))
-        
-        if(nrow(data)==0) break
-        
-        out.list <- coxVcfMichigan(data,
-                                   covariates,
-                                   maf.filter, 
-                                   r2.filter,
-                                   cox.params,
-                                   cl,
-                                   inter.term, 
-                                   print.covs)
-        
-        if(chunk.start == 0) {
-            
-            write.table(
-                out.list$res,
-                paste0(out.file, ".coxph"),
-                append = FALSE,
-                row.names = FALSE,
-                col.names = TRUE,
-                quote = FALSE,
-                sep = "\t"
-            )
-            write.table(
-                out.list$dropped.snps,
-                paste0(out.file, ".snps_removed"),
-                append = FALSE,
-                row.names = FALSE,
-                col.names = FALSE,
-                quote = FALSE,
-                sep = "\t"
-            )
-            
-            chunk.start <- chunk.size
-            snps_removed <- nrow(out.list$dropped.snps)
-            snps_analyzed <- nrow(out.list$res)
-            
-        } else {
-        
-        
-        write.table(
-            out.list$res,
-            paste0(out.file, ".coxph"),
-            append = TRUE,
-            row.names = FALSE,
-            col.names = FALSE,
-            quote = FALSE,
-            sep = "\t"
-        )
-        write.table(
-            out.list$dropped.snps,
-            paste0(out.file, ".snps_removed"),
-            append = TRUE,
-            row.names = FALSE,
-            col.names = FALSE,
-            quote = FALSE,
-            sep = "\t"
-        )
-        chunk.start <- chunk.start+chunk.size
-        snps_removed <- snps_removed+nrow(out.list$dropped.snps)
-        snps_analyzed <-  snps_analyzed+nrow(out.list$res)
-        }
-    }
-    
-    ################################################
-    close(vcf)
-
-    if(verbose) closing_messages(snps_removed, snps_analyzed, out.file)
 }

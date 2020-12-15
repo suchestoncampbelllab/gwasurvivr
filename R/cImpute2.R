@@ -1,0 +1,86 @@
+createImpute2CoxSurv <- function(impute.file,
+                                 sample.file,
+                                 chr,
+                                 covariate.file,
+                                 id.column,
+                                 sample.ids,
+                                 time.to.event, 
+                                 event,
+                                 covariates,
+                                 inter.term,
+                                 print.covs,
+                                 out.file,
+                                 chunk.size,
+                                 maf.filter,
+                                 exclude.snps,
+                                 flip.dosage,
+                                 verbose,
+                                 clusterObj,
+                                 keepGDS){
+  
+  cox_surv <- list(impute.file = impute.file,
+                   sample.file = sample.file,
+                   chr = chr,
+                   covariate.file = covariate.file,
+                   id.column = id.column,
+                   sample.ids = sample.ids,
+                   time.to.event = time.to.event, 
+                   event = event,
+                   covariates = covariates,
+                   inter.term = inter.term,
+                   print.covs = print.covs,
+                   out.file = out.file,
+                   chunk.size = chunk.size,
+                   maf.filter = maf.filter,
+                   exclude.snps = exclude.snps,
+                   flip.dosage = flip.dosage,
+                   verbose = verbose,
+                   clusterObj = clusterObj,
+                   keepGDS = keepGDS)
+  
+  class(cox_surv) <- "Impute2CoxSurv"
+  
+  return(cox_surv)
+}
+
+
+loadProcessWrite.Impute2CoxSurv <- function(x,
+                                            cl,
+                                            cox.params) {
+
+  ############################################################################
+  #### Prep output files #####################################################
+
+  writeFileHeadings(
+    cols = c("RSID", "TYPED", "CHR", "POS", "A0","A1", "exp_freq_A1",
+             "SAMP_MAF"),
+    out.file = x$out.file,
+    inter.term = x$inter.term,
+    snp.df = data.frame(matrix(data = rep(NA, 16), ncol = 8 ) ),
+    snp.spike = rbind(c(rnorm(nrow(cox.params$pheno.file)-3), rep(NA, 3)),
+                      c(rnorm(nrow(cox.params$pheno.file)-4), rep(NA, 4))),
+    print.covs = x$print.covs,
+    cox.params = cox.params)
+
+
+  ############################################################################
+  ##### Load Genotype data ###################################################
+
+  genoData <- getImpute2GenoData(gdsfile, snpfile, scanfile, x$impute.file,
+                                 x$keepGDS, x$sample.file, x$chr)
+
+  ############################################################################
+  ##### Genotype data wrangling ##############################################
+
+  results <- runOnChunks(genoData, x$chunk.size, x$verbose,
+                         cox.params, x$flip.dosage, x$exclude.snps, 
+                         x$maf.filter, x$inter.term,
+                         cl, x$print.covs, x$out.file,
+                         snp.cols = c("snpID","TYPED","RSID", "POS","A0","A1","CHR"),
+                         snp.ord = c("RSID","TYPED","CHR","POS","A0","A1"),
+                         funProcessSNPGenotypes = impute2ProcessSNPGenotypes)
+
+  return(list(snps_removed = results$snp.drop.n,
+              snps_analyzed = results$snp.n))
+
+}

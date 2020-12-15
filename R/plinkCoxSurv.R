@@ -130,64 +130,22 @@ plinkCoxSurv <- function(b.file,
                          keepGDS=FALSE)
 {
   
-  if(verbose) message("Analysis started on ",
-                      format(Sys.time(), "%Y-%m-%d"),
-                      " at ",
-                      format(Sys.time(), "%H:%M:%S"))
-
-
-    ###################################
-    #### Phenotype data wrangling #####
-    cox.params <- coxPheno(covariate.file,
-                           covariates,
-                           id.column,
-                           inter.term, 
-                           time.to.event,
-                           event, 
-                           sample.ids, 
-                           verbose)
-    ###################################
-
-    ############################################################################
-    ##### Generate cluster obj #################################################
-    
-    # create cluster object depending on user pref or OS type,
-    # also create option to input number of cores
-    cl <- create_cluster_obj(clusterObj)
-    on.exit(stopCluster(cl), add=TRUE)
-    ############################################################################
-    
-    ############################################################################
-    #### Prep output files #####################################################
-
-    writeFileHeadings(
-      cols = c("RSID","CHR", "POS","A0","A1", "exp_freq_A1","SAMP_MAF"),
-      out.file = out.file,
-      inter.term = inter.term,
-      snp.df = data.frame(t(rep(NA, 7))), 
-      snp.spike = rbind(rnorm(nrow(cox.params$pheno.file)),
-                        rnorm(nrow(cox.params$pheno.file))),
-      print.covs = print.covs,
-      cox.params = cox.params)
-
-    ############################################################################
-    ##### Load Genotype data ###################################################
-    
-    genoData <- getPlinkGenoData(gdsfile = gdsfile, keepGDS = keepGDS,
-                                 b.file = b.file)
-    
-    ############################################################################
-    ##### Genotype data wrangling ##############################################
-    
-    results <- runOnChunks(genoData, chunk.size, verbose, 
-                           cox.params, flip.dosage, exclude.snps, maf.filter, inter.term,
-                           cl, print.covs, out.file, 
-                           snp.cols = c("snpID","RSID","CHR","POS","A0","A1"),
-                           snp.ord = c("RSID","CHR","POS","A0","A1"),
-                           funProcessSNPGenotypes = plinkProcessSNPGenotypes)
-    
-    if(verbose) closing_messages(snps_removed = results$snp.drop.n,
-                                 snps_analyzed = results$snp.n,
-                                 out.file = out.file)
+  coxSurv(createPlinkCoxSurv(b.file,
+                             covariate.file,
+                             id.column,
+                             sample.ids, 
+                             time.to.event, 
+                             event,
+                             covariates,
+                             inter.term,
+                             print.covs,
+                             out.file,
+                             chunk.size,
+                             maf.filter,
+                             exclude.snps,
+                             flip.dosage,
+                             verbose,
+                             clusterObj,
+                             keepGDS))
 
 } 

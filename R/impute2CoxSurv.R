@@ -139,91 +139,25 @@ impute2CoxSurv <- function(impute.file,
                            keepGDS=FALSE
                            )
 {
-    if(verbose) message("Analysis started on ",
-                        format(Sys.time(), "%Y-%m-%d"),
-                        " at ",
-                        format(Sys.time(), "%H:%M:%S"))
     
+    coxSurv(createImpute2CoxSurv(impute.file,
+                                 sample.file,
+                                 chr,
+                                 covariate.file,
+                                 id.column,
+                                 sample.ids,
+                                 time.to.event, 
+                                 event,
+                                 covariates,
+                                 inter.term,
+                                 print.covs,
+                                 out.file,
+                                 chunk.size,
+                                 maf.filter,
+                                 exclude.snps,
+                                 flip.dosage,
+                                 verbose,
+                                 clusterObj,
+                                 keepGDS))
     
-    ############################################################################
-    #### Phenotype data wrangling ##############################################
-    cox.params <- coxPheno(covariate.file,
-                           covariates,
-                           id.column,
-                           inter.term, 
-                           time.to.event,
-                           event, 
-                           sample.ids, 
-                           verbose)
-    ############################################################################
-    
-    ############################################################################
-    ##### Generate cluster obj #################################################
-    cl <- create_cluster_obj(clusterObj)
-    on.exit(stopCluster(cl), add=TRUE)
-    ############################################################################
-    
-    ############################################################################
-    #### Prep output files #####################################################
-    
-    writeFileHeadings(
-        cols = c("RSID", "TYPED", "CHR", "POS", "A0","A1", "exp_freq_A1", 
-                 "SAMP_MAF"), 
-        out.file = out.file,
-        inter.term = inter.term,
-        snp.df = data.frame(matrix(data = rep(NA, 16), ncol = 8 ) ), 
-        snp.spike = rbind(c(rnorm(nrow(cox.params$pheno.file)-3), rep(NA, 3)),
-                          c(rnorm(nrow(cox.params$pheno.file)-4), rep(NA, 4))),
-        print.covs = print.covs,
-        cox.params = cox.params)
-    
-    ############################################################################
-    ##### Load Genotype data ###################################################
-    
-    if (keepGDS){
-        gdsfile <- sub("\\.[^.]*?$", ".gds", impute.file)
-        snpfile <- sub("\\.[^.]*?$", ".snp.rdata", impute.file)
-        scanfile <- sub("\\.[^.]*?$", ".scan.rdata", impute.file)
-    } else {
-        gdsfile <- tempfile(pattern="", fileext = ".gds")
-        snpfile <- tempfile(pattern="", fileext = ".snp.rdata")
-        scanfile <- tempfile(pattern="", fileext = ".scan.rdata")
-        on.exit(unlink(c(gdsfile, snpfile, scanfile), recursive = TRUE), add=TRUE)
-    }
-    
-    
-    comp_time <- system.time(
-    imputedDosageFile(input.files=c(impute.file, sample.file),
-                      filename=gdsfile,
-                      chromosome=as.numeric(chr),
-                      input.type="IMPUTE2",
-                      input.dosage=FALSE,
-                      output.type = "dosage",
-                      file.type="gds",
-                      snp.annot.filename = snpfile,
-                      scan.annot.filename = scanfile,
-                      verbose=TRUE)
-    )
-    
-    messageCompressionTime(comp_time)
-    
-    ############################################################################
-    ##### Load Genotype data ###################################################
-    
-    genoData <- getImpute2GenoData(gdsfile, snpfile, scanfile, impute.file,
-                                   keepGDS, sample.file, chr)
-    
-    ############################################################################
-    ##### Genotype data wrangling ##############################################
-    
-    results <- runOnChunks(genoData, chunk.size, verbose, 
-                            cox.params, flip.dosage, exclude.snps, maf.filter, inter.term,
-                            cl, print.covs, out.file, 
-                           snp.cols = c("snpID","TYPED","RSID", "POS","A0","A1","CHR"),
-                           snp.ord = c("RSID","TYPED","CHR","POS","A0","A1"),
-                           funProcessSNPGenotypes = impute2ProcessSNPGenotypes)
-    
-    if(verbose) closing_messages(snps_removed = results$snp.drop.n,
-                                 snps_analyzed = results$snp.n,
-                                 out.file = out.file)
 }

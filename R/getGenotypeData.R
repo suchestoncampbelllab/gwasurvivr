@@ -22,7 +22,7 @@ getGdsGenotypeData <- function(gdsfile){
   return(genoData)
 }
 
-getPlinkGenoData <- function(gdsfile, keepGDS, b.file) {
+getPlinkGenoData <- function(keepGDS, b.file) {
   
   bim.file <- replaceFileExt(file.path = b.file, ext = ".bim")
   fam.file <- replaceFileExt(file.path = b.file, ext = ".fam")
@@ -84,6 +84,8 @@ getPlinkGenoData <- function(gdsfile, keepGDS, b.file) {
 
 getImpute2GenoData <- function(gdsfile, snpfile, scanfile, impute.file,
                                keepGDS, sample.file, chr){
+  
+  
   
   if (keepGDS){
     gdsfile <- replaceFileExt(file.path = impute.file, ext = ".gds")
