@@ -29,7 +29,32 @@ createMichiganCoxSurv <- function(vcf.file,
                    r2.filter=r2.filter,
                    chunk.size=chunk.size,
                    verbose=verbose,
-                   clusterObj=clusterObj)
+                   clusterObj=clusterObj,
+                   ScanVcfParamInfo = c("AF", "MAF", "R2", "ER2"),
+                   snp.cols = c("RSID",
+                                 "CHR",
+                                 "POS", 
+                                 "REF", 
+                                 "ALT", 
+                                 "AF", 
+                                 "MAF", 
+                                 "R2",
+                                 "ER2",
+                                 "TYPED",
+                                 "SAMP_FREQ_ALT",
+                                 "SAMP_MAF"),
+                   snp.ord = c("RSID",
+                                "TYPED",
+                                "CHR", 
+                                "POS",
+                                "REF", 
+                                "ALT", 
+                                "AF",
+                                "MAF",
+                                "SAMP_FREQ_ALT",
+                                "SAMP_MAF",
+                                "R2",
+                                "ER2"))
   
   class(cox_surv) <- "MichiganCoxSurv"
   
@@ -65,19 +90,12 @@ loadProcessWrite.MichiganCoxSurv <- function(x,
     
     data <- readVcf(vcf, 
                     param=ScanVcfParam(geno="DS",
-                                       info=c("AF", "MAF", "R2", "ER2")))
+                                       info=x$ScanVcfParamInfo))
     
     if(nrow(data)==0) break
     
     
-    out.list <- coxVcfMichigan(data,
-                               covariates = x$covariates,
-                               maf.filter = x$maf.filter, 
-                               r2.filter = x$r2.filter, 
-                               cox.params = cox.params,
-                               cl = cl, 
-                               inter.term = x$inter.term, 
-                               print.covs = x$print.covs)
+    out.list <- coxVcf(x, data, cox.params, cl)
     
     if(chunk.start == 0) {
       
@@ -138,5 +156,27 @@ loadProcessWrite.MichiganCoxSurv <- function(x,
   
 }
 
+addSnpMetaVectors.MichiganCoxSurv <- function(x, snp.meta){
+  snp.meta$TYPED <- NA
+  snp.meta$TYPED[!is.na(snp.meta$ER2)] <- TRUE
+  snp.meta$TYPED[is.na(snp.meta$ER2)] <- FALSE
+  return(snp.meta)
+}
 
+addSnpRangesVectors.MichiganCoxSurv <- function(x, snp.ranges) {
+  snp.ranges$REF <- sapply(snp.ranges$REF, as.character)
+  return(snp.ranges)
+}
 
+getSnpRef.MichiganCoxSurv <- function(x, snp){
+  snp$MAF
+}
+getFilter.MichiganCoxSurv <- function(x, snp){
+  x$r2.filter
+}
+getThresholdName.MichiganCoxSurv <- function(x){
+  return("R2")
+}
+getOkInfo.MichiganCoxSurv <- function(x, snp, x.filter){
+  !is.na(snp$R2 >= x.filter)
+}

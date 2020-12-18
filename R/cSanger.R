@@ -28,7 +28,29 @@ createSangerCoxSurv <- function(vcf.file,
                    info.filter=info.filter,
                    chunk.size=chunk.size,
                    verbose=verbose,
-                   clusterObj=clusterObj)
+                   clusterObj=clusterObj,
+                   ScanVcfParamInfo = c("RefPanelAF", "TYPED", "INFO"),
+                   snp.cols = c("RSID",
+                                 "CHR", 
+                                 "POS", 
+                                 "REF",
+                                 "ALT",
+                                 "RefPanelAF", 
+                                 "TYPED", 
+                                 "INFO",
+                                 "SAMP_FREQ_ALT",
+                                 "SAMP_MAF"),
+                   snp.ord = c("RSID",
+                                "TYPED", 
+                                "CHR",
+                                "POS",
+                                "REF",
+                                "ALT", 
+                                "RefPanelAF",
+                                "SAMP_FREQ_ALT",
+                                "SAMP_MAF",
+                                "INFO")
+                   )
   
   class(cox_surv) <- "SangerCoxSurv"
   
@@ -64,18 +86,11 @@ loadProcessWrite.SangerCoxSurv <- function(x,
     
     data <- readVcf(vcf, 
                     param=ScanVcfParam(geno="DS", 
-                                       info=c("RefPanelAF", "TYPED", "INFO")))
+                                       info=x$ScanVcfParamInfo))
     
     if(nrow(data)==0) break
     
-    out.list <- coxVcfSanger(data,
-                             x$covariates,
-                             x$maf.filter,
-                             x$info.filter,
-                             cox.params,
-                             cl, 
-                             x$inter.term, 
-                             x$print.covs)
+    out.list <- coxVcf(x, data, cox.params, cl)
     
     if(chunk.start == 0) {
       
@@ -135,4 +150,27 @@ loadProcessWrite.SangerCoxSurv <- function(x,
   
   return(list(snps_removed, snps_analyzed))
   
+}
+
+
+addSnpRangesVectors.SangerCoxSurv <- function(x, snp.ranges) {
+  return(snp.ranges)
+}
+
+addSnpMetaVectors.SangerCoxSurv <- function(x, snp.meta){
+  snp.meta$RefPanelAF <- sapply(snp.meta$RefPanelAF, as.numeric)
+  return(snp.meta)
+}
+
+getSnpRef.SangerCoxSurv <- function(x, snp){
+  snp$RefPanelAF
+}
+getFilter.SangerCoxSurv <- function(x){
+  x$info.filter
+}
+getThresholdName.SangerCoxSurv <- function(x){
+  return("info")
+}
+getOkInfo.SangerCoxSurv <- function(x, snp, x.filter){
+  snp$INFO >= x.filter
 }

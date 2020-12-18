@@ -85,3 +85,27 @@ getGenoData <- function (x, ...) {
 createSnpSpike <- function (x, ...) {
   UseMethod("createSnpSpike", x)
 }
+
+addSnpRangesVectors <- function (x, ...) {
+  UseMethod("addSnpRangesVectors", x)
+}
+
+addSnpMetaVectors <- function (x, ...) {
+  UseMethod("addSnpMetaVectors", x)
+}
+
+getSnpRef <- function (x, ...) {
+  UseMethod("getSnpRef", x)
+}
+
+getFilter <- function (x, ...) {
+  UseMethod("getFilter", x)
+}
+
+getThresholdName <- function (x, ...) {
+  UseMethod("getThresholdName", x)
+}
+
+getOkInfo <- function (x, ...) {
+  UseMethod("getOkInfo", x)
+}
