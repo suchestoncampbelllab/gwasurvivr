@@ -65,10 +65,7 @@ loadProcessWrite.PlinkCoxSurv <- function(x,
   ############################################################################
   ##### Genotype data wrangling ##############################################
   
-  results <- runOnChunks(x, genoData, x$chunk.size, x$verbose, 
-                         cox.params, x$flip.dosage, x$exclude.snps, 
-                         x$maf.filter, x$inter.term,
-                         cl, x$print.covs, x$out.file, 
+  results <- runOnChunks(x, genoData, cox.params, cl,
                          snp.cols = c("snpID","RSID","CHR","POS","A0","A1"),
                          snp.ord = c("RSID","CHR","POS","A0","A1"))
   

@@ -1,6 +1,5 @@
-runOnChunks <- function(x, genoData, chunk.size, verbose, 
-                        cox.params, flip.dosage, exclude.snps, maf.filter, inter.term,
-                        cl, print.covs, out.file, snp.cols, snp.ord) {
+runOnChunks <- function(x, genoData, cox.params, cl,
+                        snp.cols, snp.ord) {
 
   # number of snps in segment
   snp.start <- 1
@@ -11,18 +10,18 @@ runOnChunks <- function(x, genoData, chunk.size, verbose,
   
   # get genotypes for certain chunk size
   nsnp.seg <- snp.end - snp.start + 1
-  nchunks <- ceiling(nsnp.seg/chunk.size)
+  nchunks <- ceiling(nsnp.seg/x$chunk.size)
   
   for(i in seq_len(nchunks)){
     
-    if(verbose) message("Analyzing part ", i, "/", nchunks, "...")
+    if(x$verbose) message("Analyzing part ", i, "/", nchunks, "...")
     
     # set up chunks
-    next.chunk <- (i-1)*chunk.size
+    next.chunk <- (i-1)*x$chunk.size
     next.chunk.start <- snp.start + next.chunk
-    snp.chunk <- ifelse(next.chunk.start + chunk.size > snp.end,
+    snp.chunk <- ifelse(next.chunk.start + x$chunk.size > snp.end,
                         snp.end - next.chunk.start + 1,
-                        chunk.size)
+                        x$chunk.size)
     chunk.idx <- (next.chunk+1):(next.chunk+snp.chunk)
     
     # get genotypes for chunk
@@ -44,12 +43,12 @@ runOnChunks <- function(x, genoData, chunk.size, verbose,
 
     listSNPGenotype <- processSNPGenotypes(x,
       snp = snp, genotypes = genotypes, scanAnn = scanAnn, 
-      exclude.snps = exclude.snps, cox.params = cox.params, verbose = verbose)
+      exclude.snps = x$exclude.snps, cox.params = cox.params, verbose = x$verbose)
     
     snp <- listSNPGenotype$snp
     genotypes <- listSNPGenotype$genotypes
     
-    if(flip.dosage) genotypes <- 2 - genotypes
+    if(x$flip.dosage) genotypes <- 2 - genotypes
     ########################################################################
     
     ###############################################################
@@ -75,8 +74,8 @@ runOnChunks <- function(x, genoData, chunk.size, verbose,
     )
     
     # Further filter by user defined thresholds
-    if (!is.null(maf.filter)) {
-      ok.snp <- snp$SAMP_MAF > maf.filter
+    if (!is.null(x$maf.filter)) {
+      ok.snp <- snp$SAMP_MAF > x$maf.filter
       genotypes <- genotypes[ok.snp,]
       snp <- snp[ok.snp,]
       
@@ -92,7 +91,7 @@ runOnChunks <- function(x, genoData, chunk.size, verbose,
     if (nrow(snp.drop) > 0) {
       write.table(
         snp.drop,
-        paste0(out.file, ".snps_removed"),
+        paste0(x$out.file, ".snps_removed"),
         row.names = FALSE,
         col.names = FALSE,
         sep = "\t",
@@ -103,16 +102,16 @@ runOnChunks <- function(x, genoData, chunk.size, verbose,
     
     if (nrow(genotypes) > 0) {
       # fit models in parallel
-      cox.out <- getGenotypesCoxOut(inter.term, genotypes, cl, cox.params,
-                                    print.covs)
+      cox.out <- getGenotypesCoxOut(x$inter.term, genotypes, cl, cox.params,
+                                    x$print.covs)
       
       res <- coxExtract(cox.out,
                         snp,
-                        print.covs)
+                        x$print.covs)
       
       write.table(
         res,
-        file = paste0(out.file, ".coxph"),
+        file = paste0(x$out.file, ".coxph"),
         sep = "\t",
         quote = FALSE,
         row.names = FALSE,

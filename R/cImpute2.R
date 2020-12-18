@@ -72,10 +72,7 @@ loadProcessWrite.Impute2CoxSurv <- function(x,
   ############################################################################
   ##### Genotype data wrangling ##############################################
 
-  results <- runOnChunks(x, genoData, x$chunk.size, x$verbose,
-                         cox.params, x$flip.dosage, x$exclude.snps, 
-                         x$maf.filter, x$inter.term,
-                         cl, x$print.covs, x$out.file,
+  results <- runOnChunks(x, genoData, cox.params, cl,
                          snp.cols = c("snpID","TYPED","RSID", "POS","A0","A1","CHR"),
                          snp.ord = c("RSID","TYPED","CHR","POS","A0","A1"))
 
