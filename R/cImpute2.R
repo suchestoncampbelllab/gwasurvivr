@@ -66,7 +66,7 @@ loadProcessWrite.Impute2CoxSurv <- function(x,
   ############################################################################
   ##### Load Genotype data ###################################################
 
-  genoData <- getImpute2GenoData(gdsfile, snpfile, scanfile, x$impute.file,
+  genoData <- getGenoData(x, x$impute.file,
                                  x$keepGDS, x$sample.file, x$chr)
 
   ############################################################################
@@ -102,4 +102,56 @@ processSNPGenotypes.Impute2CoxSurv <- function(x, snp, genotypes, scanAnn,
   }
   
   return(list(snp = snp, genotypes = genotypes))
+}
+
+
+getGenoData.Impute2CoxSurv <- function(x, impute.file,
+                               keepGDS, sample.file, chr){
+  
+  
+  
+  if (keepGDS){
+    gdsfile <- replaceFileExt(file.path = impute.file, ext = ".gds")
+    snpfile <- replaceFileExt(file.path = impute.file, ext = ".snp.rdata")
+    scanfile <- replaceFileExt(file.path = impute.file, ext = ".scan.rdata")
+  } else {
+    gdsfile <- tempfile(pattern="", fileext = ".gds")
+    snpfile <- tempfile(pattern="", fileext = ".snp.rdata")
+    scanfile <- tempfile(pattern="", fileext = ".scan.rdata")
+    on.exit(unlink(c(gdsfile, snpfile, scanfile), recursive = TRUE), add=TRUE)
+  }
+  
+  comp_time <- system.time(
+    imputedDosageFile(input.files=c(impute.file, sample.file),
+                      filename=gdsfile,
+                      chromosome=as.numeric(chr),
+                      input.type="IMPUTE2",
+                      input.dosage=FALSE,
+                      output.type = "dosage",
+                      file.type="gds",
+                      snp.annot.filename = snpfile,
+                      scan.annot.filename = scanfile,
+                      verbose=TRUE)
+  )
+  
+  messageCompressionTime(comp_time)
+  
+  # read genotype
+  ## need to add if statement about dimensions
+  # set default "snp,scan" -- 
+  # in GWASTools documentation say it needs to be in this orientation
+  gds <- GdsGenotypeReader(gdsfile, genotypeDim="scan,snp")
+  # close gds file on exit of the function
+  # on.exit(close(gds), add=TRUE)
+  # read in snp data
+  snpAnnot <- getobj(snpfile)
+  # read scan
+  scanAnnot <- getobj(scanfile)
+  # put into GenotypeData coding 
+  genoData <- GenotypeData(gds,
+                           snpAnnot=snpAnnot,
+                           scanAnnot=scanAnnot)
+  
+  return(genoData)
+  
 }

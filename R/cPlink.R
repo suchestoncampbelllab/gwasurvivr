@@ -59,7 +59,7 @@ loadProcessWrite.PlinkCoxSurv <- function(x,
   ############################################################################
   ##### Load Genotype data ###################################################
   
-  genoData <- getPlinkGenoData(keepGDS = x$keepGDS,
+  genoData <- getGenoData(x, keepGDS = x$keepGDS,
                                b.file = x$b.file)
   
   ############################################################################
@@ -91,4 +91,64 @@ processSNPGenotypes.PlinkCoxSurv <- function(x, snp, genotypes, scanAnn,
     snp <- snp[!blankSNPs,]
     
     return(list(snp = snp, genotypes = genotypes))
+}
+
+
+getGenoData.PlinkCoxSurv <- function(x, keepGDS, b.file) {
+  
+  bim.file <- replaceFileExt(file.path = b.file, ext = ".bim")
+  fam.file <- replaceFileExt(file.path = b.file, ext = ".fam")
+  
+  if (keepGDS){
+    gdsfile <- replaceFileExt(file.path = b.file, ext = ".gds")
+    on.exit(unlink(gdsfile, recursive = TRUE), add=TRUE)
+  } else {
+    gdsfile <- tempfile(pattern="", fileext = ".gds")
+  }
+  
+  
+  comp_time <- system.time(snpgdsBED2GDS(b.file, 
+                                         fam.file,
+                                         bim.file,
+                                         gdsfile,
+                                         cvt.chr="int",
+                                         cvt.snpid="int",
+                                         verbose=TRUE)
+  )
+  
+  messageCompressionTime(comp_time)
+  
+  # read genotype
+  ## need to add if statement about dimensions
+  # set default "snp,scan" -- 
+  # in GWASTools documentation say it needs to be in this orientation
+  gds <- GdsGenotypeReader(gdsfile,
+                           YchromCode=24L, 
+                           XYchromCode=25L)
+  
+  
+  scanID <- getScanID(gds)
+  scanAnnot <- ScanAnnotationDataFrame(data.frame(scanID,
+                                                  stringsAsFactors=FALSE))
+  snpID <- getSnpID(gds)
+  chromosome <- getChromosome(gds)
+  position <- getPosition(gds)
+  alleleA <- getAlleleA(gds)
+  alleleB <- getAlleleB(gds)
+  rsID <- getVariable(gds, "snp.rs.id")
+  # requires snpID
+  snpAnnot <- SnpAnnotationDataFrame(data.frame(snpID,
+                                                rsID,
+                                                chromosome,
+                                                position,
+                                                alleleA,
+                                                alleleB,
+                                                stringsAsFactors=FALSE),
+                                     YchromCode=24L,
+                                     XYchromCode=25L)
+  genoData <- GenotypeData(gds,
+                           scanAnnot=scanAnnot, 
+                           snpAnnot=snpAnnot)
+  
+  return(genoData)
 }

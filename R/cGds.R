@@ -56,7 +56,7 @@ loadProcessWrite.GdsCoxSurv <- function(x,
   ############################################################################
   ##### Load Genotype data ###################################################
   
-  genoData <- getGdsGenotypeData(x$gdsfile)
+  genoData <- getGenoData(x, x$gdsfile)
   
   ############################################################################
   ##### Genotype data wrangling ##############################################
@@ -86,4 +86,30 @@ processSNPGenotypes.GdsCoxSurv <- function(x, snp, genotypes, scanAnn,
   genotypes <- genotypes[,cox.params$ids]
   
   return(list(snp = snp, genotypes = genotypes))
+}
+
+
+
+getGenoData.GdsCoxSurv <- function(x, gdsfile){
+  
+  # read genotype
+  ## need to add if statement about dimensions
+  # set default "snp,scan" -- 
+  # in GWASTools documentation say it needs to be in this orientation
+  gds <- GdsGenotypeReader(gdsfile, genotypeDim="scan,snp")
+  # close gds file on exit of the function
+  # on.exit(close(gds), add=TRUE)
+  # aux files
+  snpfile <- replaceFileExt(file.path = gdsfile, ext = ".snp.rdata")
+  scanfile <- replaceFileExt(file.path = gdsfile, ext = ".scan.rdata")
+  # read in snp data
+  snpAnnot <- getobj(snpfile)
+  # read scan
+  scanAnnot <- getobj(scanfile)
+  # put into GenotypeData coding 
+  genoData <- GenotypeData(gds,
+                           snpAnnot=snpAnnot,
+                           scanAnnot=scanAnnot)
+  
+  return(genoData)
 }

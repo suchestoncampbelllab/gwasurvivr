@@ -40,4 +40,8 @@ processSNPGenotypes <- function (x, ...) {
   UseMethod("processSNPGenotypes", x)
 }
 
+getGenoData <- function (x, ...) {
+  UseMethod("getGenoData", x)
+}
+
 
