@@ -91,21 +91,19 @@ processSNPGenotypes.PlinkCoxSurv <- function(x, snp, genotypes, scanAnn,
 
 
 getGenoData.PlinkCoxSurv <- function(x) {
-  b.file <- x$b.file
-  keepGDS <- x$keepGDS
   
-  bim.file <- replaceFileExt(file.path = b.file, ext = ".bim")
-  fam.file <- replaceFileExt(file.path = b.file, ext = ".fam")
+  bim.file <- replaceFileExt(file.path =  x$b.file, ext = ".bim")
+  fam.file <- replaceFileExt(file.path =  x$b.file, ext = ".fam")
   
-  if (keepGDS){
-    gdsfile <- replaceFileExt(file.path = b.file, ext = ".gds")
+  if (x$keepGDS){
+    gdsfile <- replaceFileExt(file.path =  x$b.file, ext = ".gds")
     on.exit(unlink(gdsfile, recursive = TRUE), add=TRUE)
   } else {
     gdsfile <- tempfile(pattern="", fileext = ".gds")
   }
   
   
-  comp_time <- system.time(snpgdsBED2GDS(b.file, 
+  comp_time <- system.time(snpgdsBED2GDS( x$b.file, 
                                          fam.file,
                                          bim.file,
                                          gdsfile,

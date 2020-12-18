@@ -102,15 +102,11 @@ processSNPGenotypes.Impute2CoxSurv <- function(x, snp, genotypes, scanAnn,
 
 
 getGenoData.Impute2CoxSurv <- function(x){
-  impute.file <- x$impute.file
-  keepGDS <- x$keepGDS
-  chr <- x$chr
-  sample.file <- x$sample.file
   
-  if (keepGDS){
-    gdsfile <- replaceFileExt(file.path = impute.file, ext = ".gds")
-    snpfile <- replaceFileExt(file.path = impute.file, ext = ".snp.rdata")
-    scanfile <- replaceFileExt(file.path = impute.file, ext = ".scan.rdata")
+  if (x$keepGDS){
+    gdsfile <- replaceFileExt(file.path = x$impute.file, ext = ".gds")
+    snpfile <- replaceFileExt(file.path = x$impute.file, ext = ".snp.rdata")
+    scanfile <- replaceFileExt(file.path = x$impute.file, ext = ".scan.rdata")
   } else {
     gdsfile <- tempfile(pattern="", fileext = ".gds")
     snpfile <- tempfile(pattern="", fileext = ".snp.rdata")
@@ -119,9 +115,9 @@ getGenoData.Impute2CoxSurv <- function(x){
   }
   
   comp_time <- system.time(
-    imputedDosageFile(input.files=c(impute.file, sample.file),
+    imputedDosageFile(input.files=c(x$impute.file, x$sample.file),
                       filename=gdsfile,
-                      chromosome=as.numeric(chr),
+                      chromosome=as.numeric(x$chr),
                       input.type="IMPUTE2",
                       input.dosage=FALSE,
                       output.type = "dosage",
