@@ -1,5 +1,4 @@
-runOnChunks <- function(x, genoData, cox.params, cl,
-                        snp.cols, snp.ord) {
+runOnChunks <- function(x, genoData, cox.params, cl) {
 
   # number of snps in segment
   snp.start <- 1
@@ -34,8 +33,8 @@ runOnChunks <- function(x, genoData, cox.params, cl,
     snp <- getAnnotation(getSnpAnnotation(genoData))[chunk.idx,]
 
 
-    colnames(snp) <- snp.cols
-    snp <- snp[, snp.ord]
+    colnames(snp) <- x$snp.cols
+    snp <- snp[, x$snp.ord]
     
     # grab sample file data
     scanAnn <- getAnnotation(getScanAnnotation(genoData))
