@@ -1,7 +1,6 @@
-runOnChunks <- function(genoData, chunk.size, verbose, 
+runOnChunks <- function(x, genoData, chunk.size, verbose, 
                         cox.params, flip.dosage, exclude.snps, maf.filter, inter.term,
-                        cl, print.covs, out.file, snp.cols, snp.ord,
-                        funProcessSNPGenotypes) {
+                        cl, print.covs, out.file, snp.cols, snp.ord) {
 
   # number of snps in segment
   snp.start <- 1
@@ -43,7 +42,7 @@ runOnChunks <- function(genoData, chunk.size, verbose,
     scanAnn <- getAnnotation(getScanAnnotation(genoData))
     
 
-    listSNPGenotype <- funProcessSNPGenotypes(
+    listSNPGenotype <- processSNPGenotypes(x,
       snp = snp, genotypes = genotypes, scanAnn = scanAnn, 
       exclude.snps = exclude.snps, cox.params = cox.params, verbose = verbose)
     

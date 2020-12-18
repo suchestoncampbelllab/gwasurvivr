@@ -65,14 +65,30 @@ loadProcessWrite.PlinkCoxSurv <- function(x,
   ############################################################################
   ##### Genotype data wrangling ##############################################
   
-  results <- runOnChunks(genoData, x$chunk.size, x$verbose, 
+  results <- runOnChunks(x, genoData, x$chunk.size, x$verbose, 
                          cox.params, x$flip.dosage, x$exclude.snps, 
                          x$maf.filter, x$inter.term,
                          cl, x$print.covs, x$out.file, 
                          snp.cols = c("snpID","RSID","CHR","POS","A0","A1"),
-                         snp.ord = c("RSID","CHR","POS","A0","A1"),
-                         funProcessSNPGenotypes = plinkProcessSNPGenotypes)
+                         snp.ord = c("RSID","CHR","POS","A0","A1"))
   
   return(list(snps_removed = results$snp.drop.n, 
               snps_analyzed = results$snp.n))
+}
+
+processSNPGenotypes.PlinkCoxSurv <- function(x, snp, genotypes, scanAnn, 
+                                             exclude.snps = NULL, 
+                                             cox.params, verbose){
+  
+    # assign rsIDs (pasted with imputation status) as rows
+    # and sample ID as columns to genotype file
+    dimnames(genotypes) <- list(snp$RSID,
+                                scanAnn$scanID)
+    
+    # Subset genotypes by given samples
+    blankSNPs <- snp$A0 == "0" & snp$A1 == "0"
+    genotypes <- genotypes[!blankSNPs,cox.params$ids]
+    snp <- snp[!blankSNPs,]
+    
+    return(list(snp = snp, genotypes = genotypes))
 }

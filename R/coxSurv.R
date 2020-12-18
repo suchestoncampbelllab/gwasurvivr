@@ -36,4 +36,8 @@ loadProcessWrite <- function (x, ...) {
   UseMethod("loadProcessWrite", x)
 }
 
+processSNPGenotypes <- function (x, ...) {
+  UseMethod("processSNPGenotypes", x)
+}
+
 

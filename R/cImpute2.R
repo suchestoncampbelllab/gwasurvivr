@@ -72,15 +72,34 @@ loadProcessWrite.Impute2CoxSurv <- function(x,
   ############################################################################
   ##### Genotype data wrangling ##############################################
 
-  results <- runOnChunks(genoData, x$chunk.size, x$verbose,
+  results <- runOnChunks(x, genoData, x$chunk.size, x$verbose,
                          cox.params, x$flip.dosage, x$exclude.snps, 
                          x$maf.filter, x$inter.term,
                          cl, x$print.covs, x$out.file,
                          snp.cols = c("snpID","TYPED","RSID", "POS","A0","A1","CHR"),
-                         snp.ord = c("RSID","TYPED","CHR","POS","A0","A1"),
-                         funProcessSNPGenotypes = impute2ProcessSNPGenotypes)
+                         snp.ord = c("RSID","TYPED","CHR","POS","A0","A1"))
 
   return(list(snps_removed = results$snp.drop.n,
               snps_analyzed = results$snp.n))
 
+}
+
+processSNPGenotypes.Impute2CoxSurv <- function(x, snp, genotypes, scanAnn, 
+                                               exclude.snps, 
+                                               cox.params, verbose) {
+  # assign rsIDs (pasted with imputation status) as rows 
+  # and sample ID as columns to genotype file
+  dimnames(genotypes) <- list(paste(snp$TYPED, snp$RSID, sep=";"), 
+                              scanAnn$ID_2)
+  
+  # Subset genotypes by given samples
+  if(is.null(exclude.snps)){
+    genotypes <- genotypes[,cox.params$ids]
+  } else {
+    genotypes <- genotypes[!snp$RSID %in% exclude.snps,cox.params$ids]
+    snp <- snp[! snp$RSID %in% exclude.snps, ]
+    if(verbose) message(length(exclude.snps), " SNPs are excluded based on the exclusion list provided by the user")
+  }
+  
+  return(list(snp = snp, genotypes = genotypes))
 }
