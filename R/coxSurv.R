@@ -82,4 +82,6 @@ getGenoData <- function (x, ...) {
   UseMethod("getGenoData", x)
 }
 
-
+createSnpSpike <- function (x, ...) {
+  UseMethod("createSnpSpike", x)
+}

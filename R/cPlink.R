@@ -32,45 +32,22 @@ createPlinkCoxSurv <- function(b.file,
                    flip.dosage =flip.dosage,
                    verbose = verbose,
                    clusterObj = clusterObj,
-                   keepGDS = keepGDS)
+                   keepGDS = keepGDS,
+                   columnHeadings = c("RSID","CHR", "POS","A0","A1", "exp_freq_A1","SAMP_MAF"),
+                   snp.df = data.frame(t(rep(NA, 7))),
+                   snp.cols = c("snpID","RSID","CHR","POS","A0","A1"),
+                   snp.ord = c("RSID","CHR","POS","A0","A1"))
   
-  class(cox_surv) <- "PlinkCoxSurv"
+  class(cox_surv) <- c("PlinkCoxSurv", "PlinkGdsImpute2CoxSurv")
   
   return(cox_surv)
 }
 
-
-loadProcessWrite.PlinkCoxSurv <- function(x,
-                                          cl,
-                                          cox.params) {
-  ############################################################################
-  #### Prep output files #####################################################
-  
-  writeFileHeadings(
-    cols = c("RSID","CHR", "POS","A0","A1", "exp_freq_A1","SAMP_MAF"),
-    out.file = x$out.file,
-    inter.term = x$inter.term,
-    snp.df = data.frame(t(rep(NA, 7))), 
-    snp.spike = rbind(rnorm(nrow(cox.params$pheno.file)),
-                      rnorm(nrow(cox.params$pheno.file))),
-    print.covs = x$print.covs,
-    cox.params = cox.params)
-  
-  ############################################################################
-  ##### Load Genotype data ###################################################
-  
-  genoData <- getGenoData(x)
-  
-  ############################################################################
-  ##### Genotype data wrangling ##############################################
-  
-  results <- runOnChunks(x, genoData, cox.params, cl,
-                         snp.cols = c("snpID","RSID","CHR","POS","A0","A1"),
-                         snp.ord = c("RSID","CHR","POS","A0","A1"))
-  
-  return(list(snps_removed = results$snp.drop.n, 
-              snps_analyzed = results$snp.n))
+createSnpSpike.PlinkCoxSurv <- function(x, cox.params){
+  rbind(rnorm(nrow(cox.params$pheno.file)),
+        rnorm(nrow(cox.params$pheno.file)))
 }
+
 
 processSNPGenotypes.PlinkCoxSurv <- function(x, snp, genotypes, scanAnn, 
                                              exclude.snps = NULL, 

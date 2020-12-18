@@ -30,44 +30,21 @@ createGdsCoxSurv <- function(gdsfile,
                    exclude.snps = exclude.snps,
                    flip.dosage = flip.dosage,
                    verbose = verbose,
-                   clusterObj = clusterObj)
+                   clusterObj = clusterObj,
+                   columnHeadings = c("RSID", "TYPED", "CHR", "POS", "A0","A1", "exp_freq_A1", 
+                                      "SAMP_MAF"),
+                   snp.df = data.frame(matrix(data = rep(NA, 16), ncol = 8 )),
+                   snp.cols = c("snpID","TYPED","RSID","POS","A0","A1", "CHR"),
+                   snp.ord = c("RSID","TYPED", "CHR","POS","A0","A1"))
   
-  class(cox_surv) <- "GdsCoxSurv"
+  class(cox_surv) <- c("GdsCoxSurv", "PlinkGdsImpute2CoxSurv")
   
   return(cox_surv)
 }
 
-
-loadProcessWrite.GdsCoxSurv <- function(x,
-                                            cl,
-                                            cox.params) {
-  
-  writeFileHeadings(
-    cols = c("RSID", "TYPED", "CHR", "POS", "A0","A1", "exp_freq_A1", 
-             "SAMP_MAF"), 
-    out.file = x$out.file,
-    inter.term = x$inter.term,
-    snp.df = data.frame(matrix(data = rep(NA, 16), ncol = 8 ) ), 
-    snp.spike = rbind(c(rnorm(nrow(cox.params$pheno.file)-3), rep(NA, 3)),
-                      c(rnorm(nrow(cox.params$pheno.file)-4), rep(NA, 4))),
-    print.covs = x$print.covs,
-    cox.params = cox.params)
-  
-  ############################################################################
-  ##### Load Genotype data ###################################################
-  
-  genoData <- getGenoData(x)
-  
-  ############################################################################
-  ##### Genotype data wrangling ##############################################
-  
-  results <- runOnChunks(x, genoData, cox.params, cl,
-                         snp.cols = c("snpID","TYPED","RSID","POS","A0","A1", "CHR"),
-                         snp.ord = c("RSID","TYPED", "CHR","POS","A0","A1"))
-  
-  return(list(snps_removed = results$snp.drop.n, 
-              snps_analyzed = results$snp.n))
-  
+createSnpSpike.GdsCoxSurv <- function(x, cox.params){
+  rbind(c(rnorm(nrow(cox.params$pheno.file)-3), rep(NA, 3)),
+        c(rnorm(nrow(cox.params$pheno.file)-4), rep(NA, 4)))
 }
 
 
