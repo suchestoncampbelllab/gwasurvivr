@@ -66,8 +66,7 @@ loadProcessWrite.Impute2CoxSurv <- function(x,
   ############################################################################
   ##### Load Genotype data ###################################################
 
-  genoData <- getGenoData(x, x$impute.file,
-                                 x$keepGDS, x$sample.file, x$chr)
+  genoData <- getGenoData(x)
 
   ############################################################################
   ##### Genotype data wrangling ##############################################
@@ -102,10 +101,11 @@ processSNPGenotypes.Impute2CoxSurv <- function(x, snp, genotypes, scanAnn,
 }
 
 
-getGenoData.Impute2CoxSurv <- function(x, impute.file,
-                               keepGDS, sample.file, chr){
-  
-  
+getGenoData.Impute2CoxSurv <- function(x){
+  impute.file <- x$impute.file
+  keepGDS <- x$keepGDS
+  chr <- x$chr
+  sample.file <- x$sample.file
   
   if (keepGDS){
     gdsfile <- replaceFileExt(file.path = impute.file, ext = ".gds")

@@ -56,7 +56,7 @@ loadProcessWrite.GdsCoxSurv <- function(x,
   ############################################################################
   ##### Load Genotype data ###################################################
   
-  genoData <- getGenoData(x, x$gdsfile)
+  genoData <- getGenoData(x)
   
   ############################################################################
   ##### Genotype data wrangling ##############################################
@@ -87,7 +87,8 @@ processSNPGenotypes.GdsCoxSurv <- function(x, snp, genotypes, scanAnn,
 
 
 
-getGenoData.GdsCoxSurv <- function(x, gdsfile){
+getGenoData.GdsCoxSurv <- function(x){
+  gdsfile <- x$gdsfile
   
   # read genotype
   ## need to add if statement about dimensions

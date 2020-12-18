@@ -59,8 +59,7 @@ loadProcessWrite.PlinkCoxSurv <- function(x,
   ############################################################################
   ##### Load Genotype data ###################################################
   
-  genoData <- getGenoData(x, keepGDS = x$keepGDS,
-                               b.file = x$b.file)
+  genoData <- getGenoData(x)
   
   ############################################################################
   ##### Genotype data wrangling ##############################################
@@ -91,7 +90,9 @@ processSNPGenotypes.PlinkCoxSurv <- function(x, snp, genotypes, scanAnn,
 }
 
 
-getGenoData.PlinkCoxSurv <- function(x, keepGDS, b.file) {
+getGenoData.PlinkCoxSurv <- function(x) {
+  b.file <- x$b.file
+  keepGDS <- x$keepGDS
   
   bim.file <- replaceFileExt(file.path = b.file, ext = ".bim")
   fam.file <- replaceFileExt(file.path = b.file, ext = ".fam")
