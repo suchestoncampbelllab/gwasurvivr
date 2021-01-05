@@ -1,8 +1,24 @@
 Package: gwasurvivr
 Type: Package
 Title: gwasurvivr: an R package for genome wide survival analysis 
-Version: 0.99.47
-Author: Abbas Rizvi, Ezgi Karaesmen, Martin Morgan, Lara Sucheston-Campbell
+Version: 1.1
+Authors@R: 
+  c(person(given = "Abbas",
+           family = "Rizvi",
+           role = c("aut", "cre"),
+           email = "aarizv@gmail.com"),
+    person(given = "Ezgi",
+           family = "Karaesmen",
+           role = "aut"),
+    person(given = "Martin",
+           family = "Morgan",
+           role = "aut"),
+    person(given = "Lara",
+           family = "Sucheston-Campbell",
+           role = "aut"),
+    person(given = "Mark",
+           family = "Platts",
+           role = "ctb"))
 Maintainer: Abbas Rizvi <aarizv@gmail.com>
 Description: gwasurvivr is a package to perform survival analysis using Cox proportional hazard models on imputed genetic data.
 VignetteBuilder:
