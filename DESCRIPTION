@@ -2,6 +2,7 @@ Package: gwasurvivr
 Type: Package
 Title: gwasurvivr: an R package for genome wide survival analysis 
 Version: 1.1
+Year: 2021
 Authors@R: 
   c(person(given = "Abbas",
            family = "Rizvi",

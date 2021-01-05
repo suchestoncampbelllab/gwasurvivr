@@ -1,2 +1,3 @@
 NEWS:
-- getting prepared to submit to Bioconductor
+- Mark Platts refactored the coxSurv functions and created classes for each type of input file
+- unit tests added to package

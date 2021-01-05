@@ -1,0 +1,21 @@
+citEntry(
+    entry="article",
+    title="gwasurvivr: an R package for genome-wide survival analysis",
+    author=personList(as.person("Abbas A. Rizvi"),
+                      as.person("Ezgi Karaesmen"),
+                      as.person("Martin Morgan"),
+                      as.person("Leah Preus"),
+                      as.person("Junke Wang"),
+                      as.person("Michael Sovic"),
+                      as.person("Theresa Hahn"),
+                      as.person("Lara E Sucheston-Campbell")),
+    year=2019,
+    journal="Bioinformatics",
+    doi="10.1093/bioinformatics/bty920",
+    volume=35,
+    number=11,
+    pages="1968-1970",
+    textVersion=paste("Rizvi AA, Karaesmen E, Morgan M, Preus L, Wang J, Sovic M, Hahn T, Sucheston-Campbell LE",
+    "gwasurvivr: an R package for genome-wide survival analysis",
+    "Bioinformatics 35(11):1968-1970 (2019)")
+)
