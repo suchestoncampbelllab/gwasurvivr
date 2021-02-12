@@ -111,7 +111,7 @@ runOnChunks <- function(x, genoData, cox.params, cl) {
     snp <- snp[ok.snp, ]
     genotypes <- genotypes[ok.snp, ]
     snp.drop <- snp[!ok.snp, ]
-    
+
     # calculate MAF
     snp$exp_freq_A1 <- round(rowMeans2(genotypes, na.rm = TRUE)*0.5,4)
     snp$SAMP_MAF <- ifelse(snp$exp_freq_A1 > 0.5,
@@ -170,12 +170,11 @@ runOnChunks <- function(x, genoData, cox.params, cl) {
     }
     
     
-    
-    
-    return(list(snp.drop.n = snp.drop.n, 
-                snp.n = snp.n))
-    
   }
+    
+  return(list(snp.drop.n = snp.drop.n, 
+              snp.n = snp.n))
+    
 }
 
 replaceFileExt <- function(file.path, ext) {
