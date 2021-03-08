@@ -20,7 +20,8 @@ Imports:
 Suggests:
     BiocStyle,
     knitr,
-    rmarkdown
+    rmarkdown,
+    testthat
 Depends:
     R (>= 3.4.0)
 License: Artistic-2.0
@@ -34,5 +35,5 @@ biocViews:
     GeneticVariability,
     Pharmacogenomics,
     BiomedicalInformatics
-RoxygenNote: 6.1.0
+RoxygenNote: 7.1.1
 Encoding: UTF-8
