@@ -60,7 +60,7 @@ processSNPGenotypes.PlinkCoxSurv <- function(x, snp, genotypes, scanAnn,
     
     # Subset genotypes by given samples
     blankSNPs <- snp$A0 == "0" & snp$A1 == "0"
-    genotypes <- genotypes[!blankSNPs,cox.params$ids]
+    genotypes <- genotypes[, scanAnn$scanID %in% cox.params$id]
     snp <- snp[!blankSNPs,]
     
     return(list(snp = snp, genotypes = genotypes))
