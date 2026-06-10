@@ -5,12 +5,28 @@
 \title{Fit Cox survival to all variants from a standard IMPUTE2 output after
 genotype imputation}
 \usage{
-impute2CoxSurv(impute.file, sample.file, chr, covariate.file, id.column,
-  sample.ids = NULL, time.to.event, event, covariates,
-  inter.term = NULL, print.covs = "only", out.file,
-  chunk.size = 10000, maf.filter = 0.05, exclude.snps = NULL,
-  flip.dosage = TRUE, verbose = TRUE, clusterObj = NULL,
-  keepGDS = FALSE)
+impute2CoxSurv(
+  impute.file,
+  sample.file,
+  chr,
+  covariate.file,
+  id.column,
+  sample.ids = NULL,
+  time.to.event,
+  event,
+  covariates,
+  inter.term = NULL,
+  print.covs = "only",
+  out.file,
+  chunk.size = 10000,
+  maf.filter = 0.05,
+  exclude.snps = NULL,
+  flip.dosage = TRUE,
+  verbose = TRUE,
+  clusterObj = NULL,
+  keepGDS = FALSE,
+  start.time = NULL
+)
 }
 \arguments{
 \item{impute.file}{character of IMPUTE2 file}
@@ -55,8 +71,14 @@ the output. See details.}
 
 \item{exclude.snps}{a character vector listing the rsIDs of SNPs that will be excluded from analyses}
 
-\item{flip.dosage}{logical to flip which allele the dosage was
-calculated on, default \code{flip.dosage=TRUE}}
+\item{flip.dosage}{logical(1); controls which allele the additive dosage
+(and therefore the hazard ratio) is calculated on. Default
+\code{flip.dosage=TRUE}. With \code{flip.dosage=FALSE} the effect allele is
+\code{A1} (allele coded 1, conventionally the minor allele in PLINK). With
+the default \code{flip.dosage=TRUE} the dosage is flipped to
+\code{2 - dosage}, so the effect allele becomes \code{A0} and the HR is per
+one additional copy of \code{A0}. The \code{exp_freq_A1} column reports the
+frequency of the effect allele (i.e. of A0 when flipped, A1 otherwise).}
 
 \item{verbose}{logical for messages that describe which part of the
 analysis is currently being run}
@@ -66,6 +88,12 @@ analysis is currently being run}
 
 \item{keepGDS}{logical to keep GDS files (compressed IMPUTE2 files) 
 after the analysis. Defaults to \code{FALSE}.}
+
+\item{start.time}{character(1) optional column name in the covariate file
+giving a per-sample entry (left-truncation) time. When supplied, models use
+counting-process \code{Surv(start.time, time.to.event, event)} intervals
+(fit with survival's agreg.fit); when \code{NULL} (default) standard
+right-censored survival is used.}
 }
 \value{
 Saves two text files directly to disk:  

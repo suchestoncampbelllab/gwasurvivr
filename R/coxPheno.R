@@ -1,27 +1,39 @@
-coxPheno <- function(pheno.file, 
-                     covariates, 
-                     id.column, 
-                     inter.term, 
+coxPheno <- function(pheno.file,
+                     covariates,
+                     id.column,
+                     inter.term,
                      time.to.event,
-                     event, 
-                     sample.ids, 
-                     verbose){
+                     event,
+                     sample.ids,
+                     verbose,
+                     start.time = NULL){
     #### Phenotype data wrangling #####
     ## id column shold be provided!
     if (missing(id.column) ) {
         stop("Name of the ID column is not provided")
     }
-    
+
+    ## Coerce to a plain data.frame. tibbles / grouped_df (dplyr) keep different
+    ## `[` semantics and a grouped tibble made `pheno.file[, covariates]` throw
+    ## "subscript out of bounds" (#39). as.data.frame() also drops grouping.
+    pheno.file <- as.data.frame(pheno.file, stringsAsFactors = FALSE)
+
+    if (!id.column %in% colnames(pheno.file)) {
+        stop("The id.column '", id.column, "' was not found in the covariate ",
+             "file columns: ", paste(colnames(pheno.file), collapse = ", "))
+    }
+
     ### SUBSET BY SAMPLE IDS IF GIVEN
     # user can provide null for sample.ids if not wishing to subset samples
     if(!is.null(sample.ids)){
         # only keep samples given with sample.ids argument
         pheno.file <- pheno.file[pheno.file[[id.column]] %in% sample.ids,]
         if(nrow(pheno.file) < 1) {
-            stop("Your input ID column is incorrect 
-                 or none of the provided sample IDs are present in the data.")}
+            stop("None of the provided sample.ids match values in the '",
+                 id.column, "' column of the covariate file. Check that ",
+                 "sample.ids and id.column refer to the same identifiers.")}
     }
-    
+
 
     if(!is.null(covariates)){
         # covariates are defined in pheno.file
@@ -39,13 +51,15 @@ coxPheno <- function(pheno.file,
             message("Models will include interaction term: SNP*", inter.term)
         }
         
-        ### drop NAs
-        pheno.file <- pheno.file[,c(id.column, time.to.event, event, ok.covs)]
+        ### drop NAs (start.time is included when left-truncation is requested)
+        pheno.file <- pheno.file[,c(id.column, start.time, time.to.event,
+                                    event, ok.covs)]
         pheno.file <- pheno.file[complete.cases(pheno.file),]
         ids <- pheno.file[[id.column]]
-        
+
         ## covariates should be numeric!
-        pheno.file <- as.matrix(pheno.file[,c(time.to.event, event, ok.covs)])
+        pheno.file <- as.matrix(pheno.file[,c(start.time, time.to.event,
+                                              event, ok.covs)])
         
         if (!is.numeric(pheno.file) ) {
             stop("Provided covariates must be numeric!\n",
@@ -54,13 +68,13 @@ coxPheno <- function(pheno.file,
         }
     } else {
         
-        ### drop NAs
-        pheno.file <- pheno.file[,c(id.column, time.to.event, event)]
+        ### drop NAs (start.time is included when left-truncation is requested)
+        pheno.file <- pheno.file[,c(id.column, start.time, time.to.event, event)]
         pheno.file <- pheno.file[complete.cases(pheno.file),]
         ids <- pheno.file[[id.column]]
-        
+
         ## time-event should be numeric!
-        pheno.file <- as.matrix(pheno.file[,c(time.to.event, event)])
+        pheno.file <- as.matrix(pheno.file[,c(start.time, time.to.event, event)])
         
         
         if (!is.numeric(pheno.file) ) {
@@ -72,9 +86,10 @@ coxPheno <- function(pheno.file,
     # build coxph.fit parameters
     cox.params <- coxParam(pheno.file,
                            time.to.event,
-                           event, 
-                           covariates, 
+                           event,
+                           covariates,
                            ids,
-                           verbose)
+                           verbose,
+                           start.time = start.time)
     return(cox.params)
 }

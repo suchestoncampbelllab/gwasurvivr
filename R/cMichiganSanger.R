@@ -8,7 +8,10 @@ loadProcessWrite.MichiganSangerCoxSurv<- function(x, cl, cox.params) {
   ################################################
   ####### read first chunk #######################
   chunk.start <- 0
-  
+  # Initialize so an empty first chunk still returns valid counts (#25).
+  snps_removed <- 0
+  snps_analyzed <- 0
+
   
   ################################################
   ##### Start repeat loop ########################
@@ -21,8 +24,8 @@ loadProcessWrite.MichiganSangerCoxSurv<- function(x, cl, cox.params) {
                           "-",
                           chunk.start+x$chunk.size)    
     
-    data <- readVcf(vcf, 
-                    param=ScanVcfParam(geno="DS",
+    data <- readVcf(vcf,
+                    param=ScanVcfParam(geno=x$geno.field,
                                        info=x$ScanVcfParamInfo))
     
     if(nrow(data)==0) break
@@ -84,9 +87,11 @@ loadProcessWrite.MichiganSangerCoxSurv<- function(x, cl, cox.params) {
   
   ################################################
   close(vcf)
-  
-  return(list(snps_removed, snps_analyzed))
-  
+
+  # Named list: coxSurv() / closing_messages() read these by name. An unnamed
+  # list left `snps_analyzed` NULL -> blank "SNPs were analyzed" message (#25).
+  return(list(snps_removed = snps_removed, snps_analyzed = snps_analyzed))
+
 }
 
 coxVcf <- function(x, data, cox.params, cl){
@@ -96,9 +101,12 @@ coxVcf <- function(x, data, cox.params, cl){
   # info.filter <- x$info.filter
   inter.term <- x$inter.term
   print.covs <- x$print.covs
-  ####### Get genotype data ############ 
-  # read dosage data from collapsed vcf, subset for defined ids
-  genotypes <- geno(data)$DS[, cox.params$ids, drop=FALSE]
+  ####### Get genotype data ############
+  # Convert the requested VCF genotype field (DS/GT/HDS) to ALT dosage, then
+  # subset for defined ids.
+  genotypes <- genotypeFieldToDosage(geno(data)[[x$geno.field]],
+                                     x$geno.field, verbose = x$verbose)
+  genotypes <- genotypes[, cox.params$ids, drop=FALSE]
   ########################################
   
   ##################################################
@@ -179,6 +187,19 @@ coxVcf <- function(x, data, cox.params, cl){
 
       snp <- snp[, x$snp.ord]
       snp.drop <- snp.drop[, x$snp.ord]
+
+      # Effect allele is unambiguous for VCF dosages: DS/GT/HDS count the ALT
+      # allele, so the hazard ratio is per 1 copy of ALT. Emit it explicitly so
+      # users never have to infer which allele the HR refers to.
+      snp$EFFECT_ALLELE <- snp$ALT
+      snp$OTHER_ALLELE  <- snp$REF
+      if (nrow(snp.drop) > 0) {
+        snp.drop$EFFECT_ALLELE <- snp.drop$ALT
+        snp.drop$OTHER_ALLELE  <- snp.drop$REF
+      } else {
+        snp.drop$EFFECT_ALLELE <- character(0)
+        snp.drop$OTHER_ALLELE  <- character(0)
+      }
       ###########################################################
       
       ###########################################################

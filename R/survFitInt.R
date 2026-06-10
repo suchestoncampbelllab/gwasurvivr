@@ -14,7 +14,7 @@ survFitInt <- function(SNP,
     ROWNAMES <- cox.params$ROWNAMES[!is.na(SNP)]
     
     ## run fit with pre-defined parameters including INIT
-    fit <- coxph.fit(X,
+    fit <- cox.params$coxph_fit(X,
                      Y,
                      cox.params$STRATA,
                      cox.params$OFFSET,

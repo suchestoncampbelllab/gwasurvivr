@@ -27,7 +27,18 @@
 #' @param maf.filter integer(1) filter out minor allele frequency below
 #'  threshold (i.e. 0.005 will filter MAF > 0.005)
 #' @param chunk.size integer(1) number of variants to process per thread
+#' @param genotype.field character(1) the VCF FORMAT field to read genotypes
+#'  from: \code{"DS"} (ALT-allele dosage, default), \code{"GT"} (hard calls,
+#'  converted to ALT counts of 0/1/2), or \code{"HDS"} (per-haplotype dosages,
+#'  summed). The hazard ratio is per one additional copy of the ALT allele;
+#'  output \code{EFFECT_ALLELE} (= ALT) and \code{OTHER_ALLELE} (= REF) make
+#'  this explicit.
 #' @param out.file character(1) string with output name
+#' @param start.time character(1) optional column name in the covariate file
+#'  giving a per-sample entry (left-truncation) time. When supplied, models use
+#'  counting-process \code{Surv(start.time, time.to.event, event)} intervals
+#'  (fit with survival's agreg.fit); when \code{NULL} (default) standard
+#'  right-censored survival is used.
 #' @param verbose logical(1) for messages that describe which part of the
 #'  analysis is currently being run
 #' @param clusterObj A cluster object that can be used with the \code{parApply}
@@ -95,7 +106,7 @@
 #'               verbose=TRUE,
 #'               clusterObj=NULL)
 #' 
-#' @importFrom survival Surv coxph.fit
+#' @importFrom survival Surv
 #' @importFrom utils write.table
 #' @importFrom matrixStats rowMeans2
 #' @importFrom SummarizedExperiment rowRanges
@@ -120,11 +131,14 @@ sangerCoxSurv <- function(vcf.file,
                           maf.filter=0.05,
                           info.filter=NULL,
                           chunk.size=5000,
+                          genotype.field="DS",
+                          start.time=NULL,
                           verbose=TRUE,
                           clusterObj=NULL){
-    
-    
+
+
     coxSurv(createSangerCoxSurv(vcf.file = vcf.file,
+                                  start.time = start.time,
                                   covariate.file = covariate.file,
                                   id.column = id.column,
                                   sample.ids=sample.ids,
@@ -137,6 +151,7 @@ sangerCoxSurv <- function(vcf.file,
                                   maf.filter=maf.filter,
                                   info.filter=info.filter,
                                   chunk.size=chunk.size,
+                                  genotype.field=genotype.field,
                                   verbose=verbose,
                                   clusterObj=clusterObj))
     

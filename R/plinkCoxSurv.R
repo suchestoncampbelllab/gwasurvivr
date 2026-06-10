@@ -25,10 +25,26 @@
 #' @param out.file character of output file name (do not include extension) 
 #' @param chunk.size integer number of variants to process per thread
 #' @param maf.filter numeric to filter minor allele frequency
-#'  (i.e. choosing 0.05 means filtering MAF>0.05). User can set this to 
+#'  (i.e. choosing 0.05 means filtering MAF>0.05). User can set this to
 #' \code{NULL} if no filtering is preffered. Default is 0.05.
-#' @param flip.dosage logical to flip which allele the dosage was
-#'  calculated on, default \code{flip.dosage=TRUE}
+#' @param exclude.snps character vector of SNP IDs to exclude from the
+#'  analysis, or \code{NULL} (default) to analyze all variants.
+#' @param keepGDS logical(1); if \code{TRUE}, retain the intermediate GDS file
+#'  created from the PLINK input (written next to the .bed file) instead of
+#'  using a temporary file. Default \code{FALSE}.
+#' @param flip.dosage logical(1); controls which allele the additive dosage
+#'  (and therefore the hazard ratio) is calculated on. Default
+#'  \code{flip.dosage=TRUE}. With \code{flip.dosage=FALSE} the effect allele is
+#'  \code{A1} (allele coded 1, conventionally the minor allele in PLINK). With
+#'  the default \code{flip.dosage=TRUE} the dosage is flipped to
+#'  \code{2 - dosage}, so the effect allele becomes \code{A0} and the HR is per
+#'  one additional copy of \code{A0}. The \code{exp_freq_A1} column reports the
+#'  frequency of the effect allele (i.e. of A0 when flipped, A1 otherwise).
+#' @param start.time character(1) optional column name in the covariate file
+#'  giving a per-sample entry (left-truncation) time. When supplied, models use
+#'  counting-process \code{Surv(start.time, time.to.event, event)} intervals
+#'  (fit with survival's agreg.fit); when \code{NULL} (default) standard
+#'  right-censored survival is used.
 #' @param verbose logical for messages that describe which part of the
 #'  analysis is currently being run
 #' @param clusterObj A cluster object that can be used with the
@@ -98,7 +114,7 @@
 #'              verbose=TRUE,
 #'              clusterObj=NULL)  
 #'  
-#' @importFrom survival Surv coxph.fit
+#' @importFrom survival Surv
 #' @importFrom matrixStats rowMeans2 rowVars rowSds
 #' @importFrom SummarizedExperiment rowRanges
 #' @importFrom utils write.table
@@ -126,14 +142,15 @@ plinkCoxSurv <- function(bed.file,
                          flip.dosage=TRUE,
                          verbose=TRUE,
                          clusterObj=NULL,
-                         keepGDS = FALSE)
+                         keepGDS = FALSE,
+                         start.time = NULL)
 {
-  
+
   coxSurv(createPlinkCoxSurv(bed.file,
                              covariate.file,
                              id.column,
-                             sample.ids, 
-                             time.to.event, 
+                             sample.ids,
+                             time.to.event,
                              event,
                              covariates,
                              inter.term,
@@ -145,6 +162,7 @@ plinkCoxSurv <- function(bed.file,
                              flip.dosage,
                              verbose,
                              clusterObj,
-                             keepGDS))
+                             keepGDS,
+                             start.time = start.time))
 
 } 

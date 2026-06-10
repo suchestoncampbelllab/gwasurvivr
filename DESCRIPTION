@@ -1,27 +1,20 @@
 Package: gwasurvivr
 Type: Package
-Title: gwasurvivr: an R package for genome wide survival analysis 
-Version: 1.1
-Year: 2021
-Authors@R: 
-  c(person(given = "Abbas",
-           family = "Rizvi",
-           role = c("aut", "cre"),
-           email = "aarizv@gmail.com"),
-    person(given = "Ezgi",
-           family = "Karaesmen",
-           role = "aut"),
-    person(given = "Martin",
-           family = "Morgan",
-           role = "aut"),
-    person(given = "Lara",
-           family = "Sucheston-Campbell",
-           role = "aut"),
-    person(given = "Mark",
-           family = "Platts",
-           role = "ctb"))
-Maintainer: Abbas Rizvi <aarizv@gmail.com>
-Description: gwasurvivr is a package to perform survival analysis using Cox proportional hazard models on imputed genetic data.
+Title: gwasurvivr: an R package for genome wide survival analysis
+Version: 2.0.0
+Authors@R: c(
+    person("Abbas", "Rizvi", email = "aarizv@gmail.com",
+           role = c("aut", "cre")),
+    person("Ezgi", "Karaesmen", role = "aut"),
+    person("Martin", "Morgan", role = "aut"),
+    person("Lara", "Sucheston-Campbell", role = "aut"),
+    person("Mark", "Platts", role = "ctb"))
+Description: gwasurvivr performs genome-wide survival analysis by fitting Cox
+    proportional hazard models to imputed genetic data. For speed it calls the
+    survival package's per-variant fitter directly, warm-started from a
+    covariate-only fit, and processes variants in parallel chunks. It reads
+    VCF (Michigan/Minimac and Sanger imputation servers), PLINK, IMPUTE2 and
+    GDS inputs.
 VignetteBuilder:
     knitr
 Imports:
@@ -38,12 +31,14 @@ Suggests:
     BiocStyle,
     knitr,
     rmarkdown,
-    testthat
+    testthat (>= 3.0.0),
+    dplyr
 Depends:
-    R (>= 3.4.0)
+    R (>= 4.0.0)
 License: Artistic-2.0
 URL: https://github.com/suchestoncampbelllab/gwasurvivr
-biocViews: 
+BugReports: https://github.com/suchestoncampbelllab/gwasurvivr/issues
+biocViews:
     GenomeWideAssociation,
     Survival,
     Regression,
@@ -52,5 +47,6 @@ biocViews:
     GeneticVariability,
     Pharmacogenomics,
     BiomedicalInformatics
-RoxygenNote: 7.1.1
 Encoding: UTF-8
+Config/testthat/edition: 3
+Config/roxygen2/version: 8.0.0

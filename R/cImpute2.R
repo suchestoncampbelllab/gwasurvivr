@@ -16,9 +16,11 @@ createImpute2CoxSurv <- function(impute.file,
                                  flip.dosage,
                                  verbose,
                                  clusterObj,
-                                 keepGDS){
-  
+                                 keepGDS,
+                                 start.time = NULL){
+
   cox_surv <- list(impute.file = impute.file,
+                   start.time = start.time,
                    sample.file = sample.file,
                    chr = chr,
                    covariate.file = covariate.file,
@@ -49,8 +51,10 @@ createImpute2CoxSurv <- function(impute.file,
 }
 
 createSnpSpike.Impute2CoxSurv <- function(x, cox.params){
-  rbind(c(rnorm(nrow(cox.params$pheno.file)-3), rep(NA, 3)),
-        c(rnorm(nrow(cox.params$pheno.file)-4), rep(NA, 4)))
+  # Use n.sample (not nrow(pheno.file), which is NULL when covariates=NULL, #6).
+  n <- cox.params$n.sample
+  rbind(c(rnorm(n-3), rep(NA, 3)),
+        c(rnorm(n-4), rep(NA, 4)))
 }
 
 

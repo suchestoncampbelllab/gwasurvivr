@@ -37,5 +37,27 @@ biocLite("gwasurvivr")
 # How to use package
 Please refer to the [vignette](http://bioconductor.org/packages/devel/bioc/vignettes/gwasurvivr/inst/doc/gwasurvivr_Introduction.html) for a detailed description on how to use gwasurvivr functions for survival analysis (Cox proportional hazard model).
 
+# The effect allele
+gwasurvivr models additive dosage of the **ALT** allele, so the hazard ratio
+(`HR`) is the change in hazard per one additional ALT copy. VCF output
+(`michiganCoxSurv`/`sangerCoxSurv`) now includes `EFFECT_ALLELE` (= ALT) and
+`OTHER_ALLELE` (= REF) so there is no ambiguity about which allele the HR refers
+to.
+
+For `plinkCoxSurv`/`impute2CoxSurv`/`gdsCoxSurv` the effect allele depends on
+`flip.dosage`: with the default `flip.dosage = TRUE` the effect allele is `A0`;
+with `FALSE` it is `A1`. "Minor" vs "major" is sample-dependent — `SAMP_MAF`
+reports the minor-allele frequency in your samples, and the minor allele may be
+either the effect or the other allele.
+
+# Hard-call genotypes
+For VCFs that carry only hard genotype calls (no dosage), set
+`genotype.field = "GT"` in `michiganCoxSurv`/`sangerCoxSurv` (or `"HDS"` for
+per-haplotype dosages). The default is `"DS"` (dosage).
+
+# Reporting issues
+Please report bugs and questions at
+<https://github.com/suchestoncampbelllab/gwasurvivr/issues>.
+
 
 

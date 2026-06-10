@@ -1,4 +1,25 @@
+# RStudio / R session
 *.Rproj
-.Rproj.user
+.Rproj.user/
 .Rhistory
 .Ruserdata
+.RData
+
+# OS cruft
+.DS_Store
+
+# Local Claude Code session config
+.claude/
+
+# Build / check artifacts
+*.tar.gz
+*.Rcheck/
+
+# gwasurvivr run outputs
+*.coxph
+*.snps_removed
+
+# Local data / debugging scratch (NEVER commit human genotype data)
+debug/
+# NOTE: inst/extdata/*.gds and *.rdata are tracked package fixtures and are
+# intentionally NOT ignored here.
