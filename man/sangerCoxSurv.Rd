@@ -5,11 +5,25 @@
 \title{Fit Cox survival to all variants in a .vcf.gz file from Sanger imputation 
  server}
 \usage{
-sangerCoxSurv(vcf.file, covariate.file, id.column, sample.ids = NULL,
-  time.to.event, event, covariates, inter.term = NULL,
-  print.covs = "only", out.file, maf.filter = 0.05,
-  info.filter = NULL, chunk.size = 5000, verbose = TRUE,
-  clusterObj = NULL)
+sangerCoxSurv(
+  vcf.file,
+  covariate.file,
+  id.column,
+  sample.ids = NULL,
+  time.to.event,
+  event,
+  covariates,
+  inter.term = NULL,
+  print.covs = "only",
+  out.file,
+  maf.filter = 0.05,
+  info.filter = NULL,
+  chunk.size = 5000,
+  genotype.field = "DS",
+  start.time = NULL,
+  verbose = TRUE,
+  clusterObj = NULL
+)
 }
 \arguments{
 \item{vcf.file}{character(1) path to VCF file. This file needs to accompanied 
@@ -48,6 +62,19 @@ threshold (i.e. 0.005 will filter MAF > 0.005)}
 (i.e. 0.7 will filter info > 0.7)}
 
 \item{chunk.size}{integer(1) number of variants to process per thread}
+
+\item{genotype.field}{character(1) the VCF FORMAT field to read genotypes
+from: \code{"DS"} (ALT-allele dosage, default), \code{"GT"} (hard calls,
+converted to ALT counts of 0/1/2), or \code{"HDS"} (per-haplotype dosages,
+summed). The hazard ratio is per one additional copy of the ALT allele;
+output \code{EFFECT_ALLELE} (= ALT) and \code{OTHER_ALLELE} (= REF) make
+this explicit.}
+
+\item{start.time}{character(1) optional column name in the covariate file
+giving a per-sample entry (left-truncation) time. When supplied, models use
+counting-process \code{Surv(start.time, time.to.event, event)} intervals
+(fit with survival's agreg.fit); when \code{NULL} (default) standard
+right-censored survival is used.}
 
 \item{verbose}{logical(1) for messages that describe which part of the
 analysis is currently being run}

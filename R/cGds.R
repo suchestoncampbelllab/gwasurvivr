@@ -13,9 +13,11 @@ createGdsCoxSurv <- function(gdsfile,
                              exclude.snps,
                              flip.dosage,
                              verbose,
-                             clusterObj) {
+                             clusterObj,
+                             start.time = NULL) {
     cox_surv <- list(
         gdsfile = gdsfile,
+        start.time = start.time,
         covariate.file = covariate.file,
         id.column = id.column,
         sample.ids = sample.ids,
@@ -54,12 +56,10 @@ createGdsCoxSurv <- function(gdsfile,
 }
 
 createSnpSpike.GdsCoxSurv <- function(x, cox.params) {
-    rbind(c(rnorm(nrow(
-        cox.params$pheno.file
-    ) - 3), rep(NA, 3)),
-    c(rnorm(nrow(
-        cox.params$pheno.file
-    ) - 4), rep(NA, 4)))
+    # Use n.sample (not nrow(pheno.file), which is NULL when covariates=NULL, #6).
+    n <- cox.params$n.sample
+    rbind(c(rnorm(n - 3), rep(NA, 3)),
+          c(rnorm(n - 4), rep(NA, 4)))
 }
 
 

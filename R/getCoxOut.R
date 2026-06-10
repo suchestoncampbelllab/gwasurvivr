@@ -21,7 +21,11 @@ getGenotypesCoxOut <- function(inter.term,
                                    cox.params = cox.params,
                                    print.covs = print.covs)
             }
-        } else if (inter.term %in% covariates) {
+        } else if (inter.term %in% colnames(cox.params$pheno.file)) {
+            # The interaction covariate's name lives in the cox.params pheno
+            # matrix columns. The previous code referenced an undefined
+            # `covariates` symbol here, which errored on every interaction run
+            # and produced empty output (#32).
             if (is.matrix(genotypes)) {
                 cox.out <- t(
                     parApply(
@@ -42,13 +46,15 @@ getGenotypesCoxOut <- function(inter.term,
                     print.covs = print.covs
                 )
             }
+        } else {
+            stop("Interaction term '", inter.term, "' is not among the model ",
+                 "covariates (", paste(colnames(cox.params$pheno.file),
+                                       collapse = ", "),
+                 "). It must be included in `covariates`.")
         }
-        
-        
 
-    
     return(cox.out)
-    
+
 }
 
 

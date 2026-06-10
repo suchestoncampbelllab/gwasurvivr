@@ -1,2 +1,14 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
+^debug$
+^\.claude$
+^\.github$
+^\.DS_Store$
+^\.gitignore$
+^.*\.coxph$
+^.*\.snps_removed$
+^README\.Rmd$
+^LICENSE\.md$
+^\.Rhistory$
+^plans$
+^.*\.tar\.gz$

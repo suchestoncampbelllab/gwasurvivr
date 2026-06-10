@@ -1,5 +1,4 @@
 coxSurv <- function(cox_surv) {
-  # browser()
   if(cox_surv$verbose) message("Analysis started on ",
                       format(Sys.time(), "%Y-%m-%d"),
                       " at ",
@@ -7,14 +6,15 @@ coxSurv <- function(cox_surv) {
 
   ############################################################################
   #### Phenotype data wrangling ##############################################
-  cox.params <- coxPheno(pheno.file = cox_surv$covariate.file, 
-                         covariates = cox_surv$covariates, 
-                         id.column = cox_surv$id.column, 
-                         inter.term = cox_surv$inter.term, 
+  cox.params <- coxPheno(pheno.file = cox_surv$covariate.file,
+                         covariates = cox_surv$covariates,
+                         id.column = cox_surv$id.column,
+                         inter.term = cox_surv$inter.term,
                          time.to.event = cox_surv$time.to.event,
-                         event = cox_surv$event, 
-                         sample.ids = cox_surv$sample.ids, 
-                         verbose = cox_surv$verbose)
+                         event = cox_surv$event,
+                         sample.ids = cox_surv$sample.ids,
+                         verbose = cox_surv$verbose,
+                         start.time = cox_surv$start.time)
 
   ############################################################################
   

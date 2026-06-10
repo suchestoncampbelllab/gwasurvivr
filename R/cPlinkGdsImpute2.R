@@ -113,41 +113,42 @@ runOnChunks <- function(x, genoData, cox.params, cl) {
         
         ###############################################################
         ##### SNP filtering ###########################################
-        
-        ### Check snps for MAF = 0  ###
-        # remove snps with SD less than 1e-4
-        # to put this in perspective:
-        # a sample size of 100 000 000 with only 1 person being 1 and rest 0,
-        # has an SD = 1e-4
-        # x <- c(rep(0, 1e8),1)
-        # sd(x)
-        ok.snp <- rowSds(genotypes, na.rm = TRUE) > 1e-4
-        snp <- snp[ok.snp,]
-        genotypes <- genotypes[ok.snp,]
-        snp.drop <- snp[!ok.snp,]
-        
-        # calculate MAF
+        #
+        # Compute allele frequency + sample MAF for EVERY SNP in the chunk
+        # first, then build a single keep/drop mask. This fixes two bugs:
+        #  (1) the old code subset `snp`/`genotypes` BEFORE deriving snp.drop,
+        #      so dropped rows were taken from the already-subset frame with a
+        #      wrong-length mask (garbage / lost SNPs);
+        #  (2) it stamped bogus exp_freq_A1=1 / SAMP_MAF=0 onto SD-dropped SNPs
+        #      and rbound mismatched schemas, corrupting .snps_removed (#36).
+        # Doing it once also removes the redundant double-subsetting (speed).
+
+        # allele frequency of A1 and sample minor allele frequency
         snp$exp_freq_A1 <-
             round(rowMeans2(genotypes, na.rm = TRUE) * 0.5, 4)
         snp$SAMP_MAF <- ifelse(snp$exp_freq_A1 > 0.5,
                                1 - snp$exp_freq_A1,
                                snp$exp_freq_A1)
-        
-        # Further filter by user defined thresholds
-        if (!is.null(x$maf.filter)) {
-            ok.snp <- snp$SAMP_MAF > x$maf.filter
-            genotypes <- genotypes[ok.snp, ]
-            snp <- snp[ok.snp, ]
-            
-            if (nrow(snp.drop) > 0) {
-                snp.drop$exp_freq_A1 <- 1
-                snp.drop$SAMP_MAF <- 0
-                snp.drop <- rbind(snp.drop, snp[!ok.snp, ])
-            } else {
-                snp.drop <- snp[!ok.snp, ]
-            }
+
+        # Drop near-monomorphic SNPs (SD < 1e-4). For perspective: a sample of
+        # 100,000,000 with a single carrier has SD = 1e-4.
+        #   x <- c(rep(0, 1e8), 1); sd(x)
+        ok.sd <- rowSds(genotypes, na.rm = TRUE) > 1e-4
+
+        # Drop SNPs failing the user MAF threshold (if any). SAMP_MAF is already
+        # min(af, 1-af), so a single one-sided test is correct.
+        ok.maf <- if (!is.null(x$maf.filter)) {
+            snp$SAMP_MAF > x$maf.filter
+        } else {
+            rep(TRUE, nrow(snp))
         }
-        
+
+        keep <- ok.sd & ok.maf
+        # snp.drop carries the SAME columns as kept SNPs (incl. real freq/MAF).
+        snp.drop <- snp[!keep, , drop = FALSE]
+        snp <- snp[keep, , drop = FALSE]
+        genotypes <- genotypes[keep, , drop = FALSE]
+
         if (nrow(snp.drop) > 0) {
             write.table(
                 snp.drop,

@@ -1,10 +1,10 @@
 survFit <- function(SNP, cox.params, print.covs){
         
     if(is.null(cox.params$pheno.file)){
-        SNP <- SNP[!is.na(SNP)]
-        X <- matrix(SNP, ncol = 1)
-        Y <- cox.params$Y[!is.na(SNP)]
-        ROWNAMES <- cox.params$ROWNAMES[!is.na(SNP)]
+        ok <- !is.na(SNP)
+        X <- matrix(SNP[ok], ncol = 1)
+        Y <- cox.params$Y[ok]
+        ROWNAMES <- cox.params$ROWNAMES[ok]
     }else{
         ## creating model matrix
         X <- cbind(SNP, cox.params$pheno.file)
@@ -14,14 +14,14 @@ survFit <- function(SNP, cox.params, print.covs){
     }
         
         ## run fit with pre-defined parameters including INIT
-        fit <- coxph.fit(X,
+        fit <- cox.params$coxph_fit(X,
                          Y,
                          cox.params$STRATA,
                          cox.params$OFFSET,
-                         cox.params$INIT, 
+                         cox.params$INIT,
                          cox.params$CONTROL,
                          cox.params$WEIGHTS,
-                         cox.params$METHOD, 
+                         cox.params$METHOD,
                          ROWNAMES)
         
         

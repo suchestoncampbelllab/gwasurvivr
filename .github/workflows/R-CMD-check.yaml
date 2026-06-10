@@ -1,0 +1,45 @@
+# Run R CMD check and the testthat suite on push / pull request.
+# Bioconductor dependencies (GWASTools, VariantAnnotation, ...) are resolved via
+# the Bioc-aware setup. No publish/push step -- this only verifies the package.
+on:
+  push:
+    branches: [master, devel, main]
+  pull_request:
+    branches: [master, devel, main]
+
+name: R-CMD-check
+
+jobs:
+  R-CMD-check:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      R_KEEP_PKG_SOURCE: yes
+      NOT_CRAN: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: release
+          use-public-rspm: true
+
+      - name: Install BiocManager and set Bioconductor repositories
+        run: |
+          install.packages("BiocManager")
+          cat(sprintf('options(repos = BiocManager::repositories())\n'),
+              file = "~/.Rprofile", append = TRUE)
+        shell: Rscript {0}
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: |
+            any::rcmdcheck
+            any::testthat
+            any::dplyr
+          needs: check
+
+      - uses: r-lib/actions/check-r-package@v2
+        with:
+          upload-snapshots: true
+          args: 'c("--no-manual")'

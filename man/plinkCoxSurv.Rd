@@ -4,11 +4,26 @@
 \alias{plinkCoxSurv}
 \title{Fit Cox survival to all variants from PLINK binary files (.BED, .BIM, .FAM)}
 \usage{
-plinkCoxSurv(bed.file, covariate.file, id.column, sample.ids = NULL,
-  time.to.event, event, covariates, inter.term = NULL,
-  print.covs = "only", out.file, chunk.size = 10000,
-  maf.filter = 0.005, flip.dosage = TRUE, verbose = TRUE,
-  clusterObj = NULL)
+plinkCoxSurv(
+  bed.file,
+  covariate.file,
+  id.column,
+  sample.ids = NULL,
+  time.to.event,
+  event,
+  covariates,
+  inter.term = NULL,
+  print.covs = "only",
+  out.file,
+  chunk.size = 10000,
+  maf.filter = 0.005,
+  exclude.snps = NULL,
+  flip.dosage = TRUE,
+  verbose = TRUE,
+  clusterObj = NULL,
+  keepGDS = FALSE,
+  start.time = NULL
+)
 }
 \arguments{
 \item{bed.file}{character of name of plink files without extension}
@@ -44,17 +59,36 @@ the output. See details.}
 \item{chunk.size}{integer number of variants to process per thread}
 
 \item{maf.filter}{numeric to filter minor allele frequency
- (i.e. choosing 0.05 means filtering MAF>0.05). User can set this to 
+ (i.e. choosing 0.05 means filtering MAF>0.05). User can set this to
 \code{NULL} if no filtering is preffered. Default is 0.05.}
 
-\item{flip.dosage}{logical to flip which allele the dosage was
-calculated on, default \code{flip.dosage=TRUE}}
+\item{exclude.snps}{character vector of SNP IDs to exclude from the
+analysis, or \code{NULL} (default) to analyze all variants.}
+
+\item{flip.dosage}{logical(1); controls which allele the additive dosage
+(and therefore the hazard ratio) is calculated on. Default
+\code{flip.dosage=TRUE}. With \code{flip.dosage=FALSE} the effect allele is
+\code{A1} (allele coded 1, conventionally the minor allele in PLINK). With
+the default \code{flip.dosage=TRUE} the dosage is flipped to
+\code{2 - dosage}, so the effect allele becomes \code{A0} and the HR is per
+one additional copy of \code{A0}. The \code{exp_freq_A1} column reports the
+frequency of the effect allele (i.e. of A0 when flipped, A1 otherwise).}
 
 \item{verbose}{logical for messages that describe which part of the
 analysis is currently being run}
 
 \item{clusterObj}{A cluster object that can be used with the
 \code{parApply} function. See details.}
+
+\item{keepGDS}{logical(1); if \code{TRUE}, retain the intermediate GDS file
+created from the PLINK input (written next to the .bed file) instead of
+using a temporary file. Default \code{FALSE}.}
+
+\item{start.time}{character(1) optional column name in the covariate file
+giving a per-sample entry (left-truncation) time. When supplied, models use
+counting-process \code{Surv(start.time, time.to.event, event)} intervals
+(fit with survival's agreg.fit); when \code{NULL} (default) standard
+right-censored survival is used.}
 }
 \value{
 Saves two text files directly to disk:  

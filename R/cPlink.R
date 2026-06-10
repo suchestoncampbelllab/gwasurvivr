@@ -14,9 +14,11 @@ createPlinkCoxSurv <- function(b.file,
                                   flip.dosage,
                                   verbose,
                                   clusterObj,
-                                  keepGDS){
-  
+                                  keepGDS,
+                                  start.time = NULL){
+
   cox_surv <- list(b.file = b.file,
+                   start.time = start.time,
                    covariate.file = covariate.file,
                    id.column = id.column,
                    sample.ids = sample.ids, 
@@ -44,8 +46,10 @@ createPlinkCoxSurv <- function(b.file,
 }
 
 createSnpSpike.PlinkCoxSurv <- function(x, cox.params){
-  rbind(rnorm(nrow(cox.params$pheno.file)),
-        rnorm(nrow(cox.params$pheno.file)))
+  # Use n.sample (not nrow(pheno.file), which is NULL when covariates=NULL, #6).
+  n <- cox.params$n.sample
+  rbind(rnorm(n),
+        rnorm(n))
 }
 
 
