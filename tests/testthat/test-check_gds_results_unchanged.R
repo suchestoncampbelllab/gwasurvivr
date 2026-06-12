@@ -39,6 +39,18 @@ if(file.exists(paste0(results_file_name, ".coxph"))){
   results_file <- NULL
 }
 
+# Round numeric columns so the snapshot is stable across R / survival
+# versions (exact low-order digits drift, especially for degenerate
+# perfectly-separated fits). Numeric correctness is asserted independently,
+# with tolerance, in test-stat-oracle.R.
+if (!is.null(results_file)) {
+  # Only round non-integer columns (statistics); leave integers such as POS,
+  # CHR, N and N.EVENT exact.
+  .frac <- vapply(results_file, function(col)
+    is.numeric(col) && any(col %% 1 != 0, na.rm = TRUE), logical(1))
+  results_file[.frac] <- lapply(results_file[.frac], signif, digits = 4)
+}
+
 test_that("check gds example results not changed", {
   expect_snapshot_output(results_file, cran = F)
 })

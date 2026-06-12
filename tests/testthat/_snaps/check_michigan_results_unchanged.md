@@ -1,15 +1,15 @@
 # check michigan example results not changed
 
-             RSID TYPED CHR      POS REF ALT       AF      MAF SAMP_FREQ_ALT
-    1  rs34919020 FALSE  14 19459185   C   T 0.301263 0.301263        0.3548
-    2   rs8005305 FALSE  14 20095842   G   T 0.514583 0.485417        0.5173
-    3 rs757545375 FALSE  14 20097287   A   G 0.519787 0.480213        0.5197
-      SAMP_MAF       R2 ER2 EFFECT_ALLELE OTHER_ALLELE    PVALUE        HR
-    1   0.3548 0.551952  NA             T            C 0.7125794 1.2244642
-    2   0.4827 0.479015  NA             T            G 0.8053739 0.8845102
-    3   0.4803 0.480693  NA             G            A 0.7983842 0.8805207
-      HR_lowerCI HR_upperCI          Z       COEF   SE.COEF  N N.EVENT
-    1  0.4169065   3.596280  0.3683941  0.2025033 0.5496922 52      21
-    2  0.3332310   2.347796 -0.2463983 -0.1227212 0.4980603 52      21
-    3  0.3316824   2.337528 -0.2554388 -0.1272418 0.4981304 52      21
+             RSID TYPED CHR      POS REF ALT     AF    MAF SAMP_FREQ_ALT SAMP_MAF
+    1  rs34919020 FALSE  14 19459185   C   T 0.3013 0.3013        0.3548   0.3548
+    2   rs8005305 FALSE  14 20095842   G   T 0.5146 0.4854        0.5173   0.4827
+    3 rs757545375 FALSE  14 20097287   A   G 0.5198 0.4802        0.5197   0.4803
+          R2 ER2 EFFECT_ALLELE OTHER_ALLELE PVALUE     HR HR_lowerCI HR_upperCI
+    1 0.5520  NA             T            C 0.7126 1.2240     0.4169      3.596
+    2 0.4790  NA             T            G 0.8054 0.8845     0.3332      2.348
+    3 0.4807  NA             G            A 0.7984 0.8805     0.3317      2.338
+            Z    COEF SE.COEF  N N.EVENT
+    1  0.3684  0.2025  0.5497 52      21
+    2 -0.2464 -0.1227  0.4981 52      21
+    3 -0.2554 -0.1272  0.4981 52      21
 
