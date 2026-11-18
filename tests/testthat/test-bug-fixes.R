@@ -191,3 +191,47 @@ test_that("#42: every VCF variant lands in .coxph or .snps_removed", {
     expect_length(o$res, 1)
     expect_length(o$rm, 29)
 })
+
+test_that("#42: a per-variant fit failure gives NA for that variant, not a crash", {
+    skip_if_not_installed("VariantAnnotation")
+    # Emilio's chrX run died with agreg.fit's "exp overflow due to
+    # covariates" on one variant. Mark one variant with a sentinel dosage and
+    # make the (start.time) fitter throw that exact error for it.
+    v <- VariantAnnotation::readVcf(vcf.file)
+    ds <- VariantAnnotation::geno(v)$DS
+    ds[2, exp.ids[1]] <- 1.234
+    VariantAnnotation::geno(v)$DS <- ds
+    f <- tmp("bug42c.vcf")
+    VariantAnnotation::writeVcf(v, f, index = TRUE)
+    f <- paste0(f, ".bgz")
+
+    real <- survival::agreg.fit
+    local_mocked_bindings(.resolve_agreg_fit = function() {
+        function(x, ...) {
+            if (any(abs(x[, 1] - 1.234) < 1e-9))
+                stop("exp overflow due to covariates\n")
+            real(x, ...)
+        }
+    })
+    ph <- pheno
+    ph$entry <- ph$time * 0.2
+    for (pc in c("only", "all")) {
+        stub <- tmp(paste0("bug42c_", pc))
+        on.exit(cleanup(stub), add = TRUE)
+        expect_no_error(suppressMessages(
+            michiganCoxSurv(vcf.file = f, covariate.file = ph,
+                            id.column = "ID_2", sample.ids = exp.ids,
+                            time.to.event = "time", event = "event",
+                            covariates = c("age", "SexFemale", "DrugTxYes"),
+                            start.time = "entry", inter.term = NULL,
+                            print.covs = pc, out.file = stub,
+                            r2.filter = 0.3, maf.filter = 0.005,
+                            chunk.size = 50, verbose = FALSE,
+                            clusterObj = NULL)))
+        out <- read.table(paste0(stub, ".coxph"), sep = "\t", header = TRUE)
+        expect_equal(nrow(out), 3)
+        coef.col <- grep("^COEF", colnames(out))[1]
+        expect_true(is.na(out[2, coef.col]))
+        expect_false(anyNA(out[-2, coef.col]))
+    }
+})

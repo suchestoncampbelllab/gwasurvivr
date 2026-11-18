@@ -9,6 +9,10 @@
 * Variants with a missing dosage in any analysed sample are now written to
   `.snps_removed` instead of stopping the run with
   "missing value where TRUE/FALSE needed" (#42).
+* A numerical failure fitting a single variant (e.g. survival's
+  `agreg.fit` "exp overflow due to covariates" on a separated variant in a
+  `start.time` analysis) now gives NA estimates for that variant instead of
+  stopping the whole run (#42). Applies to all input formats.
 * Fixed `r2.filter` in `michiganCoxSurv()`, which was never applied: every
   variant with a non-missing R2 was kept regardless of the threshold (#42).
 

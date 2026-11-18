@@ -13,16 +13,24 @@ survFitInt <- function(SNP,
     Y <- cox.params$Y[!is.na(SNP)]
     ROWNAMES <- cox.params$ROWNAMES[!is.na(SNP)]
     
-    ## run fit with pre-defined parameters including INIT
-    fit <- cox.params$coxph_fit(X,
+    ## run fit with pre-defined parameters including INIT.
+    ## Per-variant numerical failure -> NA estimates, not an aborted run (#42).
+    fit <- tryCatch(
+        cox.params$coxph_fit(X,
                      Y,
                      cox.params$STRATA,
                      cox.params$OFFSET,
-                     c(0,cox.params$INIT), 
+                     c(0,cox.params$INIT),
                      cox.params$CONTROL,
                      cox.params$WEIGHTS,
-                     cox.params$METHOD, 
-                     ROWNAMES)
+                     cox.params$METHOD,
+                     ROWNAMES),
+        error = function(e) {
+            p <- ncol(X)
+            list(coefficients = stats::setNames(rep(NA_real_, p),
+                                                colnames(X)),
+                 var = matrix(NA_real_, p, p))
+        })
     
     ## extract statistics
     if(print.covs=="only") {
