@@ -108,7 +108,7 @@
 #' 
 #' @importFrom survival Surv
 #' @importFrom utils write.table
-#' @importFrom matrixStats rowMeans2
+#' @importFrom matrixStats rowMeans2 rowSds rowAnyNAs
 #' @importFrom SummarizedExperiment rowRanges
 #' @importFrom stats pnorm complete.cases
 #' @import parallel

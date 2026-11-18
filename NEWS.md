@@ -1,3 +1,17 @@
+# gwasurvivr 2.0.1
+
+* Fixed variants silently disappearing from `michiganCoxSurv()` /
+  `sangerCoxSurv()` output, so `.coxph` + `.snps_removed` did not add up to
+  the input VCF (#42). Any error inside a chunk used to discard every variant
+  in that chunk; a chunk where exactly one variant passed filtering always
+  hit this. Filters are now NA-safe, subsets keep matrix shape, and real
+  fitting errors are reported instead of swallowed.
+* Variants with a missing dosage in any analysed sample are now written to
+  `.snps_removed` instead of stopping the run with
+  "missing value where TRUE/FALSE needed" (#42).
+* Fixed `r2.filter` in `michiganCoxSurv()`, which was never applied: every
+  variant with a non-missing R2 was kept regardless of the threshold (#42).
+
 # gwasurvivr 2.0.0
 
 ## Repair & correctness

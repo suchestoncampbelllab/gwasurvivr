@@ -143,81 +143,53 @@ coxVcf <- function(x, data, cox.params, cl){
   # has an SD = 1e-4
   # x <- c(rep(0, 1e8),1)
   # sd(x)
-  snp.keep <- rowSds(genotypes) > 1e-4
-  if(!all(snp.keep)){
-    genotypes <- genotypes[snp.keep,]
-    snp.drop <- snp[!snp.keep,]
-    snp <- snp[snp.keep,]
-  }else{
-    snp.drop <- data.frame()
+  #
+  # Every filter below is NA-safe (NA -> drop) and every subset uses
+  # drop=FALSE, so each variant in the chunk lands in exactly one of
+  # .coxph / .snps_removed (#42). Variants with any missing dosage in the
+  # analysed samples are removed: the Cox fit cannot use them.
+  colnames(snp) <- x$snp.cols
+  keep <- !rowAnyNAs(genotypes)
+  keep[keep] <- rowSds(genotypes[keep, , drop=FALSE]) > 1e-4
+
+  # Further filter by user defined thresholds
+  if(!is.null(maf.filter)){
+    snpRef <- getSnpRef(x, snp)
+    keep <- keep & !is.na(snpRef) &
+      snpRef > maf.filter & snpRef < (1-maf.filter)
   }
-  
-  
-  empty.geno <- tryCatch(
-    {
-      
-      snpRef <- getSnpRef(x, snp)
-      x.filter <- getFilter(x)
-      threshold_name <- getThresholdName(x)
-      
-      # Further filter by user defined thresholds
-      if(!is.null(maf.filter)){
-        
-        ok.maf <- snpRef>maf.filter & snpRef<(1-maf.filter)
-        snp.drop <- base::rbind(snp.drop,snp[!ok.maf,])
-        snp <- snp[ok.maf,]
-        if(all(!ok.maf)) stop("None of the SNPs pass the MAF threshold")
-        genotypes <- genotypes[ok.maf,]
-      }
-      
-      if(!is.null(x.filter)){
-        ok.info <- getOkInfo(x, snp, x.filter)
-        snp.drop <- base::rbind(snp.drop,snp[!ok.info,])
-        snp <- snp[ok.info,]
-        if(all(!ok.info)) {
-          stop(paste0("None of the SNPs pass the ",threshold_name, " threshold"))
-        }
-        genotypes <- genotypes[ok.info,]
-      }
-      #############################################################
-      ########## clean and save dropped and kept SNP info #########
-      # rearrange columns for snp info
-      colnames(snp) <- x$snp.cols
-      colnames(snp.drop) <- x$snp.cols
+  x.filter <- getFilter(x)
+  if(!is.null(x.filter)){
+    ok.info <- getOkInfo(x, snp, x.filter)
+    keep <- keep & !is.na(ok.info) & ok.info
+  }
 
-      snp <- snp[, x$snp.ord]
-      snp.drop <- snp.drop[, x$snp.ord]
+  #############################################################
+  ########## clean and save dropped and kept SNP info #########
+  snp <- snp[, x$snp.ord, drop=FALSE]
+  # Effect allele is unambiguous for VCF dosages: DS/GT/HDS count the ALT
+  # allele, so the hazard ratio is per 1 copy of ALT. Emit it explicitly so
+  # users never have to infer which allele the HR refers to.
+  snp$EFFECT_ALLELE <- snp$ALT
+  snp$OTHER_ALLELE  <- snp$REF
 
-      # Effect allele is unambiguous for VCF dosages: DS/GT/HDS count the ALT
-      # allele, so the hazard ratio is per 1 copy of ALT. Emit it explicitly so
-      # users never have to infer which allele the HR refers to.
-      snp$EFFECT_ALLELE <- snp$ALT
-      snp$OTHER_ALLELE  <- snp$REF
-      if (nrow(snp.drop) > 0) {
-        snp.drop$EFFECT_ALLELE <- snp.drop$ALT
-        snp.drop$OTHER_ALLELE  <- snp.drop$REF
-      } else {
-        snp.drop$EFFECT_ALLELE <- character(0)
-        snp.drop$OTHER_ALLELE  <- character(0)
-      }
-      ###########################################################
-      
-      ###########################################################
-      ############### fit models in parallel ####################
-      cox.out <- getGenotypesCoxOut(inter.term, genotypes, cl, cox.params,
-                                    print.covs)
-      #############################################
-      mod.out <- list(dropped.snps=snp.drop)
-      mod.out$res <- coxExtract(cox.out,
-                                snp, 
-                                print.covs)
-      return(mod.out)
-    },
-    error=function(err) err
-  )
-  if(inherits(empty.geno, "error")){
-    mod.out <- list(dropped.snps=snp.drop)
-    mod.out$res <- NULL
-    return(mod.out)
-  } 
+  snp.drop <- snp[!keep, , drop=FALSE]
+  snp <- snp[keep, , drop=FALSE]
+  genotypes <- genotypes[keep, , drop=FALSE]
+
+  mod.out <- list(dropped.snps=snp.drop, res=NULL)
+  if(nrow(genotypes) == 0) return(mod.out)
+
+  ###########################################################
+  ############### fit models in parallel ####################
+  # Errors are NOT swallowed here: previously any failure silently discarded
+  # every variant in the chunk from both output files (#42).
+  cox.out <- tryCatch(
+    getGenotypesCoxOut(inter.term, genotypes, cl, cox.params, print.covs),
+    error=function(err) {
+      stop("Cox fit failed for variants ", snp$RSID[1], " .. ",
+           snp$RSID[nrow(snp)], ": ", conditionMessage(err), call.=FALSE)
+    })
+  mod.out$res <- coxExtract(cox.out, snp, print.covs)
+  mod.out
 }

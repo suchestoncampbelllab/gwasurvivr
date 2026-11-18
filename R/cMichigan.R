@@ -87,5 +87,7 @@ getThresholdName.MichiganCoxSurv <- function(x){
   return("R2")
 }
 getOkInfo.MichiganCoxSurv <- function(x, snp, x.filter){
-  !is.na(snp$R2 >= x.filter)
+  # NA R2 -> not ok. (Previously `!is.na(R2 >= filter)`, which kept every
+  # variant with a non-missing R2 and so never applied the threshold, #42.)
+  !is.na(snp$R2) & snp$R2 >= x.filter
 }
