@@ -13,8 +13,14 @@ survFit <- function(SNP, cox.params, print.covs){
         ROWNAMES <- cox.params$ROWNAMES[!is.na(SNP)]
     }
         
-        ## run fit with pre-defined parameters including INIT
-        fit <- cox.params$coxph_fit(X,
+        ## run fit with pre-defined parameters including INIT.
+        ## A per-variant numerical failure (e.g. agreg.fit's "exp overflow
+        ## due to covariates" on a separated variant, #42) yields NA
+        ## estimates for that variant instead of aborting the whole run --
+        ## the same NA/Inf behaviour coxph.fit already gives such variants.
+        ## (Inlined, not a namespace helper, so PSOCK workers need nothing.)
+        fit <- tryCatch(
+            cox.params$coxph_fit(X,
                          Y,
                          cox.params$STRATA,
                          cox.params$OFFSET,
@@ -22,8 +28,14 @@ survFit <- function(SNP, cox.params, print.covs){
                          cox.params$CONTROL,
                          cox.params$WEIGHTS,
                          cox.params$METHOD,
-                         ROWNAMES)
-        
+                         ROWNAMES),
+            error = function(e) {
+                p <- ncol(X)
+                list(coefficients = stats::setNames(rep(NA_real_, p),
+                                                    colnames(X)),
+                     var = matrix(NA_real_, p, p))
+            })
+
         
         ## extract statistics
         if(print.covs=="only") {

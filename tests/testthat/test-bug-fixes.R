@@ -133,3 +133,105 @@ test_that("coxPheno gives a clear error when sample.ids do not match id.column",
         "sample.ids"
     )
 })
+
+test_that("#42: every VCF variant lands in .coxph or .snps_removed", {
+    skip_if_not_installed("VariantAnnotation")
+    # Build a 30-variant VCF from the fixture with: one missing dosage, one
+    # low-R2 variant, and (in a second file) a chunk where only one variant
+    # survives filtering. Each previously vanished or crashed the run.
+    v0 <- VariantAnnotation::readVcf(vcf.file)
+    v <- do.call(rbind, rep(list(v0), 10))
+    v <- v[order(as.data.frame(SummarizedExperiment::rowRanges(v))$start)]
+    rownames(v) <- sprintf("var%02d", seq_len(nrow(v)))
+    write_vcf <- function(v, name) {
+        f <- tmp(paste0(name, ".vcf"))
+        VariantAnnotation::writeVcf(v, f, index = TRUE)
+        paste0(f, ".bgz")
+    }
+    run <- function(f, stub, chunk.size) {
+        michiganCoxSurv(vcf.file = f, covariate.file = pheno,
+                        id.column = "ID_2", sample.ids = exp.ids,
+                        time.to.event = "time", event = "event",
+                        covariates = c("age", "SexFemale", "DrugTxYes"),
+                        inter.term = NULL, print.covs = "only",
+                        out.file = stub, r2.filter = 0.3, maf.filter = 0.005,
+                        chunk.size = chunk.size, verbose = FALSE,
+                        clusterObj = NULL)
+        list(res = readLines(paste0(stub, ".coxph"))[-1],
+             rm = readLines(paste0(stub, ".snps_removed")))
+    }
+
+    va <- v
+    ds <- VariantAnnotation::geno(va)$DS
+    ds[5, exp.ids[1]] <- NA
+    VariantAnnotation::geno(va)$DS <- ds
+    inf <- VariantAnnotation::info(va)
+    inf$R2[12] <- 0.1
+    VariantAnnotation::info(va) <- inf
+    fa <- write_vcf(va, "bug42a")
+
+    for (cs in c(7, 100)) {
+        stub <- tmp(paste0("bug42a_", cs))
+        on.exit(cleanup(stub), add = TRUE)
+        o <- suppressMessages(run(fa, stub, cs))
+        expect_equal(length(o$res) + length(o$rm), 30)
+        expect_length(o$rm, 2)
+        expect_true(any(grepl("^var05\t", o$rm)))   # missing dosage
+        expect_true(any(grepl("^var12\t", o$rm)))   # R2 = 0.1 < 0.3
+    }
+
+    vb <- v
+    ds <- VariantAnnotation::geno(vb)$DS
+    ds[-30, ] <- 0                                     # monomorphic
+    VariantAnnotation::geno(vb)$DS <- ds
+    fb <- write_vcf(vb, "bug42b")
+    stub <- tmp("bug42b")
+    on.exit(cleanup(stub), add = TRUE)
+    o <- suppressMessages(run(fb, stub, 100))
+    expect_length(o$res, 1)
+    expect_length(o$rm, 29)
+})
+
+test_that("#42: a per-variant fit failure gives NA for that variant, not a crash", {
+    skip_if_not_installed("VariantAnnotation")
+    # Emilio's chrX run died with agreg.fit's "exp overflow due to
+    # covariates" on one variant. Mark one variant with a sentinel dosage and
+    # make the (start.time) fitter throw that exact error for it.
+    v <- VariantAnnotation::readVcf(vcf.file)
+    ds <- VariantAnnotation::geno(v)$DS
+    ds[2, exp.ids[1]] <- 1.234
+    VariantAnnotation::geno(v)$DS <- ds
+    f <- tmp("bug42c.vcf")
+    VariantAnnotation::writeVcf(v, f, index = TRUE)
+    f <- paste0(f, ".bgz")
+
+    real <- survival::agreg.fit
+    local_mocked_bindings(.resolve_agreg_fit = function() {
+        function(x, ...) {
+            if (any(abs(x[, 1] - 1.234) < 1e-9))
+                stop("exp overflow due to covariates\n")
+            real(x, ...)
+        }
+    })
+    ph <- pheno
+    ph$entry <- ph$time * 0.2
+    for (pc in c("only", "all")) {
+        stub <- tmp(paste0("bug42c_", pc))
+        on.exit(cleanup(stub), add = TRUE)
+        expect_no_error(suppressMessages(
+            michiganCoxSurv(vcf.file = f, covariate.file = ph,
+                            id.column = "ID_2", sample.ids = exp.ids,
+                            time.to.event = "time", event = "event",
+                            covariates = c("age", "SexFemale", "DrugTxYes"),
+                            start.time = "entry", inter.term = NULL,
+                            print.covs = pc, out.file = stub,
+                            r2.filter = 0.3, maf.filter = 0.005,
+                            chunk.size = 50, verbose = FALSE,
+                            clusterObj = NULL)))
+        out <- read.table(paste0(stub, ".coxph"), sep = "\t", header = TRUE)
+        expect_equal(nrow(out), 3)
+        coef.col <- grep("^COEF", colnames(out))[1]
+        expect_true(is.na(out[2, coef.col]))
+        expect_false(anyNA(out[-2, coef.col]))
+    }
+})
